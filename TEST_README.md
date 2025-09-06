@@ -25,6 +25,15 @@ rake test
 rake
 ```
 
+### Run Tests with Coverage Report
+```bash
+# Generate test coverage report including branch coverage
+rake coverage
+
+# This will run all tests and generate an HTML coverage report
+# in the coverage/ directory. Open coverage/index.html to view the report.
+```
+
 ### Run Individual Test Files
 ```bash
 ruby test_xgutils.rb
@@ -40,6 +49,17 @@ rake test_xgimport
 ```
 
 ## Test Coverage
+
+The test suite now includes SimpleCov integration for comprehensive code coverage analysis:
+
+- **Line Coverage**: Tracks which lines of code are executed during tests
+- **Branch Coverage**: Tracks which branches (if/else, case statements, etc.) are taken
+- **HTML Reports**: Interactive coverage reports generated in `coverage/index.html`
+- **Multiple Formats**: Coverage data available in JSON format for CI/CD integration
+
+The coverage report excludes test files themselves and focuses on the main application code.
+
+### Test Suite Coverage by Module
 
 The test suite provides comprehensive coverage of all modules:
 
