@@ -1,0 +1,284 @@
+XGFile Format Specification – Complete Reference
+===============================================
+(Extracted from https://www.extremegammon.com/xgformat.aspx)
+
+1. File Container (DirectX RichGameFormat)
+   - Magic number (first 4 bytes): $484D4752 ("RGMH")
+   - Header size: 8232 bytes (TRichGameHeader)
+   - Payload offset: dwHeaderSize + dwThumbnailSize
+   - Thumbnail: embedded JPG, offset liThumbnailOffset, size dwThumbnailSize
+   - Decompress remainder with ZLIB -> four temporary files:
+        temp.xg   (main data, fixed 2560-byte records)
+        temp.xgi  (first & last TSaveRec only)
+        temp.xgr  (rollouts, fixed 2184-byte records)
+        temp.xgc  (RTF comments, CRLF-separated lines)
+
+2. Pascal Type Primer (little-endian)
+   - Integers
+         ShortInt   1 byte  signed
+         SmallInt   2 bytes signed
+         Integer    4 bytes signed
+         Int64      8 bytes signed
+         Byte       1 byte  unsigned
+         Word       2 bytes unsigned
+         Dword      4 bytes unsigned
+   - Floats
+         Single     4 bytes
+         Double     8 bytes
+   - Strings
+         string[n]  (n+1) bytes  1st byte = length, ANSI, not #0 terminated
+         array[a..b] of WideChar  (b-a+1)*2 bytes, #0 terminated Unicode
+   - Misc
+         Boolean    1 byte  0=false 1=true
+         TDateTime  8 bytes  Delphi date-time (days since 30-Dec-1899)
+         Pointer    4 bytes  32-bit address
+
+3. Record Alignment Rules
+   - 1-byte: Boolean, Byte, ShortInt, string[n]
+   - 2-byte: SmallInt, Word, array of WideChar
+   - 4-byte: Integer, Dword, Single
+   - 8-byte: Double, TDateTime
+   - Padding inserted to keep fields on their natural boundary
+
+4. RichGameHeader – 8232 bytes
+   dwMagicNumber     Dword   $484D4752
+   dwHeaderVersion   Dword
+   dwHeaderSize      Dword
+   liThumbnailOffset int64
+   dwThumbnailSize   Dword
+   guidGameId        TGUID
+   szGameName        WideChar[1024]
+   szSaveName        WideChar[1024]
+   szLevelName       WideChar[1024]
+   szComments        WideChar[1024]
+
+5. Main Record – TSaveRec – 2560 bytes
+   Previous   Pointer   4
+   Next       Pointer   4
+   EntryType  Typesave  1      (0..6 → tsHeaderMatch..tsFooterMatch)
+   case EntryType of
+   ---------------- tsHeaderMatch ----------------
+   SPlayer1          string[40]     ANSI legacy
+   SPlayer2          string[40]
+   MatchLength       integer        99999 = unlimited
+   Variation         integer        0=bg 1=Nack 2=Hyper 3=Longgammon
+   Crawford          Boolean
+   Jacoby            Boolean
+   Beaver            Boolean
+   AutoDouble        Boolean
+   Elo1              Double
+   Elo2              Double
+   exp1              integer
+   exp2              integer
+   Date              TDateTime
+   SEvent            string[128]    ANSI legacy
+   GameId            integer        negated if players swapped
+   CompLevel1        integer        see PLAYERLEVEL table
+   CompLevel2        integer
+   CountForElo       Boolean
+   AddtoProfile1     Boolean
+   AddtoProfile2     Boolean
+   SLocation         string[128]    ANSI legacy
+   GameMode          integer        see GAMEMODE table
+   Imported          Boolean
+   SRound            string[128]    ANSI legacy
+   Invert            integer        board-orientation flag
+   version           integer        must be ≤ MaxSaveFileVersion (40)
+   Magic             integer        $494C4D44
+   MoneyInitG        integer
+   MoneyInitScore    array[1..2] of integer
+   Entered           Boolean
+   Counted           Boolean
+   UnratedImp        Boolean
+   CommentHeaderMatch integer     index into temp.xgc
+   CommentFooterMatch integer
+   IsMoneyMatch      Boolean
+   WinMoney          single
+   LoseMoney         single
+   Currency          integer        see CURRENCY ID table
+   FeeMoney          single
+   TableStake        single
+   SiteId            integer        see SITE ID table
+   CubeLimit         integer
+   AutoDoubleMax     integer
+   Transcribed       Boolean
+   Event             TShortUnicodeString  258 bytes
+   Player1           TShortUnicodeString
+   Player2           TShortUnicodeString
+   Location          TShortUnicodeString
+   Round             TShortUnicodeString
+   TimeSetting       TTimeSetting       32 bytes
+   TotTimeDelayMove  integer
+   TotTimeDelayCube  integer
+   TotTimeDelayMoveDone integer
+   TotTimeDelayCubeDone   integer
+   Transcriber       TShortUnicodeString
+
+   ---------------- tsHeaderGame ----------------
+   score1            integer
+   score2            integer
+   CrawfordApply     Boolean
+   PosInit           PositionEngine
+   GameNumber        integer
+   InProgress        Boolean
+   CommentHeaderGame integer
+   CommentFooterGame integer
+   NumberOfAutoDouble integer
+
+   ---------------- tsCube ----------------
+   Actif             integer        1=p1  -1=p2
+   double            integer        0=no 1=yes
+   Take              integer        0=no 1=yes 2=beaver
+   BeaverR           integer
+   RaccoonR          integer
+   CubeB             integer        0=center +n=own -n=opp
+   Position          PositionEngine
+   DoubleD           EngineStructDoubleAction  132 bytes
+   ErrCube           Double
+   DiceRolled          string[2]
+   ErrTake           Double
+   RolloutindexD     integer
+   CompChoiceD       integer
+   AnalyzeC          integer
+   ErrBeaver         Double
+   ErrRaccoon        Double
+   AnalyzeCR         integer
+   inValid           integer        0=ok 1=error 2=invalid
+   TutorCube         ShortInt
+   TutorTake         ShortInt
+   ErrTutorCube      Double
+   ErrTutorTake      Double
+   FlaggedDouble     Boolean
+   CommentCube       integer
+   EditedCube        Boolean
+   TimeDelayCube     Boolean
+   TimeDelayCubeDone Boolean
+   NumberOfAutoDoubleCube integer
+   TimeBot,TimeTop   integer
+
+   ---------------- tsMove ----------------
+   PositionI         PositionEngine
+   PositionEnd       PositionEngine
+   ActifP            integer        1=p1 -1=p2
+   Moves             array[1..8] of integer   From1,dice1,From2,dice2… -1=end
+   Dice              array[1..2] of integer
+   CubeA             integer
+   ErrorM            Double         (unused)
+   NMoveEval         integer        max 32
+   DataMoves         EngineStructBestMove  2184 bytes
+   Played            Boolean
+   ErrMove           Double
+   ErrLuck           Double
+   CompChoice        integer
+   InitEq            Double
+   RolloutindexM     array[1..32] of integer
+   AnalyzeM          integer
+   AnalyzeL          integer
+   InvalidM          integer
+   PositionTutor     PositionEngine
+   Tutor             ShortInt
+   ErrTutorMove      Double
+   Flagged           Boolean
+   CommentMove       integer
+   Editedmove        Boolean
+   TimeDelayMove     Dword
+   TimeDelayMoveDone Dword
+   NumberOfAutoDoubleMove integer
+   Filler            array[1..4] of integer   set 0
+
+   ---------------- tsFooterGame ----------------
+   Score1g           integer
+   Score2g           integer
+   CrawfordApplyg    Boolean
+   Winner            integer        +1=p1 -1=p2
+   Pointswon         integer
+   Termination       integer        0=drop 1=single 2=gammon 3=bg  +100=resign +1000=settle
+   ErrResign         Double
+   ErrTakeResign     Double
+   Eval              array[0..6] of Double
+   EvalLevel         integer
+
+   ---------------- tsFooterMatch ----------------
+   Score1m           integer
+   Score2m           integer
+   WinnerM           integer
+   Elo1m             Double
+   Elo2m             Double
+   exp1m             integer
+   exp2m             integer
+   Datem             TDateTime
+
+6. Helper Records
+   PositionEngine = array[0..25] of ShortInt
+   TResult = array[0..6] of Single
+   TEvalLevel = record  Level:SmallInt; isDouble:Boolean; Fill1:byte; end
+   TTimeSetting = record
+      ClockType,PerGame,Time1,Time2,Penalty,TimeLeft1,TimeLeft2,PenaltyMoney: integer
+   end
+   EngineStructBestMove = 2184 bytes  (full rollout context for moves)
+   EngineStructDoubleAction = 132 bytes  (full rollout context for cubes)
+   TRolloutContext = 2184 bytes  (rollout parameters & results)
+   TShortUnicodeString = 258 bytes  128 WideChar + #0
+
+7. Lookup Tables
+   PLAYERLEVEL
+      0  1-ply
+      1  2-ply
+      2  3-ply
+     12  3-ply red
+      3  4-ply
+      4  5-ply
+      5  6-ply
+      6  7-ply
+    100  Rollout
+   1000  XGRoller
+   1001  XGRoller+
+   1002  XGRoller++
+
+   GAMEMODE
+      0  Free
+      1  Tutor
+      2  Teaching
+      3  Coaching
+      4  Competition
+      5  IronMan
+      6  Custom
+
+   SITE ID
+      0  GammonSite
+      1  FIBS
+      2  TrueMoney Games
+      3  GridGammon
+      4  DailyGammon
+      5  NetGammon
+      6  VOG
+      7  Gammon Empire/Play65
+      8  Club Games
+      9  PartyGammon
+     10  XcitingGames
+     11  BGRoom
+     12  DiceArena
+     13  Safe Harbor Games
+     14  GameAccount
+     15  XG Mobile
+
+   CURRENCY ID
+      0  Dollar
+      1  Euro
+      2  Sterling Pounds
+      3  Japanese Yen
+      4  Swiss Franc
+      5  Canadian Dollar
+
+8. Comment File (temp.xgc)
+   - RTF text, lines separated by CRLF
+   - After loading replace “#1#2” with “#13#10”
+
+9. Rollout File (temp.xgr)
+   - Array of TRolloutContext records, 2184 bytes each
+   - Indexed by RolloutindexD (cube) or RolloutindexM[] (move)
+
+10. Usage Notes
+    - All multi-byte integers/floats are little-endian
+    - Strings are either ANSI (legacy) or Unicode (v24+)
+    - Unused/filler bytes must be zeroed for forward compatibility
