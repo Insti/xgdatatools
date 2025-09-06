@@ -1,3 +1,21 @@
+# Start SimpleCov before any application code is loaded
+require 'simplecov'
+
+SimpleCov.start do
+  # Enable branch coverage
+  enable_coverage :branch
+  
+  # Configure the output directory
+  coverage_dir 'coverage'
+  
+  # Add filters to exclude test files and other non-application code
+  add_filter '/test/'
+  add_filter 'test_helper.rb'
+  
+  # Track all Ruby files in the project
+  track_files "**/*.rb"
+end
+
 require 'minitest/autorun'
 require 'minitest/pride'
 require 'stringio'

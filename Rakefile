@@ -5,6 +5,14 @@ task :test do
   ruby 'test_all.rb'
 end
 
+desc "Run all tests with coverage report"
+task :coverage do
+  puts "Running tests with coverage analysis..."
+  ruby 'test_all.rb'
+  puts "\nCoverage report generated in coverage/ directory"
+  puts "Open coverage/index.html in a browser to view the report"
+end
+
 desc "Run XGUtils tests"
 task :test_xgutils do
   ruby 'test_xgutils.rb'
