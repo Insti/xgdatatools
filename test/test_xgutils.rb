@@ -398,10 +398,156 @@ class TestXGUtils < Minitest::Test
 
   # Test all methods are module methods
   def test_module_methods
-    expected_methods = [:streamcrc32, :utf16intarraytostr, :delphidatetimeconv, :delphishortstrtostr]
+    expected_methods = [:streamcrc32, :utf16intarraytostr, :delphidatetimeconv, :delphishortstrtostr, :render_board]
 
     expected_methods.each do |method|
       assert XGUtils.respond_to?(method), "XGUtils should respond to #{method}"
+    end
+  end
+
+  # Tests for render_board method
+  def test_render_board_invalid_input
+    # Test with nil input
+    result = XGUtils.render_board(nil)
+    assert_equal "Invalid position: must be array of 26 integers", result
+
+    # Test with wrong size array
+    result = XGUtils.render_board([1, 2, 3])
+    assert_equal "Invalid position: must be array of 26 integers", result
+
+    # Test with array of wrong size
+    result = XGUtils.render_board([0] * 25)
+    assert_equal "Invalid position: must be array of 26 integers", result
+  end
+
+  def test_render_board_empty_position
+    # Test with empty board (all zeros)
+    position = [0] * 26
+    result = XGUtils.render_board(position)
+
+    # Should contain the basic board structure
+    assert result.include?("┌"), "Should contain top border"
+    assert result.include?("└"), "Should contain bottom border"
+    assert result.include?("Legend:"), "Should contain legend"
+    assert result.include?("X = Player 1"), "Should contain player legend"
+    assert result.include?("O = Player 2"), "Should contain player legend"
+    
+    # Point numbers should be present
+    (1..24).each do |point|
+      assert result.include?(sprintf("%2d", point)), "Should contain point #{point}"
+    end
+  end
+
+  def test_render_board_starting_position
+    # Test with a typical backgammon starting position
+    # Standard starting position has 2 checkers on 24, 5 on 13, 3 on 8, 5 on 6 for player 1
+    # And opposite for player 2
+    position = [0] * 26
+    
+    # Player 1 checkers (positive values)
+    position[24] = 2   # 2 checkers on point 24
+    position[13] = 5   # 5 checkers on point 13 
+    position[8] = 3    # 3 checkers on point 8
+    position[6] = 5    # 5 checkers on point 6
+    
+    # Player 2 checkers (negative values)
+    position[1] = -2   # 2 checkers on point 1
+    position[12] = -5  # 5 checkers on point 12
+    position[17] = -3  # 3 checkers on point 17
+    position[19] = -5  # 5 checkers on point 19
+
+    result = XGUtils.render_board(position)
+
+    # Should contain checkers representation
+    assert result.include?("X"), "Should contain Player 1 checkers"
+    assert result.include?("O"), "Should contain Player 2 checkers"
+    
+    # Should not crash and return valid string
+    assert result.is_a?(String)
+    assert result.length > 100, "Should return substantial output"
+  end
+
+  def test_render_board_with_bear_off
+    # Test with checkers in bear-off areas
+    position = [0] * 26
+    position[0] = 5    # Player 1 bear-off
+    position[25] = -3  # Player 2 bear-off
+    
+    result = XGUtils.render_board(position)
+    
+    # Should show bear-off information
+    assert result.include?("Bear-off P1: 5"), "Should show Player 1 bear-off"
+    assert result.include?("Bear-off P2: 3"), "Should show Player 2 bear-off"
+  end
+
+  def test_render_board_with_many_checkers
+    # Test with stacks higher than 5 checkers
+    position = [0] * 26
+    position[1] = 10   # 10 Player 1 checkers on point 1
+    position[24] = -8  # 8 Player 2 checkers on point 24
+    
+    result = XGUtils.render_board(position)
+    
+    # Should handle high stacks gracefully
+    assert result.is_a?(String)
+    assert result.include?("X"), "Should show Player 1 checkers"
+    assert result.include?("O"), "Should show Player 2 checkers"
+  end
+
+  def test_render_board_mixed_positions
+    # Test with various checker positions
+    position = [0] * 26
+    
+    # Mix of positions for both players
+    position[1] = 3
+    position[5] = -2
+    position[12] = 1
+    position[18] = -4
+    position[23] = 2
+    position[0] = 1    # Bear-off
+    position[25] = -1  # Bear-off
+    
+    result = XGUtils.render_board(position)
+    
+    # Basic validation that board renders
+    assert result.is_a?(String)
+    assert result.include?("┌"), "Should have top border"
+    assert result.include?("└"), "Should have bottom border"
+    assert result.include?("Bear-off P1: 1"), "Should show bear-off"
+    assert result.include?("Bear-off P2: 1"), "Should show bear-off"
+  end
+
+  def test_render_board_structure
+    # Test that the board has the expected structure
+    position = [0] * 26
+    result = XGUtils.render_board(position)
+    
+    lines = result.split("\n")
+    
+    # Should have multiple lines
+    assert lines.length > 10, "Should have multiple lines"
+    
+    # Should have borders
+    assert lines.first.include?("┌"), "First line should be top border"
+    
+    # Should have legend at the end
+    legend_lines = lines.select { |line| line.include?("Legend") || line.include?("Player") }
+    assert legend_lines.length >= 1, "Should have legend information"
+  end
+
+  def test_render_board_point_numbering
+    # Test that point numbers are correctly displayed
+    position = [0] * 26
+    result = XGUtils.render_board(position)
+    
+    # Top points (13-24) should be present
+    (13..24).each do |point|
+      assert result.include?(sprintf("%2d", point)), "Should include point #{point}"
+    end
+    
+    # Bottom points (1-12) should be present  
+    (1..12).each do |point|
+      assert result.include?(sprintf("%2d", point)), "Should include point #{point}"
     end
   end
 end

@@ -82,4 +82,140 @@ module XGUtils
     length = shortstring_abytes[0]
     shortstring_abytes[1, length].pack("C*").force_encoding("UTF-8")
   end
+
+  # Render an ASCII representation of a backgammon board given a position array.
+  # 
+  # The position array is a PositionEngine (array[0..25] of ShortInt) where:
+  # - Index 0: Player 1's bear-off area 
+  # - Indices 1-24: The 24 points on the board (1-12 and 13-24)
+  # - Index 25: Player 2's bear-off area or bar
+  # 
+  # Positive values indicate Player 1's checkers, negative values indicate Player 2's checkers.
+  # The absolute value indicates the number of checkers on that point.
+  #
+  # @param position [Array<Integer>] Array of 26 integers representing the board position
+  # @return [String] ASCII representation of the backgammon board
+  def self.render_board(position)
+    return "Invalid position: must be array of 26 integers" unless position.is_a?(Array) && position.length == 26
+
+    # Initialize board display components
+    lines = []
+    
+    # Top border
+    lines << "┌" + "─" * 77 + "┐"
+    
+    # Point numbers (top)
+    top_points = (13..18).to_a + ["|"] + (19..24).to_a
+    lines << "│ " + top_points.map { |p| p.is_a?(Integer) ? sprintf("%2d", p) : " │ " }.join("  ") + " │"
+    
+    # Top half of board (points 13-24, showing up to 5 checkers)
+    5.times do |row|
+      line = "│ "
+      
+      # Points 13-18
+      (13..18).each do |point|
+        checkers = position[point]
+        if checkers > 0
+          # Player 1's checkers (positive)
+          line += checkers > row ? " X" : "  "
+        elsif checkers < 0
+          # Player 2's checkers (negative)
+          line += (-checkers) > row ? " O" : "  "
+        else
+          line += "  "
+        end
+        line += " "
+      end
+      
+      line += "│ "
+      
+      # Points 19-24
+      (19..24).each do |point|
+        checkers = position[point]
+        if checkers > 0
+          # Player 1's checkers (positive)
+          line += checkers > row ? " X" : "  "
+        elsif checkers < 0
+          # Player 2's checkers (negative)
+          line += (-checkers) > row ? " O" : "  "
+        else
+          line += "  "
+        end
+        line += " "
+      end
+      
+      line += "│"
+      lines << line
+    end
+    
+    # Middle bar
+    bar_line = "│" + "─" * 21 + "┼" + "─" * 3 + "┼" + "─" * 21 + "│"
+    lines << bar_line
+    
+    # Show bar and bear-off info
+    bear_off_1 = position[0] # Player 1 bear-off
+    bear_off_2 = position[25] # Player 2 bear-off/bar
+    
+    info_line = "│ Bear-off P1: #{bear_off_1 > 0 ? bear_off_1 : 0}"
+    info_line += " " * (21 - info_line.length + 1) + "│BAR│"
+    info_line += " Bear-off P2: #{bear_off_2 < 0 ? -bear_off_2 : 0}"
+    info_line += " " * (21 - (info_line.length - info_line.rindex("│") - 1)) + "│"
+    lines << info_line
+    
+    lines << bar_line
+    
+    # Bottom half of board (points 12-1, showing up to 5 checkers)
+    5.times do |row|
+      line = "│ "
+      
+      # Points 12-7
+      (12).downto(7).each do |point|
+        checkers = position[point]
+        if checkers > 0
+          # Player 1's checkers (positive)
+          line += checkers > (4 - row) ? " X" : "  "
+        elsif checkers < 0
+          # Player 2's checkers (negative)  
+          line += (-checkers) > (4 - row) ? " O" : "  "
+        else
+          line += "  "
+        end
+        line += " "
+      end
+      
+      line += "│ "
+      
+      # Points 6-1
+      (6).downto(1).each do |point|
+        checkers = position[point]
+        if checkers > 0
+          # Player 1's checkers (positive)
+          line += checkers > (4 - row) ? " X" : "  "
+        elsif checkers < 0
+          # Player 2's checkers (negative)
+          line += (-checkers) > (4 - row) ? " O" : "  "
+        else
+          line += "  "
+        end
+        line += " "
+      end
+      
+      line += "│"
+      lines << line
+    end
+    
+    # Point numbers (bottom)
+    bottom_points = (12).downto(7).to_a + ["|"] + (6).downto(1).to_a
+    lines << "│ " + bottom_points.map { |p| p.is_a?(Integer) ? sprintf("%2d", p) : " │ " }.join("  ") + " │"
+    
+    # Bottom border
+    lines << "└" + "─" * 77 + "┘"
+    
+    # Legend
+    lines << ""
+    lines << "Legend: X = Player 1, O = Player 2"
+    lines << "        Positive values = Player 1, Negative values = Player 2"
+    
+    lines.join("\n")
+  end
 end
