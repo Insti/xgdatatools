@@ -20,17 +20,22 @@ end
 
 desc "Run XGStruct tests"
 task :test_xgstruct do
-  ruby "test_xgstruct.rb"
+  ruby "test/test_xgstruct.rb"
 end
 
 desc "Run XGZarc tests"
 task :test_xgzarc do
-  ruby "test_xgzarc.rb"
+  ruby "test/test_xgzarc.rb"
 end
 
 desc "Run XGImport tests"
 task :test_xgimport do
-  ruby "test_xgimport.rb"
+  ruby "test/test_xgimport.rb"
+end
+
+desc "Run ExtractXGData tests"
+task :test_extractxgdata do
+  ruby "test/test_extractxgdata.rb"
 end
 
 task default: :test

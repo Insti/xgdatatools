@@ -4,11 +4,13 @@ This directory contains comprehensive minitest tests for the XGDataTools Ruby mo
 
 ## Test Files
 
-- `test_helper.rb` - Common test utilities and helpers
+- `test_helper.rb` - Common test utilities and helpers (with SimpleCov integration)
+- `test_helper_simple.rb` - Simplified test utilities without SimpleCov dependency  
 - `test_xgutils.rb` - Tests for XGUtils module utility functions
 - `test_xgstruct.rb` - Tests for XGStruct module classes
 - `test_xgzarc.rb` - Tests for XGZarc module archive functionality
 - `test_xgimport.rb` - Tests for XGImport module import functionality
+- `test_extractxgdata.rb` - Tests for extractxgdata.rb command-line tool
 - `test_all.rb` - Master test runner that executes all tests
 - `Rakefile` - Rake tasks for running tests
 
@@ -36,16 +38,18 @@ rake coverage
 
 ### Run Individual Test Files
 ```bash
-ruby test_xgutils.rb
-ruby test_xgstruct.rb  
-ruby test_xgzarc.rb
-ruby test_xgimport.rb
+ruby test/test_xgutils.rb
+ruby test/test_xgstruct.rb  
+ruby test/test_xgzarc.rb
+ruby test/test_xgimport.rb
+ruby test/test_extractxgdata.rb
 
 # Or using Rake
 rake test_xgutils
 rake test_xgstruct
 rake test_xgzarc
 rake test_xgimport
+rake test_extractxgdata
 ```
 
 ## Test Coverage
@@ -92,6 +96,15 @@ The test suite provides comprehensive coverage of all modules:
 - `Import::Segment` - File segment handling with comprehensive constant testing
 - File operations testing including copyto and closetempfile with error conditions
 
+### ExtractXGData Script (30 tests, 92 assertions)
+- `parseoptsegments()` - Command line segment parsing with validation
+- `directoryisvalid()` - Directory path validation with comprehensive error testing
+- Option parser configuration and help text formatting
+- File path processing and output filename generation logic
+- Error handling patterns and script execution behavior
+- Edge cases including empty inputs, case sensitivity, and whitespace handling
+- Integration testing with XGImport, XGZarc, and XGStruct modules
+
 ## Test Features
 
 - **Hash-like behavior testing** - Tests dynamic method generation for Hash-based classes
@@ -103,12 +116,17 @@ The test suite provides comprehensive coverage of all modules:
 
 ## Total Coverage
 
-**Current Status (After Improvements):**
-- **Total Tests**: 162 tests (increased from 118)
-- **Total Assertions**: 480 assertions (increased from 305) 
-- **Line Coverage**: 68.9% (improved from 67.07%)
-- **Branch Coverage**: 77.11% (improved from 69.88%)
+**Current Status (After Adding ExtractXGData Tests):**
+- **Total Tests**: 192 tests (increased from 162)
+- **Total Assertions**: 572 assertions (increased from 480) 
 - **0 failures, 0 errors, 0 skips**
+
+The test suite now includes comprehensive coverage for the extractxgdata.rb command-line tool with focused testing on:
+- Command line argument parsing and validation
+- File path processing and output directory handling
+- Error handling and edge cases for user input
+- Integration with core XGDataTools modules
+- Script execution behavior and help text formatting
 
 The test suite demonstrates significant improvement in coverage with focused testing on:
 - Error handling and edge cases

@@ -1,4 +1,4 @@
-require_relative "test_helper"
+require_relative "test_helper_simple"
 require_relative "../xgstruct"
 
 class TestXGStruct < Minitest::Test
