@@ -274,7 +274,7 @@ module XGStruct
     attr_accessor :Version
 
     def initialize(**kw)
-      @Version = -1
+      @version = -1
       super()
       merge!(kw)
     end

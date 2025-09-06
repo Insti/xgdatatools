@@ -81,7 +81,7 @@ module XGZarc
       self["registrysize"] = unpacked_data[3]
       self["archivesize"] = unpacked_data[4]
       self["compressedregistry"] = unpacked_data[5] != 0
-      self["reserved"] = unpacked_data[6..-1]
+      self["reserved"] = unpacked_data[6..]
     end
   end
 

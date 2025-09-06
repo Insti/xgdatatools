@@ -100,7 +100,7 @@ class TestXGUtils < Minitest::Test
     assert_equal "Hello, World!", result
   end
 
-  def test_utf16intarraytostr_empty_array
+  def test_utf16intarraytostr_null_array
     # Test with empty array
     int_array = [0]  # Just null terminator
     result = XGUtils.utf16intarraytostr(int_array)
