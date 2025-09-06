@@ -106,6 +106,19 @@ module XGUtils
     " #{char} "
   end
 
+  # Format a stack count number as exactly 3 characters for board display.
+  # Numbers are centered with spaces: " 7 " for single digit, "12 " for double digit
+  #
+  # @param count [Integer] Stack count (6-15, since we only show counts for stacks > 5)
+  # @return [String] 3-character formatted stack count
+  def self.format_stack_count_3char(count)
+    if count < 10
+      " #{count} "  # Single digit: center with spaces
+    else
+      "#{count} "   # Double digit: left-align with trailing space
+    end
+  end
+
   # Render an ASCII representation of a backgammon board given a position array.
   # 
   # The position array is a PositionEngine (array[0..25] of ShortInt) where:
@@ -138,14 +151,29 @@ module XGUtils
       # Points 13-18
       (13..18).each do |point|
         checkers = position[point]
-        if checkers > 0
-          # Player 1's checkers (positive)
-          char = checkers > row ? "X" : " "
-        elsif checkers < 0
-          # Player 2's checkers (negative)
-          char = (-checkers) > row ? "O" : " "
-        else
+        abs_checkers = checkers.abs
+        
+        if abs_checkers == 0
           char = " "
+        elsif abs_checkers > 5
+          # Tall stack: show checkers in rows 0-3, count in row 4 (innermost)
+          if row == 4
+            # Show stack count in innermost row
+            line += format_stack_count_3char(abs_checkers)
+            next
+          elsif row < 4
+            # Show checker symbol if within the 4 visible checkers
+            char = checkers > 0 ? "X" : "O"
+          else
+            char = " "
+          end
+        else
+          # Normal stack (1-5 checkers): current behavior
+          if checkers > 0
+            char = checkers > row ? "X" : " "
+          else
+            char = (-checkers) > row ? "O" : " "
+          end
         end
         line += format_checker_3char(char)
       end
@@ -156,14 +184,29 @@ module XGUtils
       # Points 19-24
       (19..24).each do |point|
         checkers = position[point]
-        if checkers > 0
-          # Player 1's checkers (positive)
-          char = checkers > row ? "X" : " "
-        elsif checkers < 0
-          # Player 2's checkers (negative)
-          char = (-checkers) > row ? "O" : " "
-        else
+        abs_checkers = checkers.abs
+        
+        if abs_checkers == 0
           char = " "
+        elsif abs_checkers > 5
+          # Tall stack: show checkers in rows 0-3, count in row 4 (innermost)
+          if row == 4
+            # Show stack count in innermost row
+            line += format_stack_count_3char(abs_checkers)
+            next
+          elsif row < 4
+            # Show checker symbol if within the 4 visible checkers
+            char = checkers > 0 ? "X" : "O"
+          else
+            char = " "
+          end
+        else
+          # Normal stack (1-5 checkers): current behavior
+          if checkers > 0
+            char = checkers > row ? "X" : " "
+          else
+            char = (-checkers) > row ? "O" : " "
+          end
         end
         line += format_checker_3char(char)
       end
@@ -202,14 +245,29 @@ module XGUtils
       # Points 12-7
       (12).downto(7).each do |point|
         checkers = position[point]
-        if checkers > 0
-          # Player 1's checkers (positive)
-          char = checkers > (4 - row) ? "X" : " "
-        elsif checkers < 0
-          # Player 2's checkers (negative)  
-          char = (-checkers) > (4 - row) ? "O" : " "
-        else
+        abs_checkers = checkers.abs
+        
+        if abs_checkers == 0
           char = " "
+        elsif abs_checkers > 5
+          # Tall stack: show count in row 0 (topmost), checkers in rows 1-4
+          if row == 0
+            # Show stack count in topmost row
+            line += format_stack_count_3char(abs_checkers)
+            next
+          elsif row > 0
+            # Show checker symbol if within the 4 visible checkers (rows 1-4)
+            char = checkers > 0 ? "X" : "O"
+          else
+            char = " "
+          end
+        else
+          # Normal stack (1-5 checkers): current behavior (fills from bottom up)
+          if checkers > 0
+            char = checkers > (4 - row) ? "X" : " "
+          else
+            char = (-checkers) > (4 - row) ? "O" : " "
+          end
         end
         line += format_checker_3char(char)
       end
@@ -220,14 +278,29 @@ module XGUtils
       # Points 6-1
       (6).downto(1).each do |point|
         checkers = position[point]
-        if checkers > 0
-          # Player 1's checkers (positive)
-          char = checkers > (4 - row) ? "X" : " "
-        elsif checkers < 0
-          # Player 2's checkers (negative)
-          char = (-checkers) > (4 - row) ? "O" : " "
-        else
+        abs_checkers = checkers.abs
+        
+        if abs_checkers == 0
           char = " "
+        elsif abs_checkers > 5
+          # Tall stack: show count in row 0 (topmost), checkers in rows 1-4
+          if row == 0
+            # Show stack count in topmost row
+            line += format_stack_count_3char(abs_checkers)
+            next
+          elsif row > 0
+            # Show checker symbol if within the 4 visible checkers (rows 1-4)
+            char = checkers > 0 ? "X" : "O"
+          else
+            char = " "
+          end
+        else
+          # Normal stack (1-5 checkers): current behavior (fills from bottom up)
+          if checkers > 0
+            char = checkers > (4 - row) ? "X" : " "
+          else
+            char = (-checkers) > (4 - row) ? "O" : " "
+          end
         end
         line += format_checker_3char(char)
       end
