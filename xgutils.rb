@@ -178,7 +178,7 @@ module XGUtils
     end
     
     # Middle separator
-    separator = "|" + "-" * 30 + "|     |" + "-" * 30 + "|     |"
+    separator = "|-----------------------------|     |-----------------------------|     |"
     lines << separator
     
     # Bottom half checker rows (5 rows) 

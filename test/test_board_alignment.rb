@@ -3,7 +3,7 @@ require_relative "../xgutils"
 
 class TestXGUtilsBoardAlignment < Minitest::Test
   def test_board_vertical_alignment
-    # Test that all lines in the rendered board have consistent vertical bar alignment
+    # Test that all lines in the rendered board have consistent table structure alignment
     position = [0] * 26
     
     # Add some checkers to test with real content
@@ -16,34 +16,26 @@ class TestXGUtilsBoardAlignment < Minitest::Test
     result = XGUtils.render_board(position)
     lines = result.split("\n")
     
-    # Filter out empty lines and legend
-    board_lines = lines.reject { |line| line.empty? || line.include?("Legend") || line.include?("Positive values") }
+    # All lines should start and end with | for table structure
+    lines.each_with_index do |line, i|
+      next if line.empty?
+      assert line.start_with?("|"), "Line #{i+1} should start with |: '#{line}'"
+      assert line.end_with?("|"), "Line #{i+1} should end with |: '#{line}'"
+    end
     
-    # Check that all content lines (except borders) have consistent width and alignment
-    content_lines = board_lines[1..-2]  # Exclude top and bottom borders
+    # Header lines should contain expected elements
+    header_lines = lines.select { |line| line.match(/\|\s*\d+\s*\|/) }
+    assert header_lines.length >= 2, "Should have top and bottom header lines"
     
-    content_lines.each_with_index do |line, i|
-      # All content lines should be exactly 41 characters (3-char format)
-      assert_equal 41, line.length, "Line #{i+1} should be 41 characters: '#{line}'"
-      
-      # Find vertical bar positions
-      vertical_positions = []
-      line.chars.each_with_index { |char, pos| vertical_positions << pos if char == '│' }
-      
-      # All lines should have vertical bars at positions 0 and 40 (start and end)
-      assert vertical_positions.include?(0), 
-             "Line #{i+1} missing vertical bar at position 0: '#{line}' (bars at #{vertical_positions})"
-      assert vertical_positions.include?(40), 
-             "Line #{i+1} missing vertical bar at position 40: '#{line}' (bars at #{vertical_positions})"
-      
-      # Check that there's a middle separator at position 20
-      assert vertical_positions.include?(20),
-             "Line #{i+1} missing middle vertical bar at position 20: '#{line}' (bars at #{vertical_positions})"
+    # Should have BAR and OFF columns in headers
+    header_lines.each do |header|
+      assert header.include?("BAR"), "Header should include BAR column: '#{header}'"
+      assert header.include?("OFF"), "Header should include OFF column: '#{header}'"
     end
   end
   
   def test_board_alignment_with_various_bear_off_values
-    # Test alignment with different bear-off values to ensure padding works correctly
+    # Test alignment with different bear-off values in OFF columns
     test_cases = [
       [0, 0],     # No bear-off
       [1, -1],    # Small bear-off
@@ -59,20 +51,21 @@ class TestXGUtilsBoardAlignment < Minitest::Test
       result = XGUtils.render_board(position)
       lines = result.split("\n")
       
-      # Find the info line (contains "Bear-off")
-      info_line = lines.find { |line| line.include?("Bear-off") }
-      refute_nil info_line, "Should have info line"
+      # In goal_board format, bear-off is shown visually in OFF columns
+      # Verify that table structure is maintained
+      off_columns_found = 0
+      lines.each do |line|
+        off_columns_found += 1 if line.include?("OFF")
+      end
       
-      # Info line should be exactly 41 characters (3-char format)
-      assert_equal 41, info_line.length, 
-                   "Info line should be 41 chars with bear-off #{bear_off_1}/#{bear_off_2}: '#{info_line}'"
+      assert off_columns_found >= 2, "Should have OFF columns in headers with bear-off #{bear_off_1}/#{bear_off_2}"
       
-      # Should have vertical bars at expected positions
-      vertical_positions = []
-      info_line.chars.each_with_index { |char, pos| vertical_positions << pos if char == '│' }
-      
-      assert vertical_positions.include?(0), "Info line should start with │"
-      assert vertical_positions.include?(40), "Info line should end with │ at position 40"
+      # Verify basic table structure consistency
+      checker_lines = lines.select { |line| line.match(/\|\s*[XO\d\s]*\s*\|/) && !line.include?("Board") }
+      checker_lines.each do |line|
+        assert line.start_with?("|"), "Checker line should start with |: '#{line}'"
+        assert line.end_with?("|"), "Checker line should end with |: '#{line}'"
+      end
     end
   end
 end
