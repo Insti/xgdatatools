@@ -127,7 +127,8 @@ module XGUtils
         line += " "
       end
       
-      line += "│ "
+      # Add padding to align with point number line (middle │ should be at position 27)
+      line += " " * (27 - line.length) + "│ "
       
       # Points 19-24
       (19..24).each do |point|
@@ -144,22 +145,30 @@ module XGUtils
         line += " "
       end
       
-      line += "│"
+      # Add padding to align with point number line (total line should be 55 chars)
+      line += " " * (54 - line.length) + "│"
       lines << line
     end
     
     # Middle bar
-    bar_line = "│" + "─" * 21 + "┼" + "─" * 3 + "┼" + "─" * 21 + "│"
+    bar_line = "│" + "─" * 26 + "│" + "─" * 26 + "│"
     lines << bar_line
     
     # Show bar and bear-off info
     bear_off_1 = position[0] # Player 1 bear-off
     bear_off_2 = position[25] # Player 2 bear-off/bar
     
-    info_line = "│ Bear-off P1: #{bear_off_1 > 0 ? bear_off_1 : 0}"
-    info_line += " " * (21 - info_line.length + 1) + "│BAR│"
-    info_line += " Bear-off P2: #{bear_off_2 < 0 ? -bear_off_2 : 0}"
-    info_line += " " * (21 - (info_line.length - info_line.rindex("│") - 1)) + "│"
+    # Create info line with proper alignment to match point numbers line (55 chars total)
+    # Vertical bars must be at positions 0, 27, and 54
+    left_part = "│ Bear-off P1: #{bear_off_1 > 0 ? bear_off_1 : 0}"
+    # Pad left part to position 27
+    left_padding = " " * (27 - left_part.length)
+    
+    right_part = "│BAR│ Bear-off P2: #{bear_off_2 < 0 ? -bear_off_2 : 0}"
+    # Pad right part to end at position 54
+    right_padding = " " * (54 - (27 + right_part.length))
+    
+    info_line = left_part + left_padding + right_part + right_padding + "│"
     lines << info_line
     
     lines << bar_line
@@ -183,7 +192,8 @@ module XGUtils
         line += " "
       end
       
-      line += "│ "
+      # Add padding to align with point number line (middle │ should be at position 27)
+      line += " " * (27 - line.length) + "│ "
       
       # Points 6-1
       (6).downto(1).each do |point|
@@ -200,7 +210,8 @@ module XGUtils
         line += " "
       end
       
-      line += "│"
+      # Add padding to align with point number line (total line should be 55 chars)
+      line += " " * (54 - line.length) + "│"
       lines << line
     end
     
