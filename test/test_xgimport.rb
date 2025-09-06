@@ -1,5 +1,5 @@
 require_relative "test_helper"
-require_relative "xgimport"
+require_relative "../xgimport"
 
 class TestXGImport < Minitest::Test
   include TestHelper

@@ -1,5 +1,5 @@
 require_relative "test_helper"
-require_relative "xgzarc"
+require_relative "../xgzarc"
 
 class TestXGZarc < Minitest::Test
   include TestHelper

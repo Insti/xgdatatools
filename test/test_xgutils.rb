@@ -1,5 +1,5 @@
 require_relative "test_helper"
-require_relative "xgutils"
+require_relative "../xgutils"
 
 class TestXGUtils < Minitest::Test
   include TestHelper
