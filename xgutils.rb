@@ -83,6 +83,29 @@ module XGUtils
     shortstring_abytes[1, length].pack("C*").force_encoding("UTF-8")
   end
 
+  # Format a point number as exactly 3 characters for board display.
+  # 1-digit numbers (1-9) are centered with spaces: " 1 "
+  # 2-digit numbers (10-24) are left-aligned with trailing space: "10 "
+  #
+  # @param point [Integer] Point number (1-24)
+  # @return [String] 3-character formatted point number
+  def self.format_point_3char(point)
+    if point < 10
+      " #{point} "  # 1-digit: center with spaces
+    else
+      "#{point} "   # 2-digit: left-align with trailing space
+    end
+  end
+
+  # Format a checker character as exactly 3 characters for board display.
+  # All characters are centered with spaces: " X "
+  #
+  # @param char [String] Checker character ('X', 'O', or ' ')
+  # @return [String] 3-character formatted checker
+  def self.format_checker_3char(char)
+    " #{char} "
+  end
+
   # Render an ASCII representation of a backgammon board given a position array.
   # 
   # The position array is a PositionEngine (array[0..25] of ShortInt) where:
@@ -102,125 +125,123 @@ module XGUtils
     lines = []
     
     # Top border
-    lines << "┌" + "─" * 77 + "┐"
+    lines << "┌" + "─" * 39 + "┐"
     
     # Point numbers (top)
     top_points = (13..18).to_a + ["|"] + (19..24).to_a
-    lines << "│ " + top_points.map { |p| p.is_a?(Integer) ? sprintf("%2d", p) : " │ " }.join("  ") + " │"
+    lines << "│" + top_points.map { |p| p.is_a?(Integer) ? format_point_3char(p) : " │ " }.join("") + "│"
     
     # Top half of board (points 13-24, showing up to 5 checkers)
     5.times do |row|
-      line = "│ "
+      line = "│"
       
       # Points 13-18
       (13..18).each do |point|
         checkers = position[point]
         if checkers > 0
           # Player 1's checkers (positive)
-          line += checkers > row ? " X" : "  "
+          char = checkers > row ? "X" : " "
         elsif checkers < 0
           # Player 2's checkers (negative)
-          line += (-checkers) > row ? " O" : "  "
+          char = (-checkers) > row ? "O" : " "
         else
-          line += "  "
+          char = " "
         end
-        line += " "
+        line += format_checker_3char(char)
       end
       
-      # Add padding to align with point number line (middle │ should be at position 27)
-      line += " " * (27 - line.length) + "│ "
+      # Middle separator
+      line += " │ "
       
       # Points 19-24
       (19..24).each do |point|
         checkers = position[point]
         if checkers > 0
           # Player 1's checkers (positive)
-          line += checkers > row ? " X" : "  "
+          char = checkers > row ? "X" : " "
         elsif checkers < 0
           # Player 2's checkers (negative)
-          line += (-checkers) > row ? " O" : "  "
+          char = (-checkers) > row ? "O" : " "
         else
-          line += "  "
+          char = " "
         end
-        line += " "
+        line += format_checker_3char(char)
       end
       
-      # Add padding to align with point number line (total line should be 55 chars)
-      line += " " * (54 - line.length) + "│"
+      line += "│"
       lines << line
     end
     
     # Middle bar
-    bar_line = "│" + "─" * 26 + "│" + "─" * 26 + "│"
+    bar_line = "│" + "─" * 18 + " │ " + "─" * 18 + "│"
     lines << bar_line
     
     # Show bar and bear-off info
     bear_off_1 = position[0] # Player 1 bear-off
     bear_off_2 = position[25] # Player 2 bear-off/bar
     
-    # Create info line with proper alignment to match point numbers line (55 chars total)
-    # Vertical bars must be at positions 0, 27, and 54
-    left_part = "│ Bear-off P1: #{bear_off_1 > 0 ? bear_off_1 : 0}"
-    # Pad left part to position 27
-    left_padding = " " * (27 - left_part.length)
+    # Create info line with proper alignment to match point numbers line (41 chars total)
+    # Left section: 18 chars, middle separator: 3 chars (" │ "), right section: 18 chars
+    left_part = "│Bear-off P1: #{bear_off_1 > 0 ? bear_off_1 : 0}"
+    # Pad left part to 19 chars (including the │)
+    left_padding = " " * (19 - left_part.length)
     
-    right_part = "│BAR│ Bear-off P2: #{bear_off_2 < 0 ? -bear_off_2 : 0}"
-    # Pad right part to end at position 54
-    right_padding = " " * (54 - (27 + right_part.length))
+    right_part = "Bear-off P2: #{bear_off_2 < 0 ? -bear_off_2 : 0}"
+    # Pad right part to 18 chars 
+    right_padding = " " * (18 - right_part.length)
     
-    info_line = left_part + left_padding + right_part + right_padding + "│"
+    info_line = left_part + left_padding + " │ " + right_part + right_padding + "│"
     lines << info_line
     
     lines << bar_line
     
     # Bottom half of board (points 12-1, showing up to 5 checkers)
     5.times do |row|
-      line = "│ "
+      line = "│"
       
       # Points 12-7
       (12).downto(7).each do |point|
         checkers = position[point]
         if checkers > 0
           # Player 1's checkers (positive)
-          line += checkers > (4 - row) ? " X" : "  "
+          char = checkers > (4 - row) ? "X" : " "
         elsif checkers < 0
           # Player 2's checkers (negative)  
-          line += (-checkers) > (4 - row) ? " O" : "  "
+          char = (-checkers) > (4 - row) ? "O" : " "
         else
-          line += "  "
+          char = " "
         end
-        line += " "
+        line += format_checker_3char(char)
       end
       
-      # Add padding to align with point number line (middle │ should be at position 27)
-      line += " " * (27 - line.length) + "│ "
+      # Middle separator
+      line += " │ "
       
       # Points 6-1
       (6).downto(1).each do |point|
         checkers = position[point]
         if checkers > 0
           # Player 1's checkers (positive)
-          line += checkers > (4 - row) ? " X" : "  "
+          char = checkers > (4 - row) ? "X" : " "
         elsif checkers < 0
           # Player 2's checkers (negative)
-          line += (-checkers) > (4 - row) ? " O" : "  "
+          char = (-checkers) > (4 - row) ? "O" : " "
         else
-          line += "  "
+          char = " "
         end
-        line += " "
+        line += format_checker_3char(char)
       end
       
-      # Add padding to align with point number line (total line should be 55 chars)
-      line += " " * (54 - line.length) + "│"
+      line += "│"
       lines << line
     end
     
     # Point numbers (bottom)
     bottom_points = (12).downto(7).to_a + ["|"] + (6).downto(1).to_a
-    lines << "│ " + bottom_points.map { |p| p.is_a?(Integer) ? sprintf("%2d", p) : " │ " }.join("  ") + " │"
+    lines << "│" + bottom_points.map { |p| p.is_a?(Integer) ? format_point_3char(p) : " │ " }.join("") + "│"
     
     # Bottom border
-    lines << "└" + "─" * 77 + "┘"
+    lines << "└" + "─" * 39 + "┘"
     
     # Legend
     lines << ""
