@@ -5,7 +5,6 @@ This directory contains comprehensive minitest tests for the XGDataTools Ruby mo
 ## Test Files
 
 - `test_helper.rb` - Common test utilities and helpers (with SimpleCov integration)
-- `test_helper_simple.rb` - Simplified test utilities without SimpleCov dependency  
 - `test_xgutils.rb` - Tests for XGUtils module utility functions
 - `test_xgstruct.rb` - Tests for XGStruct module classes
 - `test_xgzarc.rb` - Tests for XGZarc module archive functionality
