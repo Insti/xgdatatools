@@ -688,6 +688,203 @@ class TestXGStruct < Minitest::Test
     assert_equal entry, result
   end
 
+  # Test EngineStructBestMoveRecord
+  def test_engine_struct_best_move_record_initialization
+    record = XGStruct::EngineStructBestMoveRecord.new
+
+    # Test default values
+    assert_nil record["Pos"]
+    assert_nil record["Dice"]
+    assert_equal 0, record["Level"]
+    assert_nil record["Score"]
+    assert_equal 0, record["Cube"]
+    assert_equal 0, record["CubePos"]
+    assert_equal 0, record["Crawford"]
+    assert_equal 0, record["Jacoby"]
+    assert_equal 0, record["NMoves"]
+    assert_nil record["PosPlayed"]
+    assert_nil record["Moves"]
+    assert_nil record["EvalLevel"]
+    assert_nil record["Eval"]
+    assert_equal 0, record["Unused"]
+    assert_equal 0, record["met"]
+    assert_equal 0, record["Choice0"]
+    assert_equal 0, record["Choice3"]
+  end
+
+  def test_engine_struct_best_move_record_initialization_with_params
+    record = XGStruct::EngineStructBestMoveRecord.new(
+      "Level" => 5,
+      "Cube" => 2,
+      "NMoves" => 10
+    )
+
+    assert_equal 5, record["Level"]
+    assert_equal 2, record["Cube"]
+    assert_equal 10, record["NMoves"]
+    assert_nil record["Pos"]  # Default preserved
+  end
+
+  def test_engine_struct_best_move_record_method_missing
+    record = XGStruct::EngineStructBestMoveRecord.new
+
+    # Test setter and getter
+    record.Level = 3
+    assert_equal 3, record["Level"]
+
+    record["Cube"] = 4
+    assert_equal 4, record.Cube
+  end
+
+  def test_engine_struct_best_move_record_fromstream_insufficient_data
+    # Test with insufficient data
+    stream = StringIO.new("insufficient data")
+    record = XGStruct::EngineStructBestMoveRecord.new
+
+    result = record.fromstream(stream)
+    assert_nil result
+  end
+
+  # Test MoveEntry  
+  def test_move_entry_initialization
+    move = XGStruct::MoveEntry.new
+
+    # Test default values
+    assert_equal "Move", move["Name"]
+    assert_equal 3, move["EntryType"]
+    assert_nil move["PositionI"]
+    assert_nil move["PositionEnd"]
+    assert_equal 0, move["ActiveP"]
+    assert_nil move["Moves"]
+    assert_nil move["Dice"]
+    assert_equal 0, move["CubeA"]
+    assert_equal 0.0, move["ErrorM"]
+    assert_equal 0, move["NMoveEval"]
+    assert_nil move["DataMoves"]
+    assert_equal false, move["Played"]
+    assert_equal 0.0, move["ErrMove"]
+    assert_equal 0.0, move["ErrLuck"]
+    assert_equal 0, move["CompChoice"]
+    assert_equal 0.0, move["InitEq"]
+    assert_nil move["RolloutIndexM"]
+    assert_equal 0, move["AnalyzeM"]
+    assert_equal 0, move["AnalyzeL"]
+    assert_equal 0, move["InvalidM"]
+    assert_nil move["PositionTutor"]
+    assert_equal 0, move["Tutor"]
+    assert_equal 0.0, move["ErrTutorMove"]
+    assert_equal false, move["Flagged"]
+    assert_equal 0, move["CommentMove"]
+    assert_equal false, move["EditedMove"]
+    assert_equal 0, move["TimeDelayMove"]
+    assert_equal 0, move["TimeDelayMoveDone"]
+    assert_equal 0, move["NumberOfAutoDoubleMove"]
+    assert_nil move["Filler"]
+  end
+
+  def test_move_entry_initialization_with_params
+    move = XGStruct::MoveEntry.new(
+      "ActiveP" => 1,
+      "CubeA" => 2,
+      "Played" => true
+    )
+
+    assert_equal 1, move["ActiveP"]
+    assert_equal 2, move["CubeA"]
+    assert_equal true, move["Played"]
+    assert_equal "Move", move["Name"]  # Default preserved
+  end
+
+  def test_move_entry_method_missing
+    move = XGStruct::MoveEntry.new
+
+    # Test setter and getter
+    move.ActiveP = -1
+    assert_equal -1, move["ActiveP"]
+
+    move["Played"] = true
+    assert_equal true, move.Played
+  end
+
+  def test_move_entry_fromstream_insufficient_data
+    # Test with insufficient data
+    stream = StringIO.new("insufficient data")
+    move = XGStruct::MoveEntry.new
+
+    result = move.fromstream(stream)
+    assert_nil result
+  end
+
+  def test_move_entry_fromstream_basic_data
+    # Create test data that matches the MoveEntry structure
+    data = [0] * XGStruct::MoveEntry::SIZEOFREC
+    
+    # Set up initial positions and values
+    # Skip first 9 bytes (Previous + Next + EntryType)
+    offset = 9
+    
+    # PositionI: 26 signed bytes
+    (0..25).each { |i| data[offset + i] = i - 12 }  # Some test values
+    offset += 26
+    
+    # PositionEnd: 26 signed bytes  
+    (0..25).each { |i| data[offset + i] = i - 5 }   # Different test values
+    offset += 26
+    
+    # ActiveP: 1 signed long (4 bytes) - set to player 1
+    data[offset, 4] = [1].pack("l<").bytes
+    offset += 4
+    
+    # Skip 3 padding bytes
+    offset += 3
+    
+    stream = create_string_io(data)
+    move = XGStruct::MoveEntry.new
+    
+    result = move.fromstream(stream)
+    assert_equal move, result
+    
+    # Test that values were parsed correctly
+    assert_equal "Move", move["Name"]
+    assert_equal "Move", move["Type"]
+    assert_equal 3, move["EntryType"]
+    assert_equal 1, move["ActiveP"]
+    assert_equal 1, move["ActivePlayer"]
+    
+    # Test position arrays
+    assert_equal 26, move["PositionI"].length
+    assert_equal 26, move["PositionEnd"].length
+    assert_equal(-12, move["PositionI"][0])
+    assert_equal(-5, move["PositionEnd"][0])
+  end
+
+  def test_move_entry_fromstream_with_complex_data
+    # Create a more complex test with actual move data
+    data = [0] * XGStruct::MoveEntry::SIZEOFREC
+    
+    # Set entry type to Move (3)
+    data[8] = 3
+    
+    # Set ActiveP to -1 (player 2) at correct position
+    data[9 + 52, 4] = [-1].pack("l<").bytes
+    
+    # Set some dice values at appropriate positions
+    # According to format: after PositionI(26) + PositionEnd(26) + ActiveP(4) + padding(3) + Moves(32)
+    dice_offset = 9 + 26 + 26 + 4 + 3 + 32
+    data[dice_offset, 8] = [3, 5].pack("l<2").bytes  # Rolled 3 and 5
+    
+    stream = create_string_io(data)
+    move = XGStruct::MoveEntry.new
+    
+    result = move.fromstream(stream)
+    assert_equal move, result
+    
+    # Verify parsed data
+    assert_equal(-1, move["ActiveP"])
+    assert_equal(-1, move["ActivePlayer"])
+    assert_equal([3, 5], move["Dice"])
+  end
+
   def test_module_constants_and_structure
     # Test module structure and constants
     assert defined?(XGStruct)
@@ -696,7 +893,8 @@ class TestXGStruct < Minitest::Test
     # Test all classes are defined
     classes = [
       :GameDataFormatHdrRecord, :TimeSettingRecord, :EvalLevelRecord,
-      :UnimplementedEntry, :GameFileRecord, :RolloutFileRecord, :HeaderMatchEntry
+      :UnimplementedEntry, :GameFileRecord, :RolloutFileRecord, :HeaderMatchEntry,
+      :EngineStructBestMoveRecord, :MoveEntry
     ]
     
     classes.each do |class_name|
@@ -707,5 +905,7 @@ class TestXGStruct < Minitest::Test
     assert_equal 8232, XGStruct::GameDataFormatHdrRecord::SIZEOFREC
     assert_equal 32, XGStruct::TimeSettingRecord::SIZEOFREC
     assert_equal 4, XGStruct::EvalLevelRecord::SIZEOFREC
+    assert_equal 2184, XGStruct::EngineStructBestMoveRecord::SIZEOFREC
+    assert_equal 2560, XGStruct::MoveEntry::SIZEOFREC
   end
 end
