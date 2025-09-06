@@ -18,11 +18,10 @@
 #
 #
 
-require 'zlib'
-require 'date'
+require "zlib"
+require "date"
 
 module XGUtils
-
   # Compute the CRC32 on a given stream. Restore the original
   # position in the stream upon finishing. Process the stream in
   # chunks defined by blksize
@@ -52,7 +51,7 @@ module XGUtils
     crc32 & 0xffffffff
   end
 
-  # Convert an array of integers (UTF16) to a string. 
+  # Convert an array of integers (UTF16) to a string.
   # Input array is null terminated.
   def self.utf16intarraytostr(intarray)
     newstr = []
@@ -60,7 +59,7 @@ module XGUtils
       break if intval == 0
       newstr << intval.chr(Encoding::UTF_8)
     end
-    newstr.join.encode('UTF-8')
+    newstr.join.encode("UTF-8")
   end
 
   # Convert a double float Delphi style timedate object to a Ruby
@@ -71,7 +70,7 @@ module XGUtils
   def self.delphidatetimeconv(delphi_datetime)
     days = delphi_datetime.to_i
     seconds = (86400 * (delphi_datetime % 1)).to_i
-    
+
     base_date = DateTime.new(1899, 12, 30)
     base_date + days + Rational(seconds, 86400)
   end
@@ -81,7 +80,6 @@ module XGUtils
   # length number of bytes. shortstrings are not null terminated.
   def self.delphishortstrtostr(shortstring_abytes)
     length = shortstring_abytes[0]
-    shortstring_abytes[1, length].pack('C*').force_encoding('UTF-8')
+    shortstring_abytes[1, length].pack("C*").force_encoding("UTF-8")
   end
-
 end

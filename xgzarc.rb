@@ -21,12 +21,11 @@
 #   Please see: http://www.delphipages.com/comp/zlibarchive-2104.html
 #
 
-require 'tempfile'
-require 'zlib'
-require_relative 'xgutils'
+require "tempfile"
+require "zlib"
+require_relative "xgutils"
 
 module XGZarc
-
   class Error < StandardError
     attr_reader :value, :error
 
@@ -46,21 +45,21 @@ module XGZarc
 
     def initialize(**kw)
       defaults = {
-        'crc' => 0,
-        'filecount' => 0,
-        'version' => 0,
-        'registrysize' => 0,
-        'archivesize' => 0,
-        'compressedregistry' => false,
-        'reserved' => []
+        "crc" => 0,
+        "filecount" => 0,
+        "version" => 0,
+        "registrysize" => 0,
+        "archivesize" => 0,
+        "compressedregistry" => false,
+        "reserved" => []
       }
       super()
       merge!(defaults.merge(kw))
     end
 
     def method_missing(method, *args, &block)
-      if method.to_s.end_with?('=')
-        self[method.to_s.chomp('=')] = args.first
+      if method.to_s.end_with?("=")
+        self[method.to_s.chomp("=")] = args.first
       elsif has_key?(method.to_s)
         self[method.to_s]
       else
@@ -69,20 +68,20 @@ module XGZarc
     end
 
     def respond_to_missing?(method, include_private = false)
-      method.to_s.end_with?('=') || has_key?(method.to_s) || super
+      method.to_s.end_with?("=") || has_key?(method.to_s) || super
     end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
-      unpacked_data = data.unpack('l<l<l<l<l<l<C12')
-      
-      self['crc'] = unpacked_data[0] & 0xffffffff
-      self['filecount'] = unpacked_data[1]
-      self['version'] = unpacked_data[2]
-      self['registrysize'] = unpacked_data[3]
-      self['archivesize'] = unpacked_data[4]
-      self['compressedregistry'] = unpacked_data[5] != 0
-      self['reserved'] = unpacked_data[6..-1]
+      unpacked_data = data.unpack("l<l<l<l<l<l<C12")
+
+      self["crc"] = unpacked_data[0] & 0xffffffff
+      self["filecount"] = unpacked_data[1]
+      self["version"] = unpacked_data[2]
+      self["registrysize"] = unpacked_data[3]
+      self["archivesize"] = unpacked_data[4]
+      self["compressedregistry"] = unpacked_data[5] != 0
+      self["reserved"] = unpacked_data[6..-1]
     end
   end
 
@@ -91,23 +90,23 @@ module XGZarc
 
     def initialize(**kw)
       defaults = {
-        'name' => nil,
-        'path' => nil,
-        'osize' => 0,
-        'csize' => 0,
-        'start' => 0,
-        'crc' => 0,
-        'compressed' => false,
-        'stored' => false,
-        'compressionlevel' => 0
+        "name" => nil,
+        "path" => nil,
+        "osize" => 0,
+        "csize" => 0,
+        "start" => 0,
+        "crc" => 0,
+        "compressed" => false,
+        "stored" => false,
+        "compressionlevel" => 0
       }
       super()
       merge!(defaults.merge(kw))
     end
 
     def method_missing(method, *args, &block)
-      if method.to_s.end_with?('=')
-        self[method.to_s.chomp('=')] = args.first
+      if method.to_s.end_with?("=")
+        self[method.to_s.chomp("=")] = args.first
       elsif has_key?(method.to_s)
         self[method.to_s]
       else
@@ -116,21 +115,21 @@ module XGZarc
     end
 
     def respond_to_missing?(method, include_private = false)
-      method.to_s.end_with?('=') || has_key?(method.to_s) || super
+      method.to_s.end_with?("=") || has_key?(method.to_s) || super
     end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
-      unpacked_data = data.unpack('C256C256l<l<l<l<Cxx')
-      
-      self['name'] = XGUtils.delphishortstrtostr(unpacked_data[0..255])
-      self['path'] = XGUtils.delphishortstrtostr(unpacked_data[256..511])
-      self['osize'] = unpacked_data[512]
-      self['csize'] = unpacked_data[513]
-      self['start'] = unpacked_data[514]
-      self['crc'] = unpacked_data[515] & 0xffffffff
-      self['compressed'] = unpacked_data[516] == 0
-      self['compressionlevel'] = unpacked_data[517]
+      unpacked_data = data.unpack("C256C256l<l<l<l<Cxx")
+
+      self["name"] = XGUtils.delphishortstrtostr(unpacked_data[0..255])
+      self["path"] = XGUtils.delphishortstrtostr(unpacked_data[256..511])
+      self["osize"] = unpacked_data[512]
+      self["csize"] = unpacked_data[513]
+      self["start"] = unpacked_data[514]
+      self["crc"] = unpacked_data[515] & 0xffffffff
+      self["compressed"] = unpacked_data[516] == 0
+      self["compressionlevel"] = unpacked_data[517]
     end
 
     def to_s
@@ -140,7 +139,7 @@ module XGZarc
 
   class ZlibArchive
     MAXBUFSIZE = 32768
-    TMP_PREFIX = 'tmpXGI'
+    TMP_PREFIX = "tmpXGI"
 
     attr_reader :arcrec, :arcregistry, :startofarcdata, :endofarcdata
     attr_accessor :filename, :stream
@@ -152,7 +151,7 @@ module XGZarc
       @endofarcdata = -1
 
       @filename = filename
-      @stream = stream || File.open(filename, 'rb')
+      @stream = stream || File.open(filename, "rb")
 
       get_archive_index
     end
@@ -196,7 +195,7 @@ module XGZarc
 
           blksize = MAXBUFSIZE
           bytesleft = numbytes
-          
+
           while bytesleft > 0
             current_blksize = [bytesleft, blksize].min
             block = @stream.read(current_blksize)
@@ -207,7 +206,7 @@ module XGZarc
 
         tmpfile.close
         filename
-      rescue => e
+      rescue
         File.unlink(filename) if filename && File.exist?(filename)
         nil
       end
@@ -224,8 +223,8 @@ module XGZarc
         @arcrec.fromstream(@stream)
 
         # Position ourselves at the beginning of the archive file index
-        @stream.seek(-ArchiveRecord::SIZEOFREC - @arcrec['registrysize'], IO::SEEK_END)
-        @startofarcdata = @stream.tell - @arcrec['archivesize']
+        @stream.seek(-ArchiveRecord::SIZEOFREC - @arcrec["registrysize"], IO::SEEK_END)
+        @startofarcdata = @stream.tell - @arcrec["archivesize"]
 
         # Compute the CRC32 of all the archive data including file index
         streamcrc = XGUtils.streamcrc32(
@@ -233,16 +232,16 @@ module XGZarc
           startpos: @startofarcdata,
           numbytes: (@endofarcdata - @startofarcdata)
         )
-        
-        raise Error.new("Archive CRC check failed - file corrupt") if streamcrc != @arcrec['crc']
+
+        raise Error.new("Archive CRC check failed - file corrupt") if streamcrc != @arcrec["crc"]
 
         # Decompress the index into a temporary file
-        idx_filename = extract_segment(compressed: @arcrec['compressedregistry'])
+        idx_filename = extract_segment(compressed: @arcrec["compressedregistry"])
         raise Error.new("Error extracting archive index") if idx_filename.nil?
 
         # Retrieve all the files in the index
-        File.open(idx_filename, 'rb') do |idx_file|
-          @arcrec['filecount'].times do
+        File.open(idx_filename, "rb") do |idx_file|
+          @arcrec["filecount"].times do
             curidxpos = @stream.tell
 
             # Retrieve next file index record
@@ -266,19 +265,19 @@ module XGZarc
 
     def getarchivefile(filerec)
       # Do processing on the temporary file
-      @stream.seek(filerec['start'] + @startofarcdata, IO::SEEK_SET)
+      @stream.seek(filerec["start"] + @startofarcdata, IO::SEEK_SET)
       tmpfilename = extract_segment(
-        compressed: filerec['compressed'],
-        numbytes: filerec['csize']
+        compressed: filerec["compressed"],
+        numbytes: filerec["csize"]
       )
-      
+
       raise Error.new("Error extracting archived file") if tmpfilename.nil?
-      
-      tmpfile = File.open(tmpfilename, 'rb')
+
+      tmpfile = File.open(tmpfilename, "rb")
 
       # Compute the CRC32 on the uncompressed file
       streamcrc = XGUtils.streamcrc32(tmpfile)
-      raise Error.new("File CRC check failed - file corrupt") if streamcrc != filerec['crc']
+      raise Error.new("File CRC check failed - file corrupt") if streamcrc != filerec["crc"]
 
       [tmpfile, tmpfilename]
     end
@@ -287,5 +286,4 @@ module XGZarc
       @maxbufsize = blksize
     end
   end
-
 end

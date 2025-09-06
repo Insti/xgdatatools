@@ -19,17 +19,17 @@
 #
 #
 
-require 'optparse'
-require 'pp'
-require_relative 'xgimport'
-require_relative 'xgzarc'
-require_relative 'xgstruct'
+require "optparse"
+require "pp"
+require_relative "xgimport"
+require_relative "xgzarc"
+require_relative "xgstruct"
 
 def parseoptsegments(segments)
-  segmentlist = segments.split(',')
+  segmentlist = segments.split(",")
   segmentlist.each do |segment|
-    unless ['all', 'comments', 'gdhdr', 'thumb', 'gameinfo',
-            'gamefile', 'rollouts', 'idx'].include?(segment)
+    unless ["all", "comments", "gdhdr", "thumb", "gameinfo",
+      "gamefile", "rollouts", "idx"].include?(segment)
       raise ArgumentError, "#{segment} is not a recognized segment"
     end
   end
@@ -45,19 +45,19 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   options = {}
-  
+
   parser = OptionParser.new do |opts|
     opts.banner = "Usage: #{$PROGRAM_NAME} [options] FILE [FILE ...]"
     opts.separator ""
     opts.separator "XG data extraction utility"
     opts.separator ""
     opts.separator "Options:"
-    
+
     opts.on("-d", "--directory DIR", "Directory to write segments to",
-            "(Default is same directory as the import file)") do |dir|
+      "(Default is same directory as the import file)") do |dir|
       options[:outdir] = directoryisvalid(dir)
     end
-    
+
     opts.on("-h", "--help", "Show this help message") do
       puts opts
       exit
@@ -82,14 +82,14 @@ if __FILE__ == $PROGRAM_NAME
     xgbasepath = File.dirname(xgfilename)
     xgbasefile = File.basename(xgfilename)
     xgext = File.extname(xgfilename)
-    
+
     xgbasepath = options[:outdir] if options[:outdir]
 
     begin
       xgobj = XGImport::Import.new(xgfilename)
       puts "Processing file: #{xgfilename}"
       fileversion = -1
-      
+
       # To do: move this code to XGImport where it belongs
       xgobj.getfilesegment do |segment|
         output_filename = File.join(
@@ -104,27 +104,26 @@ if __FILE__ == $PROGRAM_NAME
           loop do
             rec = XGStruct::GameFileRecord.new(version: fileversion).fromstream(segment.fd)
             break if rec.nil?
-            
+
             if rec.is_a?(XGStruct::HeaderMatchEntry)
               fileversion = rec.Version
             elsif rec.is_a?(XGStruct::UnimplementedEntry)
               next
             end
-            
+
             pp rec, width: 160
           end
-          
+
         when XGImport::Import::Segment::XG_ROLLOUTS
           segment.fd.seek(0, IO::SEEK_SET)
           loop do
             rec = XGStruct::RolloutFileRecord.new.fromstream(segment.fd)
             break if rec.nil?
-            
+
             pp rec, width: 160
           end
         end
       end
-
     rescue XGImport::Error, XGZarc::Error => e
       puts e.value
     end

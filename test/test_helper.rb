@@ -1,39 +1,39 @@
 # Start SimpleCov before any application code is loaded
-require 'simplecov'
+require "simplecov"
 
 SimpleCov.start do
   # Enable branch coverage
   enable_coverage :branch
-  
+
   # Configure the output directory
-  coverage_dir 'coverage'
-  
+  coverage_dir "coverage"
+
   # Add filters to exclude test files and other non-application code
-  add_filter '/test/'
-  add_filter 'test_helper.rb'
-  
+  add_filter "/test/"
+  add_filter "test_helper.rb"
+
   # Track all Ruby files in the project
   track_files "**/*.rb"
 end
 
-require 'minitest/autorun'
-require 'minitest/pride'
-require 'stringio'
-require 'tempfile'
-require 'fileutils'
+require "minitest/autorun"
+require "minitest/pride"
+require "stringio"
+require "tempfile"
+require "fileutils"
 
 # Test helper module for common test utilities
 module TestHelper
   # Create a StringIO with test data
   def create_string_io(data)
-    StringIO.new(data.pack('C*'))
+    StringIO.new(data.pack("C*"))
   end
 
   # Create a temporary file with test data
   def create_temp_file(data)
-    temp = Tempfile.new('test_data')
+    temp = Tempfile.new("test_data")
     temp.binmode
-    temp.write(data.pack('C*')) if data.is_a?(Array)
+    temp.write(data.pack("C*")) if data.is_a?(Array)
     temp.write(data) if data.is_a?(String)
     temp.rewind
     temp
@@ -54,7 +54,7 @@ module TestHelper
     # Test setting with []= and method call
     obj[key] = value
     assert_equal value, obj[key]
-    
+
     # Test method-style access
     obj.send("#{key}=", value) if obj.respond_to?("#{key}=")
     assert_equal value, obj.send(key) if obj.respond_to?(key)
@@ -71,6 +71,6 @@ module TestHelper
 
   # Create mock stream with specific data
   def mock_stream_with_data(data)
-    StringIO.new(data.is_a?(String) ? data : data.pack('C*'))
+    StringIO.new(data.is_a?(String) ? data : data.pack("C*"))
   end
 end
