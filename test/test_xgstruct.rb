@@ -471,4 +471,241 @@ class TestXGStruct < Minitest::Test
     result = record.fromstream(stream)
     assert_nil result
   end
+
+  # Additional edge case tests for better coverage
+  def test_game_data_format_hdr_record_fromstream_insufficient_data
+    # Test with insufficient data
+    data = "HMGR" + ([0] * 100).pack("C*")  # Much less than SIZEOFREC
+    stream = StringIO.new(data)
+    record = XGStruct::GameDataFormatHdrRecord.new
+
+    result = record.fromstream(stream)
+    assert_nil result
+  end
+
+  def test_game_data_format_hdr_record_fromstream_wrong_magic
+    # Test with wrong magic number
+    data = [0] * XGStruct::GameDataFormatHdrRecord::SIZEOFREC
+    # Set wrong magic number
+    data[0] = 88  # 'X'
+    data[1] = 71  # 'G'
+    data[2] = 77  # 'M'
+    data[3] = 72  # 'H'
+    # Set version to 1
+    data[4] = 1
+    data[5] = 0
+    data[6] = 0
+    data[7] = 0
+
+    stream = StringIO.new(data.pack("C*"))
+    record = XGStruct::GameDataFormatHdrRecord.new
+
+    result = record.fromstream(stream)
+    assert_nil result
+  end
+
+  def test_game_data_format_hdr_record_fromstream_wrong_version
+    # Test with wrong version
+    data = [0] * XGStruct::GameDataFormatHdrRecord::SIZEOFREC
+    # Set correct magic number 'HMGR' (reversed for little-endian)
+    data[0] = 82  # 'R'
+    data[1] = 71  # 'G' 
+    data[2] = 77  # 'M'
+    data[3] = 72  # 'H'
+    # Set wrong version
+    data[4] = 2  # Wrong version (should be 1)
+    data[5] = 0
+    data[6] = 0
+    data[7] = 0
+
+    stream = StringIO.new(data.pack("C*"))
+    record = XGStruct::GameDataFormatHdrRecord.new
+
+    result = record.fromstream(stream)
+    assert_nil result
+  end
+
+  def test_time_setting_record_fromstream_with_invalid_boolean
+    # Test TimeSettingRecord with different boolean values
+    data = [0] * XGStruct::TimeSettingRecord::SIZEOFREC
+    
+    # Set ClockType = 2
+    data[0] = 2
+    data[1] = 0
+    data[2] = 0
+    data[3] = 0
+    
+    # Set PerGame to non-zero (should convert to true)
+    data[4] = 255
+    
+    stream = StringIO.new(data.pack("C*"))
+    record = XGStruct::TimeSettingRecord.new
+    
+    result = record.fromstream(stream)
+    assert_equal record, result
+    assert_equal 2, record["ClockType"]
+    assert_equal true, record["PerGame"]
+  end
+
+  def test_eval_level_record_fromstream_with_boolean_conversion
+    # Test EvalLevelRecord with different boolean values  
+    data = [0] * XGStruct::EvalLevelRecord::SIZEOFREC
+    
+    # Set Level = -1 (signed short)
+    data[0] = 0xFF  # -1 in little-endian signed short
+    data[1] = 0xFF
+    
+    # Set isDouble to non-zero
+    data[2] = 1
+    
+    stream = StringIO.new(data.pack("C*"))
+    record = XGStruct::EvalLevelRecord.new
+    
+    result = record.fromstream(stream)
+    assert_equal record, result
+    assert_equal -1, record["Level"]
+    assert_equal true, record["isDouble"]
+  end
+
+  def test_game_file_record_version_attribute
+    # Test that version attribute is stored separately from hash
+    record = XGStruct::GameFileRecord.new(version: 25)
+    
+    # Version should be accessible via instance variable but not hash
+    assert_equal 25, record.instance_variable_get(:@version)
+    refute record.has_key?("version")
+  end
+
+  def test_header_match_entry_version_edge_cases
+    # Test HeaderMatchEntry version handling
+    entry = XGStruct::HeaderMatchEntry.new
+    
+    # Test default version
+    assert_equal -1, entry.version
+    
+    # Test version assignment
+    entry.version = 99
+    assert_equal 99, entry.version
+  end
+
+  # Test method_missing and respond_to_missing for all classes
+  def test_all_hash_classes_method_missing_behavior
+    classes = [
+      XGStruct::GameDataFormatHdrRecord,
+      XGStruct::TimeSettingRecord, 
+      XGStruct::EvalLevelRecord,
+      XGStruct::UnimplementedEntry,
+      XGStruct::GameFileRecord,
+      XGStruct::RolloutFileRecord
+    ]
+
+    classes.each do |klass|
+      obj = klass.new
+      
+      # Test setter method_missing
+      obj.TestField = "test_value"
+      assert_equal "test_value", obj["TestField"]
+      
+      # Test getter method_missing for existing key
+      obj["ExistingKey"] = "existing_value"
+      assert_equal "existing_value", obj.ExistingKey
+      
+      # Test respond_to_missing for setter
+      assert obj.respond_to?(:TestField=)
+      
+      # Test respond_to_missing for getter of existing key
+      assert obj.respond_to?(:ExistingKey)
+      
+      # Test respond_to_missing for non-existent key
+      refute obj.respond_to?(:NonExistentKey)
+      
+      # Test NoMethodError for non-existent getter
+      assert_raises(NoMethodError) { obj.NonExistentKey }
+    end
+  end
+
+  def test_game_data_format_hdr_record_fromstream_with_valid_guid
+    # Test with valid data including proper GUID handling
+    data = [0] * XGStruct::GameDataFormatHdrRecord::SIZEOFREC
+    
+    # Set magic number 'HMGR' (reversed for little-endian)
+    data[0] = 82   # 'R'
+    data[1] = 71   # 'G'
+    data[2] = 77   # 'M'
+    data[3] = 72   # 'H'
+    
+    # Set version to 1 (32-bit little-endian)
+    data[4] = 1
+    data[5] = 0
+    data[6] = 0
+    data[7] = 0
+    
+    # Set header size (32-bit little-endian) = 1000
+    data[8] = 232   # 1000 & 0xFF
+    data[9] = 3     # (1000 >> 8) & 0xFF  
+    data[10] = 0    # (1000 >> 16) & 0xFF
+    data[11] = 0    # (1000 >> 24) & 0xFF
+    
+    # Set thumbnail offset (64-bit little-endian) = 100
+    data[12] = 100
+    data[13] = 0
+    data[14] = 0
+    data[15] = 0
+    data[16] = 0
+    data[17] = 0
+    data[18] = 0
+    data[19] = 0
+    
+    # Set thumbnail size (32-bit little-endian) = 50
+    data[20] = 50
+    data[21] = 0
+    data[22] = 0
+    data[23] = 0
+    
+    stream = StringIO.new(data.pack("C*"))
+    record = XGStruct::GameDataFormatHdrRecord.new
+    
+    result = record.fromstream(stream)
+    assert_equal record, result
+    assert_equal "HMGR", record["MagicNumber"]
+    assert_equal 1, record["HeaderVersion"]
+    assert_equal 1000, record["HeaderSize"]
+    assert_equal 100, record["ThumbnailOffset"]
+    assert_equal 50, record["ThumbnailSize"]
+    assert_match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, record["GameGUID"])
+  end
+
+  def test_unimplemented_entry_default_behavior
+    # Test that UnimplementedEntry has correct defaults and behavior
+    entry = XGStruct::UnimplementedEntry.new
+    
+    assert_equal "UNKNOWN", entry["EntryType"]
+    assert_equal "UnimplementedEntry", entry["Name"]
+    
+    # Test fromstream always returns self
+    stream = StringIO.new("any data here")
+    result = entry.fromstream(stream)
+    assert_equal entry, result
+  end
+
+  def test_module_constants_and_structure
+    # Test module structure and constants
+    assert defined?(XGStruct)
+    assert XGStruct.is_a?(Module)
+    
+    # Test all classes are defined
+    classes = [
+      :GameDataFormatHdrRecord, :TimeSettingRecord, :EvalLevelRecord,
+      :UnimplementedEntry, :GameFileRecord, :RolloutFileRecord, :HeaderMatchEntry
+    ]
+    
+    classes.each do |class_name|
+      assert XGStruct.const_defined?(class_name), "XGStruct should define #{class_name}"
+    end
+    
+    # Test SIZE constants
+    assert_equal 8232, XGStruct::GameDataFormatHdrRecord::SIZEOFREC
+    assert_equal 32, XGStruct::TimeSettingRecord::SIZEOFREC
+    assert_equal 4, XGStruct::EvalLevelRecord::SIZEOFREC
+  end
 end

@@ -249,6 +249,85 @@ class TestXGUtils < Minitest::Test
     assert_equal "ABC", result
   end
 
+  # Additional edge case tests for better coverage
+  def test_streamcrc32_with_small_blksize_and_large_data
+    # Test with very small block size and larger data
+    test_data = "A" * 1000
+    stream = StringIO.new(test_data)
+
+    crc = XGUtils.streamcrc32(stream, blksize: 1)  # 1 byte at a time
+    expected_crc = Zlib.crc32(test_data) & 0xffffffff
+
+    assert_equal expected_crc, crc
+    assert_equal 0, stream.tell  # Position should be restored
+  end
+
+  def test_streamcrc32_with_exact_numbytes_boundary
+    # Test with numbytes exactly matching data size
+    test_data = "Exact match"
+    stream = StringIO.new(test_data)
+
+    crc = XGUtils.streamcrc32(stream, numbytes: test_data.length)
+    expected_crc = Zlib.crc32(test_data) & 0xffffffff
+
+    assert_equal expected_crc, crc
+  end
+
+  def test_utf16intarraytostr_with_high_values
+    # Test with values that might cause encoding issues
+    int_array = [72, 233, 108, 108, 111, 0]  # "Héllo" with accented character
+    result = XGUtils.utf16intarraytostr(int_array)
+
+    assert_equal "Héllo", result
+    assert_equal Encoding::UTF_8, result.encoding
+  end
+
+  def test_delphidatetimeconv_negative_value
+    # Test with negative Delphi datetime (before base date)
+    delphi_datetime = -1.0  # Dec 29, 1899
+    result = XGUtils.delphidatetimeconv(delphi_datetime)
+
+    assert_equal DateTime.new(1899, 12, 29), result
+  end
+
+  def test_delphidatetimeconv_precise_time
+    # Test with very precise fractional time
+    delphi_datetime = 1.999988426  # Close to end of day
+    result = XGUtils.delphidatetimeconv(delphi_datetime)
+
+    # Should be Dec 31, 1899 near end of day
+    assert_equal 1899, result.year
+    assert_equal 12, result.month
+    assert_equal 31, result.day
+    assert result.hour >= 23  # Should be late in the day
+  end
+
+  def test_delphishortstrtostr_with_zero_bytes
+    # Test with embedded zero bytes
+    shortstring_bytes = [8, 65, 0, 66, 0, 67, 0, 68, 0]  # "A\0B\0C\0D\0"
+    result = XGUtils.delphishortstrtostr(shortstring_bytes)
+
+    # Should include the zero bytes as part of the string
+    assert_equal "A\0B\0C\0D\0", result
+  end
+
+  def test_delphishortstrtostr_maximum_valid_length
+    # Test with length 254 (close to max but valid)
+    test_string = "X" * 254
+    shortstring_bytes = [254] + test_string.bytes
+    result = XGUtils.delphishortstrtostr(shortstring_bytes)
+
+    assert_equal test_string, result
+  end
+
+  def test_utf16intarraytostr_single_character
+    # Test with single character
+    int_array = [65, 0]  # "A" followed by null
+    result = XGUtils.utf16intarraytostr(int_array)
+
+    assert_equal "A", result
+  end
+
   # Test module is properly defined
   def test_module_exists
     assert defined?(XGUtils)
