@@ -39,7 +39,39 @@ ruby demo_xgfile_parser.rb
 
 # Parse existing XG files  
 ruby demo_xgfile_parser.rb game1.xg game2.xg
+
+# Demo the backgammon board ASCII renderer
+ruby demo_board_render.rb
+
+# Demo board rendering with parsed move data
+ruby demo_board_with_move.rb
 ```
+
+### Backgammon Board Rendering
+
+A utility method has been added to render ASCII representations of backgammon boards from position arrays:
+
+```ruby
+require_relative "xgutils"
+
+# Create a position array (26 elements representing the board)
+position = [0] * 26
+
+# Set up a simple position
+position[1] = 2    # 2 Player 1 checkers on point 1
+position[24] = -3  # 3 Player 2 checkers on point 24
+position[0] = 1    # 1 Player 1 checker in bear-off
+
+# Render the board
+puts XGUtils.render_board(position)
+```
+
+The position array follows the PositionEngine format:
+- Index 0: Player 1's bear-off area
+- Indices 1-24: The 24 points on the board
+- Index 25: Player 2's bear-off area
+- Positive values = Player 1's checkers
+- Negative values = Player 2's checkers
 
 ### Testing
 ```bash
