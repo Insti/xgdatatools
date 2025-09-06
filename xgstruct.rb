@@ -271,7 +271,7 @@ module XGStruct
 
   # Header and footer entry classes for compatibility
   class HeaderMatchEntry < Hash
-    attr_accessor :Version
+    attr_accessor :version
 
     def initialize(**kw)
       @version = -1

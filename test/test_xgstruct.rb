@@ -382,14 +382,14 @@ class TestXGStruct < Minitest::Test
     entry = XGStruct::HeaderMatchEntry.new
 
     # Test default Version
-    assert_equal(-1, entry.Version)
+    assert_equal(-1, entry.version)
     assert_equal({}, entry)
   end
 
   def test_header_match_entry_initialization_with_params
     entry = XGStruct::HeaderMatchEntry.new("TestKey" => "TestValue")
 
-    assert_equal(-1, entry.Version)
+    assert_equal(-1, entry.version)
     assert_equal "TestValue", entry["TestKey"]
   end
 
@@ -397,8 +397,8 @@ class TestXGStruct < Minitest::Test
     entry = XGStruct::HeaderMatchEntry.new
 
     # Test Version setter and getter
-    entry.Version = 5
-    assert_equal 5, entry.Version
+    entry.version = 5
+    assert_equal 5, entry.version
   end
 
   # Test module structure
