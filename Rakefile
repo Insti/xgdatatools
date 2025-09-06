@@ -38,4 +38,9 @@ task :test_extractxgdata do
   ruby "test/test_extractxgdata.rb"
 end
 
+desc "Run XGFileParser tests"
+task :test_xgfile_parser do
+  ruby "test/test_xgfile_parser.rb"
+end
+
 task default: :test
