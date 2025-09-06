@@ -314,6 +314,224 @@ class TestXGImport < Minitest::Test
     end
   end
 
+  def test_segment_copyto_functionality
+    # Test copyto method functionality
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile
+    
+    # Write some test data
+    test_data = "Test file content"
+    segment.file.write(test_data)
+    segment.file.flush
+
+    # Create destination file path
+    dest_path = "/tmp/test_copy_dest.txt"
+
+    # Copy the file
+    segment.copyto(dest_path)
+
+    # Verify the copy was successful
+    assert File.exist?(dest_path)
+    assert_equal test_data, File.read(dest_path)
+
+    # Cleanup
+    segment.closetempfile
+    File.unlink(dest_path) if File.exist?(dest_path)
+  end
+
+  def test_segment_closetempfile_with_autodelete_false
+    # Test closetempfile with autodelete disabled
+    segment = XGImport::Import::Segment.new(delete: false)
+    segment.createtempfile
+    
+    filename = segment.filename
+    
+    # Write some data
+    segment.file.write("test data")
+    segment.file.flush
+
+    # Close temp file
+    segment.closetempfile
+
+    # File should still exist since autodelete is false
+    assert File.exist?(filename)
+
+    # Cleanup manually
+    File.unlink(filename) if File.exist?(filename)
+  end
+
+  def test_segment_closetempfile_when_already_closed
+    # Test closetempfile when file is already closed
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile
+    
+    # Close file manually first
+    segment.file.close
+    
+    # Should handle already closed file gracefully
+    begin
+      segment.closetempfile
+      # If no exception is raised, that's good
+      assert true
+    rescue => e
+      flunk "Should handle already closed file gracefully, but raised: #{e}"
+    end
+  end
+
+  def test_segment_initialization_with_different_types
+    # Test initialization with different segment types
+    types = [
+      XGImport::Import::Segment::GDF_HDR,
+      XGImport::Import::Segment::GDF_IMAGE,
+      XGImport::Import::Segment::XG_GAMEHDR,
+      XGImport::Import::Segment::XG_GAMEFILE,
+      XGImport::Import::Segment::XG_ROLLOUTS,
+      XGImport::Import::Segment::XG_COMMENT,
+      XGImport::Import::Segment::ZLIBARC_IDX
+    ]
+
+    types.each do |type|
+      segment = XGImport::Import::Segment.new(type: type)
+      assert_equal type, segment.type
+      assert_equal XGImport::Import::Segment::EXTENSIONS[type], segment.ext
+    end
+  end
+
+  def test_segment_unknown_type
+    # Test with unknown segment type (no extension)
+    segment = XGImport::Import::Segment.new(type: XGImport::Import::Segment::XG_UNKNOWN)
+    assert_equal XGImport::Import::Segment::XG_UNKNOWN, segment.type
+    assert_nil segment.ext
+  end
+
+  def test_error_filename_accessor
+    # Test that Error class properly stores and returns filename
+    error = XGImport::Error.new("test error", "test_file.xg")
+    assert_equal "test_file.xg", error.filename
+  end
+
+  def test_segment_initialization_edge_cases
+    # Test initialization with edge case parameters
+    segment = XGImport::Import::Segment.new(type: 99, delete: true, prefix: "custom_prefix")
+    
+    # Type outside normal range should still work
+    assert_equal 99, segment.type
+    # Extension should be nil for unknown types
+    assert_nil segment.ext
+  end
+
+  def test_import_class_structure_validation
+    # Test Import class structure and initialization
+    import = XGImport::Import.new("test_filename.xg")
+    assert_equal "test_filename.xg", import.filename
+    
+    # Test filename setter
+    import.filename = "new_filename.xg" 
+    assert_equal "new_filename.xg", import.filename
+    
+    # Test that getfilesegment method exists and returns enumerator
+    enum = import.getfilesegment
+    assert_kind_of Enumerator, enum
+  end
+
+  def test_segment_filemap_coverage
+    # Test the XG_FILEMAP constant comprehensively
+    filemap = XGImport::Import::Segment::XG_FILEMAP
+    
+    assert_equal XGImport::Import::Segment::XG_GAMEHDR, filemap["temp.xgi"]
+    assert_equal XGImport::Import::Segment::XG_ROLLOUTS, filemap["temp.xgr"]
+    assert_equal XGImport::Import::Segment::XG_COMMENT, filemap["temp.xgc"]
+    assert_equal XGImport::Import::Segment::XG_GAMEFILE, filemap["temp.xg"]
+    
+    # Test that map is complete
+    assert_equal 4, filemap.size
+  end
+
+  def test_segment_attribute_assignment
+    # Test direct attribute assignment
+    segment = XGImport::Import::Segment.new
+    
+    segment.filename = "/tmp/test.dat"
+    assert_equal "/tmp/test.dat", segment.filename
+    
+    segment.type = XGImport::Import::Segment::XG_ROLLOUTS
+    assert_equal XGImport::Import::Segment::XG_ROLLOUTS, segment.type
+    
+    segment.ext = ".custom"
+    assert_equal ".custom", segment.ext
+  end
+
+  def test_module_and_class_constants_comprehensive
+    # Test all module constants are defined correctly
+    assert_equal 0, XGImport::Import::Segment::GDF_HDR
+    assert_equal 1, XGImport::Import::Segment::GDF_IMAGE
+    assert_equal 2, XGImport::Import::Segment::XG_GAMEHDR
+    assert_equal 3, XGImport::Import::Segment::XG_GAMEFILE
+    assert_equal 4, XGImport::Import::Segment::XG_ROLLOUTS
+    assert_equal 5, XGImport::Import::Segment::XG_COMMENT
+    assert_equal 6, XGImport::Import::Segment::ZLIBARC_IDX
+    assert_equal 7, XGImport::Import::Segment::XG_UNKNOWN
+    
+    # Test extension constants
+    assert_equal "_gdh.bin", XGImport::Import::Segment::GDF_HDR_EXT
+    assert_equal ".jpg", XGImport::Import::Segment::GDF_IMAGE_EXT
+    assert_equal "_gamehdr.bin", XGImport::Import::Segment::XG_GAMEHDR_EXT
+    assert_equal "_gamefile.bin", XGImport::Import::Segment::XG_GAMEFILE_EXT
+    assert_equal "_rollouts.bin", XGImport::Import::Segment::XG_ROLLOUTS_EXT
+    assert_equal "_comments.bin", XGImport::Import::Segment::XG_COMMENTS_EXT
+    assert_equal "_idx.bin", XGImport::Import::Segment::XG_IDX_EXT
+    
+    # Test numeric constants
+    assert_equal 556, XGImport::Import::Segment::XG_GAMEHDR_LEN
+    assert_equal "tmpXGI", XGImport::Import::Segment::TMP_PREFIX
+  end
+
+  def test_segment_closetempfile_with_nil_file
+    # Test closetempfile when @file is nil
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile
+    
+    # Set file to nil manually
+    segment.instance_variable_set(:@file, nil)
+    
+    # Should handle nil file gracefully
+    begin
+      segment.closetempfile
+      assert true  # If we get here, it handled nil gracefully
+    rescue => e
+      flunk "Should handle nil file gracefully, but raised: #{e}"
+    end
+  end
+
+  def test_segment_closetempfile_file_unlink_error_handling
+    # Test closetempfile when file unlink might fail
+    segment = XGImport::Import::Segment.new(delete: true)
+    segment.createtempfile
+    
+    filename = segment.filename
+    
+    # Close the file first
+    segment.file.close
+    
+    # Make the file read-only to potentially cause unlink issues on some systems
+    # (This test may behave differently on different file systems)
+    File.chmod(0444, filename) if File.exist?(filename)
+    
+    # closetempfile should still complete even if unlink has issues
+    begin
+      segment.closetempfile
+      # Method should complete regardless of unlink result
+      assert_nil segment.instance_variable_get(:@filename)
+    rescue => e
+      # If there's an error, ensure cleanup still happened
+      assert_nil segment.instance_variable_get(:@filename)
+    ensure
+      # Cleanup - restore permissions and remove file if it still exists
+      File.chmod(0644, filename) if File.exist?(filename)
+      File.unlink(filename) if File.exist?(filename)
+    end
+  end
+
   private
 
   def create_minimal_gdf_header

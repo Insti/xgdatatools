@@ -301,6 +301,104 @@ class TestXGZarc < Minitest::Test
     assert XGZarc::ZlibArchive.instance_methods.include?(:setblocksize)
   end
 
+  def test_zlib_archive_getarchivefile_method_exists
+    # Test that getarchivefile method exists
+    assert XGZarc::ZlibArchive.instance_methods.include?(:getarchivefile)
+  end
+
+  def test_file_record_constants_and_structure
+    # Test that FileRecord has expected constants and structure
+    assert_equal 532, XGZarc::FileRecord::SIZEOFREC
+    
+    # Test default initialization values
+    record = XGZarc::FileRecord.new
+    assert_nil record["name"]
+    assert_nil record["path"] 
+    assert_equal 0, record["osize"]
+    assert_equal 0, record["csize"]
+    assert_equal 0, record["start"]
+    assert_equal 0, record["crc"]
+    assert_equal false, record["compressed"]
+    assert_equal false, record["stored"]
+    assert_equal 0, record["compressionlevel"]
+  end
+
+  def test_archive_record_constants_and_structure
+    # Test ArchiveRecord structure
+    assert_equal 36, XGZarc::ArchiveRecord::SIZEOFREC
+    
+    # Test default initialization values in detail
+    record = XGZarc::ArchiveRecord.new
+    assert_equal 0, record["crc"]
+    assert_equal 0, record["filecount"]
+    assert_equal 0, record["version"]
+    assert_equal 0, record["registrysize"]
+    assert_equal 0, record["archivesize"]
+    assert_equal false, record["compressedregistry"]
+    assert_equal [], record["reserved"]
+  end
+
+  # Additional edge case tests to improve coverage
+  def test_file_record_fromstream_with_invalid_data
+    # Test fromstream with a stream that returns nil on read
+    stream = StringIO.new("")
+    record = XGZarc::FileRecord.new
+
+    # This should raise a NoMethodError when trying to unpack nil
+    assert_raises(NoMethodError) do
+      record.fromstream(stream)
+    end
+  end
+
+  def test_archive_record_fromstream_with_invalid_data
+    # Test fromstream with a stream that returns nil/insufficient data
+    stream = StringIO.new("")
+    record = XGZarc::ArchiveRecord.new
+
+    # This should raise a NoMethodError when trying to unpack nil
+    assert_raises(NoMethodError) do
+      record.fromstream(stream)
+    end
+  end
+
+  def test_file_record_compressed_flag_edge_cases
+    # Test different values for compressed flag
+    data = [0] * XGZarc::FileRecord::SIZEOFREC
+    
+    # Set name length to 0 (empty name)
+    data[0] = 0
+    # Set path length to 0 (empty path)  
+    data[256] = 0
+    
+    # Test compressed = true (value 0)
+    data[528] = 0  # 0 means compressed = true
+    
+    stream = create_string_io(data)
+    record = XGZarc::FileRecord.new
+    record.fromstream(stream)
+    
+    assert_equal true, record["compressed"]
+    assert_equal "", record["name"]
+    assert_equal "", record["path"]
+  end
+
+  def test_archive_record_boolean_conversion
+    # Test compressedregistry boolean conversion
+    data = [0] * XGZarc::ArchiveRecord::SIZEOFREC
+    
+    # Set compressedregistry to non-zero value
+    data[20] = 5  # Non-zero should convert to true
+    data[21] = 0
+    data[22] = 0
+    data[23] = 0
+    
+    stream = create_string_io(data)
+    record = XGZarc::ArchiveRecord.new
+    record.fromstream(stream)
+    
+    assert_equal true, record["compressedregistry"]
+  end
+
   # Test module structure
   def test_module_exists
     assert defined?(XGZarc)
