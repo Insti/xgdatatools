@@ -23,24 +23,22 @@ class TestXGUtilsBoardAlignment < Minitest::Test
     content_lines = board_lines[1..-2]  # Exclude top and bottom borders
     
     content_lines.each_with_index do |line, i|
-      # All content lines should be exactly 55 characters
-      assert_equal 55, line.length, "Line #{i+1} should be 55 characters: '#{line}'"
+      # All content lines should be exactly 41 characters (3-char format)
+      assert_equal 41, line.length, "Line #{i+1} should be 41 characters: '#{line}'"
       
       # Find vertical bar positions
       vertical_positions = []
       line.chars.each_with_index { |char, pos| vertical_positions << pos if char == '│' }
       
-      # All lines should have vertical bars at positions 0 and 54 (start and end)
-      # The middle position should be at 27, but let's be more flexible for now
+      # All lines should have vertical bars at positions 0 and 40 (start and end)
       assert vertical_positions.include?(0), 
              "Line #{i+1} missing vertical bar at position 0: '#{line}' (bars at #{vertical_positions})"
-      assert vertical_positions.include?(54), 
-             "Line #{i+1} missing vertical bar at position 54: '#{line}' (bars at #{vertical_positions})"
+      assert vertical_positions.include?(40), 
+             "Line #{i+1} missing vertical bar at position 40: '#{line}' (bars at #{vertical_positions})"
       
-      # Check that there's a middle separator around position 27 (allow some flexibility)
-      middle_bars = vertical_positions.select { |pos| pos >= 25 && pos <= 29 }
-      assert middle_bars.length >= 1,
-             "Line #{i+1} missing middle vertical bar around position 27: '#{line}' (bars at #{vertical_positions})"
+      # Check that there's a middle separator at position 20
+      assert vertical_positions.include?(20),
+             "Line #{i+1} missing middle vertical bar at position 20: '#{line}' (bars at #{vertical_positions})"
     end
   end
   
@@ -65,16 +63,16 @@ class TestXGUtilsBoardAlignment < Minitest::Test
       info_line = lines.find { |line| line.include?("Bear-off") }
       refute_nil info_line, "Should have info line"
       
-      # Info line should be exactly 55 characters
-      assert_equal 55, info_line.length, 
-                   "Info line should be 55 chars with bear-off #{bear_off_1}/#{bear_off_2}: '#{info_line}'"
+      # Info line should be exactly 41 characters (3-char format)
+      assert_equal 41, info_line.length, 
+                   "Info line should be 41 chars with bear-off #{bear_off_1}/#{bear_off_2}: '#{info_line}'"
       
       # Should have vertical bars at expected positions
       vertical_positions = []
       info_line.chars.each_with_index { |char, pos| vertical_positions << pos if char == '│' }
       
       assert vertical_positions.include?(0), "Info line should start with │"
-      assert vertical_positions.include?(54), "Info line should end with │ at position 54"
+      assert vertical_positions.include?(40), "Info line should end with │ at position 40"
     end
   end
 end
