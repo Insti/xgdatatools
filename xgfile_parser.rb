@@ -245,12 +245,23 @@ module XGFileParser
     
     # Parse Move record
     def parse_move_record(data)
-      {
-        "EntryType" => 3,
-        "Type" => "Move",
-        "ActivePlayer" => data[9 + 52, 4].unpack("l<")[0],
-        "RawData" => data[0, 100].unpack("H*")[0]
-      }
+      # Use the MoveEntry class to fully parse the move data
+      move_entry = XGStruct::MoveEntry.new
+      stream = StringIO.new(data)
+      parsed_move = move_entry.fromstream(stream)
+      
+      if parsed_move
+        # Return the fully parsed move object
+        parsed_move
+      else
+        # Fallback to basic parsing if full parsing fails
+        {
+          "EntryType" => 3,
+          "Type" => "Move", 
+          "ActivePlayer" => data[9 + 52, 4].unpack("l<")[0],
+          "RawData" => data[0, 100].unpack("H*")[0]
+        }
+      end
     end
     
     # Parse FooterGame record
