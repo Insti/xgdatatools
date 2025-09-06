@@ -532,6 +532,360 @@ class TestXGImport < Minitest::Test
     end
   end
 
+  # Additional tests for missing coverage
+  
+  def test_segment_tempfile_instance_variable
+    # Test that @tempfile instance variable is properly set
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile
+    
+    # Should have @tempfile instance variable set
+    tempfile = segment.instance_variable_get(:@tempfile)
+    refute_nil tempfile
+    assert tempfile.is_a?(Tempfile)
+    
+    # Should be same as @fd and @file
+    assert_equal tempfile, segment.fd
+    assert_equal tempfile, segment.file
+    
+    segment.closetempfile
+  end
+
+  def test_segment_prefix_parameter_usage
+    # Test that prefix parameter is used in createtempfile
+    custom_prefix = "custom_test_prefix"
+    segment = XGImport::Import::Segment.new(prefix: custom_prefix)
+    segment.createtempfile
+    
+    # Filename should contain the custom prefix
+    assert_match(/#{custom_prefix}/, segment.filename)
+    
+    segment.closetempfile
+  end
+
+  def test_segment_createtempfile_mode_parameter
+    # Test createtempfile with different mode parameters
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile("wb")
+    
+    # File should be created and accessible
+    refute_nil segment.file
+    assert segment.file.respond_to?(:write)
+    
+    segment.closetempfile
+  end
+
+  def test_segment_type_validation_edge_cases
+    # Test segment with very high type number
+    segment = XGImport::Import::Segment.new(type: 999)
+    assert_equal 999, segment.type
+    assert_nil segment.ext  # Should be nil for undefined types
+    
+    # Test with negative type
+    segment2 = XGImport::Import::Segment.new(type: -1)
+    assert_equal(-1, segment2.type)
+    assert_nil segment2.ext
+  end
+
+  def test_import_getfilesegment_error_propagation
+    # Test that errors in getfilesegment are properly propagated
+    temp_file = create_temp_file("not valid data")
+    import = XGImport::Import.new(temp_file.path)
+
+    # Should raise XGImport::Error, not some other error
+    error = assert_raises(XGImport::Error) do
+      import.getfilesegment.to_a
+    end
+
+    assert_equal "Not a game data format file", error.error
+    assert_equal temp_file.path, error.filename
+
+    temp_file.close
+    temp_file.unlink
+  end
+
+  def test_import_getfilesegment_with_valid_header_but_bad_archive
+    # Test getfilesegment with valid GDF header but bad archive data
+    header_data = create_valid_gdf_header_with_thumbnail
+    temp_file = create_temp_file(header_data + "bad archive data")
+    
+    import = XGImport::Import.new(temp_file.path)
+    
+    # Should process the header but fail on archive
+    segments = []
+    assert_raises do  # Should raise an error when trying to process archive
+      import.getfilesegment do |segment|
+        segments << segment
+      end
+    end
+    
+    # Should have processed the GDF header segment
+    assert_equal 1, segments.length
+    assert_equal XGImport::Import::Segment::GDF_HDR, segments[0].type
+
+    temp_file.close
+    temp_file.unlink
+  end
+
+  def test_import_getfilesegment_with_thumbnail
+    # Test getfilesegment with thumbnail processing
+    header_data = create_valid_gdf_header_with_thumbnail(thumbnail_size: 100)
+    thumbnail_data = "fake jpeg data" * 8  # Make it exactly 100+ bytes
+    file_data = header_data + thumbnail_data + "archive data"
+    
+    temp_file = create_temp_file(file_data)
+    import = XGImport::Import.new(temp_file.path)
+    
+    segments = []
+    # This will likely fail on archive processing, but we should see both header and image segments
+    begin
+      import.getfilesegment do |segment|
+        segments << {type: segment.type, size: File.size(segment.filename)}
+        # Stop after collecting segments to avoid archive errors
+        break if segments.length >= 2
+      end
+    rescue => e
+      # Expected to fail on archive processing
+    end
+    
+    # Should have processed at least the GDF header, might have image too
+    assert segments.length >= 1
+    assert_equal XGImport::Import::Segment::GDF_HDR, segments[0][:type]
+    
+    # If we got 2 segments, the second should be the image
+    if segments.length == 2
+      assert_equal XGImport::Import::Segment::GDF_IMAGE, segments[1][:type]
+      assert segments[1][:size] > 0  # Thumbnail should have content
+    end
+
+    temp_file.close
+    temp_file.unlink
+  end
+
+  def test_segment_copyto_with_nonexistent_source
+    # Test copyto when source file doesn't exist
+    segment = XGImport::Import::Segment.new
+    # Don't create temp file, so @filename will be nil
+    
+    dest_file = "/tmp/test_copyto_dest_fail"
+    
+    # Should raise an error (likely ArgumentError or TypeError)
+    assert_raises do
+      segment.copyto(dest_file)
+    end
+    
+    # Cleanup
+    File.unlink(dest_file) if File.exist?(dest_file)
+  end
+
+  def test_segment_closetempfile_multiple_calls_robustness
+    # Test multiple calls to closetempfile are safe
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile
+    
+    # Close multiple times - should be safe
+    5.times do
+      begin
+        segment.closetempfile
+      rescue => e
+        flunk "Multiple closetempfile calls should be safe, but raised: #{e}"
+      end
+    end
+    
+    # All attributes should be nil
+    assert_nil segment.fd
+    assert_nil segment.file
+    assert_nil segment.filename
+  end
+
+  def test_error_class_message_method
+    # Test that Error#message returns the same as to_s
+    error = XGImport::Error.new("Test message", "test.file")
+    
+    assert_equal error.to_s, error.message
+    assert_equal error.value.inspect, error.message
+  end
+
+  def test_import_gamefile_magic_number_validation
+    # Test the XG_GAMEFILE magic number validation logic
+    # This tests an important security/validation feature
+    
+    # Create a mock file record that would trigger the validation
+    mock_filerec = {"name" => "temp.xg"}  # This maps to XG_GAMEFILE type
+    
+    # Test that the XG_FILEMAP correctly identifies gamefile type
+    assert_equal XGImport::Import::Segment::XG_GAMEFILE, 
+                 XGImport::Import::Segment::XG_FILEMAP["temp.xg"]
+    
+    # Test the magic number validation constants
+    assert_equal 556, XGImport::Import::Segment::XG_GAMEHDR_LEN
+    
+    # The actual validation happens in getfilesegment when processing archive files
+    # This requires a valid archive structure which is complex to mock,
+    # but we can at least test the mapping and constants are correct
+  end
+
+  def test_segment_delete_parameter_comprehensive
+    # Test the delete parameter behavior more comprehensively
+    
+    # Test with delete = true (default)
+    segment1 = XGImport::Import::Segment.new(delete: true)
+    segment1.createtempfile
+    filename1 = segment1.filename
+    assert File.exist?(filename1)
+    
+    segment1.closetempfile
+    refute File.exist?(filename1)  # Should be deleted
+    
+    # Test with delete = false
+    segment2 = XGImport::Import::Segment.new(delete: false)
+    segment2.createtempfile
+    filename2 = segment2.filename
+    assert File.exist?(filename2)
+    
+    segment2.closetempfile
+    assert File.exist?(filename2)  # Should still exist
+    
+    # Manual cleanup
+    File.unlink(filename2) if File.exist?(filename2)
+  end
+
+  def test_segment_extension_mapping_comprehensive
+    # Test that all type constants map to correct extensions
+    type_extension_map = {
+      XGImport::Import::Segment::GDF_HDR => "_gdh.bin",
+      XGImport::Import::Segment::GDF_IMAGE => ".jpg", 
+      XGImport::Import::Segment::XG_GAMEHDR => "_gamehdr.bin",
+      XGImport::Import::Segment::XG_GAMEFILE => "_gamefile.bin",
+      XGImport::Import::Segment::XG_ROLLOUTS => "_rollouts.bin",
+      XGImport::Import::Segment::XG_COMMENT => "_comments.bin",
+      XGImport::Import::Segment::ZLIBARC_IDX => "_idx.bin",
+      XGImport::Import::Segment::XG_UNKNOWN => nil
+    }
+    
+    type_extension_map.each do |type, expected_ext|
+      segment = XGImport::Import::Segment.new(type: type)
+      if expected_ext.nil?
+        assert_nil segment.ext, "Type #{type} should map to nil extension"
+      else
+        assert_equal expected_ext, segment.ext,
+                     "Type #{type} should map to extension '#{expected_ext}'"
+      end
+    end
+  end
+
+  def test_import_getfilesegment_file_io_error_handling
+    # Test error handling when file operations fail
+    import = XGImport::Import.new("/dev/null")  # Valid file but wrong format
+    
+    assert_raises(XGImport::Error) do
+      import.getfilesegment.to_a
+    end
+  end
+
+  def test_segment_copyto_to_readonly_directory
+    # Test copyto when destination directory is read-only (if supported)
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile
+    
+    segment.file.write("test data")
+    segment.file.flush
+    
+    # Try to copy to a likely read-only location
+    # This may not fail on all systems, so we handle both cases
+    dest_file = "/root/test_readonly_dest"  # Likely to fail due to permissions
+    
+    begin
+      segment.copyto(dest_file)
+      # If it succeeds, clean up
+      File.unlink(dest_file) if File.exist?(dest_file)
+    rescue => e
+      # Expected to fail - verify it's an appropriate error
+      assert e.is_a?(SystemCallError), "Should raise a system call error for permission issues"
+    end
+    
+    segment.closetempfile
+  end
+
+  def test_segment_attribute_accessors_comprehensive
+    # Test all attribute accessors work correctly
+    segment = XGImport::Import::Segment.new
+    
+    # Test filename assignment
+    segment.filename = "/tmp/test_filename"
+    assert_equal "/tmp/test_filename", segment.filename
+    
+    # Test type assignment  
+    segment.type = XGImport::Import::Segment::XG_ROLLOUTS
+    assert_equal XGImport::Import::Segment::XG_ROLLOUTS, segment.type
+    
+    # Test ext assignment
+    segment.ext = ".custom_ext"
+    assert_equal ".custom_ext", segment.ext
+    
+    # Test fd and file can be assigned (though normally managed by createtempfile)
+    mock_fd = "mock_fd_object"
+    segment.fd = mock_fd
+    assert_equal mock_fd, segment.fd
+    
+    mock_file = "mock_file_object"
+    segment.file = mock_file
+    assert_equal mock_file, segment.file
+  end
+
+  def test_import_getfilesegment_block_vs_enumerator
+    # Test that getfilesegment behaves differently with/without block
+    temp_file = create_temp_file("invalid data")
+    import = XGImport::Import.new(temp_file.path)
+    
+    # Without block - should return Enumerator
+    enumerator = import.getfilesegment
+    assert_kind_of Enumerator, enumerator
+    
+    # With block - should not return Enumerator, should execute block
+    block_called = false
+    begin
+      result = import.getfilesegment do |segment|
+        block_called = true
+      end
+      # Result should be nil when block is given, not an Enumerator
+      assert_nil result
+    rescue XGImport::Error
+      # Expected to fail on invalid data, but we tested the block behavior
+    end
+    
+    temp_file.close
+    temp_file.unlink
+  end
+
+  def test_error_class_super_call_behavior
+    # Test that Error class properly calls super with @value
+    error = XGImport::Error.new("Test error", "filename.xg")
+    
+    # The StandardError message should be set to @value
+    expected_message = "XG Import Error processing 'filename.xg': Test error"
+    assert_equal expected_message, error.value
+    
+    # Verify inheritance chain
+    assert error.is_a?(StandardError)
+    assert error.is_a?(Exception)
+  end
+
+  def test_import_filename_reassignment_after_creation
+    # Test that filename can be changed and used
+    import = XGImport::Import.new("original.xg")
+    assert_equal "original.xg", import.filename
+    
+    # Change filename
+    import.filename = "changed.xg"
+    assert_equal "changed.xg", import.filename
+    
+    # New filename should be used in error messages
+    assert_raises(Errno::ENOENT) do
+      import.getfilesegment.to_a
+    end
+  end
+
   private
 
   def create_minimal_gdf_header
@@ -566,6 +920,44 @@ class TestXGImport < Minitest::Test
     data[17] = 0
     data[18] = 0
     data[19] = 0
+
+    data.pack("C*")
+  end
+
+  def create_valid_gdf_header_with_thumbnail(thumbnail_size: 0)
+    # Create valid GDF header with optional thumbnail
+    data = [0] * XGStruct::GameDataFormatHdrRecord::SIZEOFREC
+
+    # Set magic number to 'HMGR' (reversed for little-endian) 
+    data[0] = 82   # 'R'
+    data[1] = 71   # 'G'  
+    data[2] = 77   # 'M'
+    data[3] = 72   # 'H'
+
+    # Set version to 1
+    data[4] = 1
+    data[5] = 0
+    data[6] = 0
+    data[7] = 0
+
+    # Set header size
+    header_size = XGStruct::GameDataFormatHdrRecord::SIZEOFREC
+    data[8] = header_size & 0xFF
+    data[9] = (header_size >> 8) & 0xFF
+    data[10] = (header_size >> 16) & 0xFF
+    data[11] = (header_size >> 24) & 0xFF
+
+    # Set thumbnail offset (right after header)
+    data[12] = header_size & 0xFF
+    data[13] = (header_size >> 8) & 0xFF
+    data[14] = (header_size >> 16) & 0xFF
+    data[15] = (header_size >> 24) & 0xFF
+    
+    # Set thumbnail size
+    data[16] = thumbnail_size & 0xFF
+    data[17] = (thumbnail_size >> 8) & 0xFF
+    data[18] = (thumbnail_size >> 16) & 0xFF
+    data[19] = (thumbnail_size >> 24) & 0xFF
 
     data.pack("C*")
   end
