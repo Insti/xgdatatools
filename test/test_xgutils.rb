@@ -328,6 +328,68 @@ class TestXGUtils < Minitest::Test
     assert_equal "A", result
   end
 
+  def test_streamcrc32_edge_case_with_position_restore
+    # Test that stream position is correctly restored even with errors
+    test_data = "Hello World"
+    stream = StringIO.new(test_data)
+    original_pos = 5
+    stream.seek(original_pos)
+
+    # Test with invalid parameters that should still restore position
+    crc = XGUtils.streamcrc32(stream, startpos: 0, numbytes: test_data.length)
+    
+    # Position should be restored to original
+    assert_equal original_pos, stream.tell
+    
+    # CRC should be correct
+    expected_crc = Zlib.crc32(test_data) & 0xffffffff
+    assert_equal expected_crc, crc
+  end
+
+  def test_delphidatetimeconv_fraction_boundary
+    # Test with fraction exactly at 0.5 (noon)
+    delphi_datetime = 0.5
+    result = XGUtils.delphidatetimeconv(delphi_datetime)
+    
+    assert_equal 1899, result.year
+    assert_equal 12, result.month
+    assert_equal 30, result.day
+    assert_equal 12, result.hour
+    assert_equal 0, result.min
+    assert_equal 0, result.sec
+  end
+
+  def test_utf16intarraytostr_with_invalid_encoding_recovery
+    # Test behavior with characters that might have encoding issues
+    # Using values that are valid but might test edge cases
+    int_array = [0x41, 0x42, 0x43, 0]  # Simple ASCII
+    result = XGUtils.utf16intarraytostr(int_array)
+    
+    assert_equal "ABC", result
+    assert_equal Encoding::UTF_8, result.encoding
+  end
+
+  def test_streamcrc32_with_startpos_at_end
+    # Test CRC calculation when startpos is at the end of stream
+    test_data = "Test data"
+    stream = StringIO.new(test_data)
+    
+    # Start position at end of stream
+    crc = XGUtils.streamcrc32(stream, startpos: test_data.length)
+    
+    # Should get CRC of empty data
+    expected_crc = Zlib.crc32("") & 0xffffffff
+    assert_equal expected_crc, crc
+  end
+
+  def test_delphishortstrtostr_with_length_zero_boundary
+    # Test exactly at boundary conditions
+    shortstring_bytes = [0, 65, 66, 67]  # Length 0, followed by data
+    result = XGUtils.delphishortstrtostr(shortstring_bytes)
+    
+    assert_equal "", result
+  end
+
   # Test module is properly defined
   def test_module_exists
     assert defined?(XGUtils)

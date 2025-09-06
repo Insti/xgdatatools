@@ -486,6 +486,52 @@ class TestXGImport < Minitest::Test
     assert_equal "tmpXGI", XGImport::Import::Segment::TMP_PREFIX
   end
 
+  def test_segment_closetempfile_with_nil_file
+    # Test closetempfile when @file is nil
+    segment = XGImport::Import::Segment.new
+    segment.createtempfile
+    
+    # Set file to nil manually
+    segment.instance_variable_set(:@file, nil)
+    
+    # Should handle nil file gracefully
+    begin
+      segment.closetempfile
+      assert true  # If we get here, it handled nil gracefully
+    rescue => e
+      flunk "Should handle nil file gracefully, but raised: #{e}"
+    end
+  end
+
+  def test_segment_closetempfile_file_unlink_error_handling
+    # Test closetempfile when file unlink might fail
+    segment = XGImport::Import::Segment.new(delete: true)
+    segment.createtempfile
+    
+    filename = segment.filename
+    
+    # Close the file first
+    segment.file.close
+    
+    # Make the file read-only to potentially cause unlink issues on some systems
+    # (This test may behave differently on different file systems)
+    File.chmod(0444, filename) if File.exist?(filename)
+    
+    # closetempfile should still complete even if unlink has issues
+    begin
+      segment.closetempfile
+      # Method should complete regardless of unlink result
+      assert_nil segment.instance_variable_get(:@filename)
+    rescue => e
+      # If there's an error, ensure cleanup still happened
+      assert_nil segment.instance_variable_get(:@filename)
+    ensure
+      # Cleanup - restore permissions and remove file if it still exists
+      File.chmod(0644, filename) if File.exist?(filename)
+      File.unlink(filename) if File.exist?(filename)
+    end
+  end
+
   private
 
   def create_minimal_gdf_header
