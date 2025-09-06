@@ -63,14 +63,10 @@ module XGStruct
     end
 
     def fromstream(stream)
-      begin
-        data = stream.read(SIZEOFREC)
-        return nil if data.nil? || data.length < SIZEOFREC
+      data = stream.read(SIZEOFREC)
+      return nil if data.nil? || data.length < SIZEOFREC
 
-        unpacked_data = data.unpack("C4l<l<Q<l<L<S<S<CCC6S<1024S<1024S<1024S<1024")
-      rescue
-        return nil
-      end
+      unpacked_data = data.unpack("C4l<l<Q<l<L<S<S<CCC6S<1024S<1024S<1024S<1024")
 
       self["MagicNumber"] = unpacked_data[0..3].reverse.pack("C*").force_encoding("ASCII")
       self["HeaderVersion"] = unpacked_data[4]
