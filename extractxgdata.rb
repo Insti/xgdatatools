@@ -21,6 +21,7 @@
 
 require "optparse"
 require "pp"
+require "logger"
 require_relative "xgimport"
 require_relative "xgzarc"
 require_relative "xgstruct"
@@ -44,7 +45,7 @@ def directoryisvalid(dir)
 end
 
 if __FILE__ == $PROGRAM_NAME
-  options = {}
+  options = { log_level: :info }
 
   parser = OptionParser.new do |opts|
     opts.banner = "Usage: #{$PROGRAM_NAME} [options] FILE [FILE ...]"
@@ -56,6 +57,11 @@ if __FILE__ == $PROGRAM_NAME
     opts.on("-d", "--directory DIR", "Directory to write segments to",
       "(Default is same directory as the import file)") do |dir|
       options[:outdir] = directoryisvalid(dir)
+    end
+
+    opts.on("-v", "--verbose LEVEL", [:debug, :info, :warn, :error], 
+      "Set logging level (debug, info, warn, error). Default: info") do |level|
+      options[:log_level] = level
     end
 
     opts.on("-h", "--help", "Show this help message") do
@@ -78,12 +84,32 @@ if __FILE__ == $PROGRAM_NAME
     exit 1
   end
 
+  # Initialize logger
+  logger = Logger.new(STDOUT)
+  logger.level = case options[:log_level]
+                 when :debug then Logger::DEBUG
+                 when :info then Logger::INFO  
+                 when :warn then Logger::WARN
+                 when :error then Logger::ERROR
+                 else Logger::INFO
+                 end
+  logger.formatter = proc do |severity, datetime, progname, msg|
+    "[#{severity}] #{msg}\n"
+  end
+
+  # Make logger available globally for all modules
+  $logger = logger
+
   ARGV.each do |xgfilename|
+    logger.info "Processing file: #{xgfilename}"
+    logger.debug "File size: #{File.size(xgfilename)} bytes" if File.exist?(xgfilename)
+    
     xgbasepath = File.dirname(xgfilename)
     xgbasefile = File.basename(xgfilename)
     xgext = File.extname(xgfilename)
 
     xgbasepath = options[:outdir] if options[:outdir]
+    logger.debug "Output directory: #{xgbasepath}"
 
     begin
       xgobj = XGImport::Import.new(xgfilename)
@@ -96,10 +122,13 @@ if __FILE__ == $PROGRAM_NAME
           File.expand_path(xgbasepath),
           File.basename(xgbasefile, xgext) + segment.ext
         )
+        logger.debug "Extracting segment: #{segment.type} -> #{output_filename}"
         segment.copyto(output_filename)
+        logger.debug "Segment extracted successfully"
 
         case segment.type
         when XGImport::Import::Segment::XG_GAMEFILE
+          logger.debug "Processing XG_GAMEFILE segment"
           segment.fd.seek(0, IO::SEEK_SET)
           loop do
             rec = XGStruct::GameFileRecord.new(version: fileversion).fromstream(segment.fd)
@@ -107,7 +136,9 @@ if __FILE__ == $PROGRAM_NAME
 
             if rec.is_a?(XGStruct::HeaderMatchEntry)
               fileversion = rec.Version
+              logger.debug "Found header with version: #{fileversion}"
             elsif rec.is_a?(XGStruct::UnimplementedEntry)
+              logger.debug "Skipping unimplemented entry"
               next
             end
 
@@ -115,6 +146,7 @@ if __FILE__ == $PROGRAM_NAME
           end
 
         when XGImport::Import::Segment::XG_ROLLOUTS
+          logger.debug "Processing XG_ROLLOUTS segment"
           segment.fd.seek(0, IO::SEEK_SET)
           loop do
             rec = XGStruct::RolloutFileRecord.new.fromstream(segment.fd)
@@ -125,6 +157,7 @@ if __FILE__ == $PROGRAM_NAME
         end
       end
     rescue XGImport::Error, XGZarc::Error => e
+      logger.error "Error processing #{xgfilename}: #{e.value}"
       puts e.value
     end
   end

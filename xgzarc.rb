@@ -23,6 +23,7 @@
 
 require "tempfile"
 require "zlib"
+require "logger"
 require_relative "xgutils"
 
 module XGZarc
@@ -153,6 +154,10 @@ module XGZarc
       @filename = filename
       @stream = stream || File.open(filename, "rb")
 
+      logger = $logger || Logger.new(STDOUT)
+      logger.debug "Initializing ZlibArchive for file: #{@filename}"
+      logger.debug "Stream size: #{@stream.size rescue 'unknown'} bytes"
+
       get_archive_index
     end
 
@@ -222,6 +227,10 @@ module XGZarc
         @endofarcdata = @stream.tell
         @arcrec.fromstream(@stream)
 
+        logger = $logger || Logger.new(STDOUT)
+        logger.debug "Archive record: filecount=#{@arcrec["filecount"]}, registrysize=#{@arcrec["registrysize"]}, archivesize=#{@arcrec["archivesize"]}"
+        logger.debug "Archive compressed registry: #{@arcrec["compressedregistry"]}"
+
         # Position ourselves at the beginning of the archive file index
         @stream.seek(-ArchiveRecord::SIZEOFREC - @arcrec["registrysize"], IO::SEEK_END)
         @startofarcdata = @stream.tell - @arcrec["archivesize"]
@@ -232,6 +241,10 @@ module XGZarc
           startpos: @startofarcdata,
           numbytes: (@endofarcdata - @startofarcdata)
         )
+        
+        logger = $logger || Logger.new(STDOUT)
+        logger.debug "Archive CRC check: computed=0x#{streamcrc.to_s(16)}, expected=0x#{@arcrec["crc"].to_s(16)}"
+        logger.debug "Archive data: start=#{@startofarcdata}, end=#{@endofarcdata}, size=#{@endofarcdata - @startofarcdata}"
 
         raise Error.new("Archive CRC check failed - file corrupt") if streamcrc != @arcrec["crc"]
 
@@ -264,6 +277,10 @@ module XGZarc
     public
 
     def getarchivefile(filerec)
+      logger = $logger || Logger.new(STDOUT)
+      logger.debug "Extracting file: #{filerec["name"]}"
+      logger.debug "File position: #{filerec["start"]} + #{@startofarcdata} = #{filerec["start"] + @startofarcdata}"
+      
       # Do processing on the temporary file
       @stream.seek(filerec["start"] + @startofarcdata, IO::SEEK_SET)
       tmpfilename = extract_segment(
@@ -274,9 +291,15 @@ module XGZarc
       raise Error.new("Error extracting archived file") if tmpfilename.nil?
 
       tmpfile = File.open(tmpfilename, "rb")
+      logger.debug "Extracted to temporary file: #{tmpfilename}"
 
       # Compute the CRC32 on the uncompressed file
       streamcrc = XGUtils.streamcrc32(tmpfile)
+      
+      logger = $logger || Logger.new(STDOUT)
+      logger.debug "File '#{filerec["name"]}' CRC check: computed=0x#{streamcrc.to_s(16)}, expected=0x#{filerec["crc"].to_s(16)}"
+      logger.debug "File details: osize=#{filerec["osize"]}, csize=#{filerec["csize"]}, compressed=#{filerec["compressed"]}"
+      
       raise Error.new("File CRC check failed - file corrupt") if streamcrc != filerec["crc"]
 
       [tmpfile, tmpfilename]

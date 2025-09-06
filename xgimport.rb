@@ -20,6 +20,7 @@
 
 require "tempfile"
 require "fileutils"
+require "logger"
 require_relative "xgutils"
 require_relative "xgzarc"
 require_relative "xgstruct"
@@ -114,11 +115,17 @@ module XGImport
     def getfilesegment
       return enum_for(:getfilesegment) unless block_given?
 
+      logger = $logger || Logger.new(STDOUT)
+      logger.debug "Starting file segment extraction for: #{@filename}"
+
       File.open(@filename, "rb") do |xginfile|
         # Extract the uncompressed Game Data Header (GDH)
         gdfheader = XGStruct::GameDataFormatHdrRecord.new.fromstream(xginfile)
+        logger.debug "Game data format header: #{gdfheader ? gdfheader.to_h : 'nil'}"
 
         raise Error.new("Not a game data format file", @filename) if gdfheader.nil?
+
+        logger.debug "Header size: #{gdfheader["HeaderSize"]}, Thumbnail size: #{gdfheader["ThumbnailSize"]}"
 
         # Extract the Game Format Header to a temporary file
         segment = Segment.new(type: Segment::GDF_HDR)
@@ -129,6 +136,7 @@ module XGImport
         segment.file.write(block)
         segment.file.flush
 
+        logger.debug "Extracted GDF header segment"
         yield segment
         segment.closetempfile
 
@@ -147,10 +155,13 @@ module XGImport
         end
 
         # Retrieve an archive object from the stream
+        logger.debug "Creating ZlibArchive object from stream"
         archiveobj = XGZarc::ZlibArchive.new(stream: xginfile)
+        logger.debug "Archive initialized with #{archiveobj.arcregistry.length} files"
 
         # Process all the files in the archive
         archiveobj.arcregistry.each do |filerec|
+          logger.debug "Processing archive file: #{filerec["name"]} (#{filerec["osize"]} bytes)"
           # Retrieve the archive file to a temporary file
           segment_file, seg_filename = archiveobj.getarchivefile(filerec)
 
