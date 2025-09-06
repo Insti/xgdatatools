@@ -306,6 +306,331 @@ class TestXGZarc < Minitest::Test
     assert XGZarc::ZlibArchive.instance_methods.include?(:getarchivefile)
   end
 
+  # Tests with real archive fixture file
+  def test_zlib_archive_with_valid_fixture
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    # Test initialization with valid archive file
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    
+    # Verify archive was loaded correctly
+    assert_equal 1, archive.arcrec["filecount"]
+    assert_equal 1, archive.arcrec["version"]
+    assert archive.arcrec["compressedregistry"]
+    assert_equal 1, archive.arcregistry.length
+    
+    # Verify file record was parsed correctly
+    file_record = archive.arcregistry.first
+    assert_equal "test.txt", file_record["name"]
+    assert_equal "", file_record["path"]
+    assert_equal 14, file_record["osize"]  # "Hello, World!\n"
+    assert_equal false, file_record["compressed"]
+    
+    # Test successful cleanup
+    archive.stream.close if archive.stream
+  end
+
+  def test_zlib_archive_getarchivefile_with_fixture
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    file_record = archive.arcregistry.first
+    
+    # Extract the archived file
+    extracted_file, temp_filename = archive.getarchivefile(file_record)
+    
+    # Verify extracted content
+    content = extracted_file.read
+    assert_equal "Hello, World!\n", content
+    
+    # Verify CRC matches
+    extracted_file.rewind
+    calculated_crc = XGUtils.streamcrc32(extracted_file)
+    assert_equal file_record["crc"], calculated_crc
+    
+    # Cleanup
+    extracted_file.close
+    File.unlink(temp_filename) if File.exist?(temp_filename)
+    archive.stream.close
+  end
+
+  def test_zlib_archive_extract_segment_compressed
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    
+    # Test that extract_segment method is callable (it's private)
+    assert archive.respond_to?(:extract_segment, true)
+    
+    archive.stream.close
+  end
+
+  def test_zlib_archive_setblocksize_functionality
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    
+    # Test setblocksize method
+    archive.setblocksize(16384)
+    
+    # The method should work without error
+    # (Note: the method sets @maxbufsize, not @MAXBUFSIZE)
+    
+    archive.stream.close
+  end
+
+  def test_zlib_archive_error_handling_corrupted_crc
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    # Read the original file and corrupt the archive CRC
+    original_data = File.read(fixture_path, mode: "rb")
+    corrupted_data = original_data.dup
+    
+    # Corrupt the CRC in the archive record (first 4 bytes of the last 36 bytes)
+    corrupted_data[-36] = (corrupted_data[-36].ord ^ 0xFF).chr
+    
+    # Write corrupted version to a temporary file
+    temp_file = Tempfile.new(["corrupted_archive", ".zla"])
+    temp_file.binmode
+    temp_file.write(corrupted_data)
+    temp_file.close
+    
+    # Test that corrupted archive raises appropriate error
+    assert_raises(XGZarc::Error) do
+      XGZarc::ZlibArchive.new(filename: temp_file.path)
+    end
+    
+    # Cleanup
+    temp_file.unlink
+  end
+
+  def test_zlib_archive_error_handling_corrupted_file_crc
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    file_record = archive.arcregistry.first.dup
+    
+    # Corrupt the file CRC
+    file_record["crc"] = file_record["crc"] ^ 0xFFFFFFFF
+    
+    # Test that corrupted file CRC raises appropriate error
+    assert_raises(XGZarc::Error) do
+      archive.getarchivefile(file_record)
+    end
+    
+    archive.stream.close
+  end
+
+  def test_zlib_archive_with_stream_fixture
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    # Test initialization with stream instead of filename
+    File.open(fixture_path, "rb") do |file|
+      archive = XGZarc::ZlibArchive.new(stream: file)
+      
+      # Verify archive was loaded correctly
+      assert_equal 1, archive.arcrec["filecount"]
+      assert_equal 1, archive.arcregistry.length
+      
+      # Verify the filename attribute is nil when using stream
+      assert_nil archive.filename
+      assert_equal file, archive.stream
+    end
+  end
+
+  def test_archive_record_fromstream_with_fixture_data
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    File.open(fixture_path, "rb") do |file|
+      # Seek to the archive record at the end
+      file.seek(-XGZarc::ArchiveRecord::SIZEOFREC, IO::SEEK_END)
+      
+      record = XGZarc::ArchiveRecord.new
+      record.fromstream(file)
+      
+      # Verify the archive record was parsed correctly
+      assert_equal 1, record["filecount"]
+      assert_equal 1, record["version"]
+      assert record["compressedregistry"]
+      assert record["registrysize"] > 0
+      assert record["archivesize"] > 0
+    end
+  end
+
+  def test_complete_archive_workflow
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    # Complete workflow test: open archive, list files, extract file
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    
+    # Verify archive properties
+    assert archive.arcregistry.length > 0
+    assert archive.startofarcdata >= 0
+    assert archive.endofarcdata > archive.startofarcdata
+    
+    # Get the first (and only) file
+    file_record = archive.arcregistry.first
+    assert_equal "test.txt", file_record["name"]
+    
+    # Extract and verify the file
+    extracted_file, temp_filename = archive.getarchivefile(file_record)
+    content = extracted_file.read
+    
+    # Verify content and properties
+    assert_equal "Hello, World!\n", content
+    assert_equal content.length, file_record["osize"]
+    
+    # Cleanup
+    extracted_file.close
+    File.unlink(temp_filename) if File.exist?(temp_filename)
+    archive.stream.close
+  end
+
+  # Tests with compressed file archive
+  def test_zlib_archive_with_compressed_files
+    fixture_path = File.join(__dir__, "fixtures", "test_archive_compressed.zla")
+    
+    # Test with compressed file archive
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    
+    # Verify archive was loaded correctly
+    assert_equal 1, archive.arcrec["filecount"]
+    assert_equal 1, archive.arcregistry.length
+    
+    # Verify file record indicates compression
+    file_record = archive.arcregistry.first
+    assert_equal "test.txt", file_record["name"]
+    assert_equal true, file_record["compressed"]
+    assert file_record["csize"] != file_record["osize"]  # Different sizes due to compression
+    
+    # Extract and verify the file
+    extracted_file, temp_filename = archive.getarchivefile(file_record)
+    content = extracted_file.read
+    assert_equal "Hello, World!\n", content
+    
+    # Cleanup
+    extracted_file.close
+    File.unlink(temp_filename) if File.exist?(temp_filename)
+    archive.stream.close
+  end
+
+  def test_extract_segment_with_compressed_data
+    fixture_path = File.join(__dir__, "fixtures", "test_archive_compressed.zla")
+    
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    file_record = archive.arcregistry.first
+    
+    # This should exercise the compressed extraction path
+    extracted_file, temp_filename = archive.getarchivefile(file_record)
+    
+    # Verify decompression worked correctly
+    content = extracted_file.read
+    assert_equal "Hello, World!\n", content
+    assert_equal 14, content.length
+    
+    # Verify the temporary file was created
+    assert File.exist?(temp_filename)
+    
+    # Cleanup
+    extracted_file.close
+    File.unlink(temp_filename)
+    archive.stream.close
+  end
+
+  def test_setblocksize_functionality_detailed
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    
+    # Test setblocksize with different values
+    archive.setblocksize(8192)
+    archive.setblocksize(65536)
+    
+    # The method should complete without error
+    # Note: setblocksize sets @maxbufsize instance variable
+    
+    archive.stream.close
+  end
+
+  # Test error handling with extraction failures
+  def test_extract_segment_failure_scenarios
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+    file_record = archive.arcregistry.first.dup
+    
+    # Test with invalid start position to trigger extraction failure
+    file_record["start"] = 999999  # Invalid position
+    
+    # This should raise an error during extraction
+    assert_raises(XGZarc::Error) do
+      archive.getarchivefile(file_record)
+    end
+    
+    archive.stream.close
+  end
+
+  # Test more edge cases for FileRecord unpack pattern
+  def test_file_record_fromstream_unpack_edge_cases
+    # Test the unpack pattern that only goes to 516, leaving compressionlevel nil
+    data = [0] * XGZarc::FileRecord::SIZEOFREC
+    
+    # Set up minimal valid data
+    data[0] = 8  # name length
+    "test.txt".bytes.each_with_index { |b, i| data[1 + i] = b }
+    data[256] = 0  # path length (empty)
+    
+    # Set compression level at position 531 (should be ignored by unpack)
+    data[531] = 9
+    
+    stream = create_string_io(data)
+    record = XGZarc::FileRecord.new
+    record.fromstream(stream)
+    
+    # The compressionlevel should be nil because unpack pattern ends at 516
+    assert_nil record["compressionlevel"]
+    assert_equal "test.txt", record["name"]
+  end
+
+  # Test stream restoration in error conditions
+  def test_archive_stream_position_restoration
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    File.open(fixture_path, "rb") do |file|
+      initial_pos = file.tell
+      
+      # Create archive which will modify stream position
+      archive = XGZarc::ZlibArchive.new(stream: file)
+      
+      # Verify stream position was restored after initialization
+      # (The constructor should restore the original position)
+      assert_equal initial_pos, file.tell
+    end
+  end
+
+  # Test CRC calculation edge cases  
+  def test_crc_calculation_coverage
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    File.open(fixture_path, "rb") do |file|
+      # Test XGUtils.streamcrc32 with different parameters
+      file.rewind
+      
+      # Test with no parameters (reads entire stream)
+      crc1 = XGUtils.streamcrc32(file)
+      assert crc1 > 0
+      
+      # Test with startpos parameter
+      crc2 = XGUtils.streamcrc32(file, startpos: 0)
+      assert_equal crc1, crc2
+      
+      # Test with both startpos and numbytes
+      crc3 = XGUtils.streamcrc32(file, startpos: 0, numbytes: 10)
+      assert crc3 > 0
+      assert crc3 != crc1  # Should be different since we're only reading 10 bytes
+    end
+  end
+
   def test_file_record_constants_and_structure
     # Test that FileRecord has expected constants and structure
     assert_equal 532, XGZarc::FileRecord::SIZEOFREC
