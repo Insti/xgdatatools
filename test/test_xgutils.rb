@@ -483,8 +483,10 @@ class TestXGUtils < Minitest::Test
   def test_render_board_with_many_checkers
     # Test with stacks higher than 5 checkers
     position = [0] * 26
-    position[1] = 10   # 10 Player 1 checkers on point 1
-    position[24] = -8  # 8 Player 2 checkers on point 24
+    position[1] = 10   # 10 Player 1 checkers on point 1 (lower half)
+    position[24] = -8  # 8 Player 2 checkers on point 24 (upper half)
+    position[13] = 7   # 7 Player 1 checkers on point 13 (upper half)
+    position[6] = -6   # 6 Player 2 checkers on point 6 (lower half)
     
     result = XGUtils.render_board(position)
     
@@ -492,6 +494,12 @@ class TestXGUtils < Minitest::Test
     assert result.is_a?(String)
     assert result.include?("X"), "Should show Player 1 checkers"
     assert result.include?("O"), "Should show Player 2 checkers"
+    
+    # Verify stack counts are displayed for tall stacks
+    assert result.include?("10"), "Should show count 10 for point 1 stack"
+    assert result.include?(" 8"), "Should show count 8 for point 24 stack" 
+    assert result.include?(" 7"), "Should show count 7 for point 13 stack"
+    assert result.include?(" 6"), "Should show count 6 for point 6 stack"
   end
 
   def test_render_board_mixed_positions
@@ -549,5 +557,41 @@ class TestXGUtils < Minitest::Test
     (1..12).each do |point|
       assert result.include?(sprintf("%2d", point)), "Should include point #{point}"
     end
+  end
+
+  def test_render_board_tall_stack_positioning
+    # Test specific positioning of stack counts for tall stacks
+    position = [0] * 26
+    
+    # Create different tall stacks to test positioning
+    position[13] = 9    # Upper half - should show count in innermost row
+    position[1] = 8     # Lower half - should show count in topmost row
+    position[18] = -7   # Upper half, player 2
+    position[6] = -6    # Lower half, player 2
+    
+    result = XGUtils.render_board(position)
+    lines = result.split("\n")
+    
+    # Based on the board structure:
+    # Line 6: Upper half innermost row (before middle bar)
+    # Line 10: Lower half topmost row (after middle bar)
+    
+    # Upper half: stack count should be in innermost row
+    upper_innermost_line = lines[6]
+    assert upper_innermost_line.include?(" 9 "), "Point 13 count should be in innermost row of upper half"
+    assert upper_innermost_line.include?(" 7 "), "Point 18 count should be in innermost row of upper half"
+    
+    # Lower half: stack count should be in topmost row  
+    lower_topmost_line = lines[10]
+    assert lower_topmost_line.include?(" 8 "), "Point 1 count should be in topmost row of lower half"
+    assert lower_topmost_line.include?(" 6 "), "Point 6 count should be in topmost row of lower half"
+    
+    # Verify that normal stacks (≤5) still work correctly
+    position[2] = 3
+    position[14] = -4
+    result2 = XGUtils.render_board(position)
+    
+    assert result2.include?("X"), "Should still show normal stacks"
+    assert result2.include?("O"), "Should still show normal stacks"
   end
 end
