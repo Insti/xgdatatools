@@ -251,21 +251,10 @@ module XGFileParser
       stream = StringIO.new(adjusted_data)
       parsed_cube = cube_entry.fromstream(stream)
       
-      if parsed_cube
-        # Add backward compatibility fields for existing tests
-        parsed_cube["Active"] = parsed_cube["ActiveP"]
-        # Return the fully parsed cube object
-        parsed_cube
-      else
-        # Fallback to basic parsing if full parsing fails
-        {
-          "EntryType" => 2,
-          "Type" => "Cube",
-          "Active" => data[9, 4].unpack("l<")[0],
-          "Double" => data[13, 4].unpack("l<")[0],
-          "RawData" => data[0, 50].unpack("H*")[0]
-        }
-      end
+      # Add backward compatibility fields for existing tests
+      parsed_cube["Active"] = parsed_cube["ActiveP"]
+      # Return the fully parsed cube object
+      parsed_cube
     end
     
     # Parse Move record
