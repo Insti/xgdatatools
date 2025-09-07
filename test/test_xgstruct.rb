@@ -423,8 +423,9 @@ class TestXGStruct < Minitest::Test
     end
   end
 
-  def test_converted_classes_no_longer_inherit_from_hash
-    # These classes have been converted from Hash inheritance to custom classes with snake_case properties
+  def test_converted_classes_maintain_hash_inheritance_for_compatibility
+    # These classes were converted to use snake_case properties internally
+    # but maintain Hash inheritance for backward compatibility
     converted_classes = [
       XGStruct::GameDataFormatHdrRecord,
       XGStruct::TimeSettingRecord,
@@ -436,8 +437,10 @@ class TestXGStruct < Minitest::Test
     ]
 
     converted_classes.each do |klass|
-      refute klass.new.is_a?(Hash), "#{klass} should no longer inherit from Hash (converted to snake_case properties)"
-      assert klass.new.is_a?(Object), "#{klass} should inherit from Object"
+      instance = klass.new
+      assert instance.is_a?(Hash), "#{klass} should maintain Hash inheritance for compatibility"
+      assert instance.empty?, "#{klass} should be empty by default" 
+      assert_equal({}, instance)
     end
   end
 

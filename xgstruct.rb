@@ -42,11 +42,11 @@ module XGStruct
     end
   end
 
-  class GameDataFormatHdrRecord
-    include HashLikeAccessor
+  class GameDataFormatHdrRecord < Hash
     SIZEOFREC = 8232
 
     def initialize(**kw)
+      super()
       # Store properties in snake_case format internally
       @properties = {
         magic_number: 0,         # $484D4752, RM_MAGICNUMBER
@@ -270,26 +270,27 @@ module XGStruct
       level_name = XGUtils.utf16intarraytostr(unpacked_data[2062..3085])
       comments = XGUtils.utf16intarraytostr(unpacked_data[3086..4109])
 
-      # Create new object with parsed values
-      GameDataFormatHdrRecord.new(
-        magic_number: magic_number,
-        header_version: header_version,
-        header_size: header_size,
-        thumbnail_offset: thumbnail_offset,
-        thumbnail_size: thumbnail_size,
-        game_guid: guid_hex,
-        game_name: game_name,
-        save_name: save_name,
-        level_name: level_name,
-        comments: comments
-      )
+      # Set the properties on this object and return self
+      @properties[:magic_number] = magic_number
+      @properties[:header_version] = header_version
+      @properties[:header_size] = header_size
+      @properties[:thumbnail_offset] = thumbnail_offset
+      @properties[:thumbnail_size] = thumbnail_size
+      @properties[:game_guid] = guid_hex
+      @properties[:game_name] = game_name
+      @properties[:save_name] = save_name
+      @properties[:level_name] = level_name
+      @properties[:comments] = comments
+
+      self
     end
   end
 
-  class TimeSettingRecord
+  class TimeSettingRecord < Hash
     SIZEOFREC = 32
 
     def initialize(**kw)
+      super()
       # Store properties in snake_case format internally
       @properties = {
         clock_type: 0,           # 0=None,0=Fischer,0=Bronstein
@@ -452,10 +453,11 @@ module XGStruct
     end
   end
 
-  class EvalLevelRecord
+  class EvalLevelRecord < Hash
     SIZEOFREC = 4
 
     def initialize(**kw)
+      super()
       # Store properties in snake_case format internally
       @properties = {
         level: 0,                # Level used see PLAYERLEVEL table
@@ -561,8 +563,9 @@ module XGStruct
   # Additional classes would continue here...
   # For now, implementing key classes to demonstrate the pattern
 
-  class UnimplementedEntry
+  class UnimplementedEntry < Hash
     def initialize(**kw)
+      super()
       # Store properties in snake_case format internally
       @properties = {
         entry_type: "UNKNOWN",
@@ -665,10 +668,9 @@ module XGStruct
     end
   end
 
-  class GameFileRecord
-    include HashLikeAccessor
-    
+  class GameFileRecord < Hash
     def initialize(version: -1, **kw)
+      super()
       @version = version
       @properties = {
         test_field: nil,
@@ -755,8 +757,9 @@ module XGStruct
     end
   end
 
-  class RolloutFileRecord
+  class RolloutFileRecord < Hash
     def initialize(**kw)
+      super()
       @properties = {
         test_field: nil,
         existing_key: nil,
@@ -1749,10 +1752,11 @@ module XGStruct
   end
 
   # Header and footer entry classes for compatibility
-  class HeaderMatchEntry
+  class HeaderMatchEntry < Hash
     attr_accessor :version
 
     def initialize(**kw)
+      super()
       @version = -1
       @properties = {}
       
