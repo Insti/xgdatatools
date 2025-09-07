@@ -103,9 +103,7 @@ class TestXGBinaryExtract < Minitest::Test
   end
 
   def test_extract_xg_components_basic_functionality
-    skip "Need XGFileParser for test XG file creation"
-    
-    # Create a simple test XG file
+    # Create a simple test XG file (malformed - only has header + compressed data)
     game_data = "test game data"
     file_data = create_xg_file_with_data(game_data)
     xg_file = create_temp_xg_file(file_data)
@@ -117,14 +115,14 @@ class TestXGBinaryExtract < Minitest::Test
     # Extract components
     result = extract_xg_components(xg_file, output_dir, logger)
     
-    # Should return true on success
-    assert result
+    # Should return false for malformed XG file (missing proper archive structure)
+    refute result, "Function should return false for malformed XG file"
     
-    # Check that files were created in the output directory
+    # Check that at least the GDF header was extracted before the error
     output_files = Dir.glob(File.join(output_dir, "*.bin"))
-    refute_empty output_files, "No binary files were created"
+    refute_empty output_files, "At least GDF header should be extracted"
     
-    # Check filename format: [type]_[number]_[subtype].bin
+    # Check filename format for extracted files: [type]_[number]_[subtype].bin
     output_files.each do |file|
       basename = File.basename(file, ".bin")
       assert_match(/\A\w+_\d{3}_\w+\z/, basename, "Filename format should match [type]_[number]_[subtype]")

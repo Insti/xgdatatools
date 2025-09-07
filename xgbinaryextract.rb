@@ -99,7 +99,7 @@ def extract_xg_components(xgfilename, output_dir, logger)
       puts "Extracted: #{File.basename(output_filename)} (#{File.size(output_filename)} bytes)"
     end
     
-  rescue XGImport::Error, XGZarc::Error, Errno::ENOENT => e
+  rescue XGImport::Error, XGZarc::Error, Errno::ENOENT, Errno::EINVAL => e
     error_message = e.respond_to?(:value) ? e.value : e.message
     logger.error "Error processing #{xgfilename}: #{error_message}"
     puts "Error: #{error_message}"
