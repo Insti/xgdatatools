@@ -432,8 +432,8 @@ class TestXGUtils < Minitest::Test
     assert result.include?("Outer Board"), "Should contain section label"
     assert result.include?("Home Board"), "Should contain section label"
     
-    # Point numbers should be present (0-23 in goal_board format)
-    (0..23).each do |point|
+    # Point numbers should be present (1-24 in goal_board format)
+    (1..24).each do |point|
       assert result.include?(sprintf("%2d", point)), "Should contain point #{point}"
     end
   end
@@ -556,8 +556,8 @@ class TestXGUtils < Minitest::Test
     position = [0] * 26
     result = XGUtils.render_board(position)
     
-    # All points (0-23) should be present in goal_board format
-    (0..23).each do |point|
+    # All points (1-24) should be present in goal_board format
+    (1..24).each do |point|
       assert result.include?(sprintf("%2d", point)), "Should include point #{point}"
     end
     

@@ -21,8 +21,8 @@ class TestGoalBoardFormat < Minitest::Test
   
   def test_goal_board_headers
     # Test that headers match the goal format:
-    # | 12 | 13 | 14 | 15 | 16 | 17 | BAR | 18 | 19 | 20 | 21 | 22 | 23 | OFF |
-    # | 11 | 10 |  9 |  8 |  7 |  6 | BAR |  5 |  4 |  3 |  2 |  1 |  0 | OFF |
+    # | 13 | 14 | 15 | 16 | 17 | 18 | BAR | 19 | 20 | 21 | 22 | 23 | 24 | OFF |
+    # | 12 | 11 | 10 |  9 |  8 |  7 | BAR |  6 |  5 |  4 |  3 |  2 |  1 | OFF |
     
     empty_position = [0] * 26
     result = XGUtils.render_board(empty_position)
@@ -72,5 +72,31 @@ class TestGoalBoardFormat < Minitest::Test
     # Should show stack counts for tall stacks
     assert result.include?("7"), "Should show stack count for 7-checker stack"
     assert result.include?("8"), "Should show stack count for 8-checker stack"
+  end
+  
+  def test_goal_board_point_24_visibility
+    # Test that checkers placed on point 24 are visible (regression test)
+    position = [0] * 26
+    position[24] = 3    # 3 Player 1 checkers on point 24
+    
+    result = XGUtils.render_board(position)
+    
+    # Point 24 should be in the header
+    assert result.include?("| 24 |"), "Should include point 24 in header"
+    
+    # Point 24 checkers should be visible
+    lines = result.split("\n")
+    point_24_column_found = false
+    
+    lines.each do |line|
+      # Look for lines with checkers that have X in the rightmost position before OFF
+      if line.include?("| X  |     |") && line.match(/\|\s*X\s*\|\s*\|\s*X\s*\|\s*X\s*\|\s*\|\s*\|\s*\|\s*\|\s*X\s*\|\s*\|\s*$/)
+        point_24_column_found = true
+        break
+      end
+    end
+    
+    assert result.include?("X"), "Should show Player 1 checkers for point 24"
+    assert result.include?("| 24 |"), "Point 24 should be visible in header"
   end
 end

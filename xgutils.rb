@@ -136,11 +136,11 @@ module XGUtils
 
     lines = []
     
-    # Top header row: | 12 | 13 | 14 | 15 | 16 | 17 | BAR | 18 | 19 | 20 | 21 | 22 | 23 | OFF |
+    # Top header row: | 13 | 14 | 15 | 16 | 17 | 18 | BAR | 19 | 20 | 21 | 22 | 23 | 24 | OFF |
     header_top = "|"
-    [12, 13, 14, 15, 16, 17].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
+    [13, 14, 15, 16, 17, 18].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
     header_top += " BAR |"
-    [18, 19, 20, 21, 22, 23].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
+    [19, 20, 21, 22, 23, 24].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
     header_top += " OFF |"
     lines << header_top
     
@@ -152,8 +152,8 @@ module XGUtils
     5.times do |row|
       line = "|"
       
-      # Points 12, 13-17 (outer board)
-      [12, 13, 14, 15, 16, 17].each do |point|
+      # Points 13-18 (outer board)
+      [13, 14, 15, 16, 17, 18].each do |point|
         char = get_checker_char_for_position(position[point], row, :upper)
         line += " #{char.center(2)} |"
       end
@@ -163,8 +163,8 @@ module XGUtils
       bar_char = get_checker_char_for_position(0, row, :upper)
       line += " #{bar_char.center(3)} |"
       
-      # Points 18-23 (home board)
-      [18, 19, 20, 21, 22, 23].each do |point|
+      # Points 19-24 (home board)
+      [19, 20, 21, 22, 23, 24].each do |point|
         char = get_checker_char_for_position(position[point], row, :upper)
         line += " #{char.center(2)} |"
       end
@@ -185,8 +185,8 @@ module XGUtils
     5.times do |row|
       line = "|"
       
-      # Points 11-6 (outer board) - note the reversed order for bottom half
-      [11, 10, 9, 8, 7, 6].each do |point|
+      # Points 12-7 (outer board) - note the reversed order for bottom half
+      [12, 11, 10, 9, 8, 7].each do |point|
         char = get_checker_char_for_position(position[point], row, :lower)
         line += " #{char.center(2)} |"
       end
@@ -196,8 +196,8 @@ module XGUtils
       bar_char = get_checker_char_for_position(0, row, :lower)
       line += " #{bar_char.center(3)} |"
       
-      # Points 5-0 (home board)
-      [5, 4, 3, 2, 1, 0].each do |point|
+      # Points 6-1 (home board)
+      [6, 5, 4, 3, 2, 1].each do |point|
         char = get_checker_char_for_position(position[point], row, :lower)
         line += " #{char.center(2)} |"
       end
@@ -213,11 +213,11 @@ module XGUtils
     section_bottom = "|--------Outer Board----------|     |-------P=X Home Board--------|     |"
     lines << section_bottom
     
-    # Bottom header row: | 11 | 10 |  9 |  8 |  7 |  6 | BAR |  5 |  4 |  3 |  2 |  1 |  0 | OFF |
+    # Bottom header row: | 12 | 11 | 10 |  9 |  8 |  7 | BAR |  6 |  5 |  4 |  3 |  2 |  1 | OFF |
     header_bottom = "|"
-    [11, 10, 9, 8, 7, 6].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
+    [12, 11, 10, 9, 8, 7].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
     header_bottom += " BAR |"
-    [5, 4, 3, 2, 1, 0].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
+    [6, 5, 4, 3, 2, 1].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
     header_bottom += " OFF |"
     lines << header_bottom
     
