@@ -1031,12 +1031,12 @@ class TestXGStruct < Minitest::Test
     
     # Set some recognizable values in the correct positions
     # Skip first 13 bytes (9 + 4 padding), then set 6 longs for ActiveP, Double, Take, BeaverR, RaccoonR, CubeB
-    data[13, 4] = [0xFFFFFFFF].pack("V")  # ActiveP = -1 (as unsigned)
-    data[17, 4] = [1].pack("V")   # Double = 1
-    data[21, 4] = [1].pack("V")   # Take = 1
-    data[25, 4] = [0].pack("V")   # BeaverR = 0  
-    data[29, 4] = [0].pack("V")   # RaccoonR = 0
-    data[33, 4] = [2].pack("V")   # CubeB = 2
+    data[13, 4] = [-1].pack("l<")  # ActiveP = -1 (signed)
+    data[17, 4] = [1].pack("l<")   # Double = 1
+    data[21, 4] = [1].pack("l<")   # Take = 1
+    data[25, 4] = [0].pack("l<")   # BeaverR = 0  
+    data[29, 4] = [0].pack("l<")   # RaccoonR = 0
+    data[33, 4] = [2].pack("l<")   # CubeB = 2
 
     stream = StringIO.new(data)
     record = XGStruct::CubeEntry.new
@@ -1045,10 +1045,35 @@ class TestXGStruct < Minitest::Test
     assert_equal record, result
     
     # Verify parsed data
-    assert_equal(4294967295, record["ActiveP"])  # -1 as unsigned 32-bit
+    assert_equal(-1, record["ActiveP"])  # -1 correctly parsed as signed
     assert_equal 1, record["Double"]
     assert_equal 1, record["Take"]
     assert_equal 2, record["CubeB"]
+  end
+
+  def test_cube_entry_fromstream_negative_values
+    # Test that negative values are correctly parsed as signed integers
+    data = "\x00" * 2560
+    
+    # Test various negative values that are meaningful in cube context
+    data[13, 4] = [-1].pack("l<")   # ActiveP = -1 (player 2)
+    data[17, 4] = [0].pack("l<")    # Double = 0 (no double)
+    data[21, 4] = [0].pack("l<")    # Take = 0 (no take)
+    data[25, 4] = [0].pack("l<")    # BeaverR = 0
+    data[29, 4] = [0].pack("l<")    # RaccoonR = 0
+    data[33, 4] = [-3].pack("l<")   # CubeB = -3 (opponent owns 8-cube)
+
+    stream = StringIO.new(data)
+    record = XGStruct::CubeEntry.new
+    result = record.fromstream(stream)
+
+    assert_equal record, result
+    
+    # Verify negative values are preserved correctly 
+    assert_equal(-1, record["ActiveP"])   # Player 2 is active
+    assert_equal 0, record["Double"]
+    assert_equal 0, record["Take"]  
+    assert_equal(-3, record["CubeB"])     # Opponent owns 8-cube (2^3)
   end
 
   def test_module_constants_and_structure

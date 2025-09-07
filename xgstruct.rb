@@ -783,8 +783,8 @@ module XGStruct
       # Skip first 9 bytes, then 4 more padding bytes = 13 bytes total
       offset = 13
       
-      # ActiveP, Double, Take, BeaverR, RaccoonR, CubeB: 6 unsigned longs (24 bytes)
-      initial_data = data[offset, 24].unpack("VVVVVV")
+      # ActiveP, Double, Take, BeaverR, RaccoonR, CubeB: 6 signed longs (24 bytes)
+      initial_data = data[offset, 24].unpack("l<l<l<l<l<l<")
       offset += 24
       
       # Position: 26 signed bytes
@@ -834,7 +834,7 @@ module XGStruct
         remaining_offset += 8
         
         # RolloutIndexD, CompChoiceD, AnalyzeC: 3 signed longs (12 bytes)
-        rollout_data = data[remaining_offset, 12].unpack("VVV")
+        rollout_data = data[remaining_offset, 12].unpack("l<l<l<")
         remaining_offset += 12
         
         # Skip 4 padding bytes
@@ -845,7 +845,7 @@ module XGStruct
         remaining_offset += 16
         
         # AnalyzeCR, isValid: 2 signed longs (8 bytes)
-        analyze_data = data[remaining_offset, 8].unpack("VV")
+        analyze_data = data[remaining_offset, 8].unpack("l<l<")
         remaining_offset += 8
         
         # TutorCube, TutorTake: 2 signed bytes
@@ -867,7 +867,7 @@ module XGStruct
         remaining_offset += 3
         
         # CommentCube: 1 signed long (4 bytes)
-        comment_cube = data[remaining_offset, 4].unpack("V")[0]
+        comment_cube = data[remaining_offset, 4].unpack("l<")[0]
         remaining_offset += 4
         
         # EditedCube, TimeDelayCube, TimeDelayCubeDone: 3 bytes
@@ -878,7 +878,7 @@ module XGStruct
         remaining_offset += 1
         
         # NumberOfAutoDoubleCube, TimeBot, TimeTop: 3 signed longs (12 bytes)
-        final_data = data[remaining_offset, 12].unpack("VVV")
+        final_data = data[remaining_offset, 12].unpack("l<l<l<")
         
         self["ErrCube"] = err_cube
         self["DiceRolled"] = dice_rolled
