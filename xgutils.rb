@@ -120,12 +120,12 @@ module XGUtils
   end
 
   # Render an ASCII representation of a backgammon board given a position array.
-  # 
+  #
   # The position array is a PositionEngine (array[0..25] of ShortInt) where:
-  # - Index 0: Player 1's bear-off area 
+  # - Index 0: Player 1's bear-off area
   # - Indices 1-24: The 24 points on the board (1-12 and 13-24)
   # - Index 25: Player 2's bear-off area or bar
-  # 
+  #
   # Positive values indicate Player 1's checkers, negative values indicate Player 2's checkers.
   # The absolute value indicates the number of checkers on that point.
   #
@@ -135,7 +135,7 @@ module XGUtils
     return "Invalid position: must be array of 26 integers" unless position.is_a?(Array) && position.length == 26
 
     lines = []
-    
+
     # Top header row: | 13 | 14 | 15 | 16 | 17 | 18 | BAR | 19 | 20 | 21 | 22 | 23 | 24 | OFF |
     header_top = "|"
     [13, 14, 15, 16, 17, 18].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
@@ -143,76 +143,76 @@ module XGUtils
     [19, 20, 21, 22, 23, 24].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
     header_top += " OFF |"
     lines << header_top
-    
+
     # Section label for top half
     section_top = "|--------Outer Board----------|     |-------P=O Home Board--------|     |"
     lines << section_top
-    
+
     # Top half checker rows (5 rows)
     5.times do |row|
       line = "|"
-      
+
       # Points 13-18 (outer board)
       [13, 14, 15, 16, 17, 18].each do |point|
         char = get_checker_char_for_position(position[point], row, :upper)
         line += " #{char.center(2)} |"
       end
-      
-      # BAR column for top half - assume we'll handle bar separately from bear-off  
+
+      # BAR column for top half - assume we'll handle bar separately from bear-off
       # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
       bar_char = get_checker_char_for_position(0, row, :upper)
       line += " #{bar_char.center(3)} |"
-      
+
       # Points 19-24 (home board)
       [19, 20, 21, 22, 23, 24].each do |point|
         char = get_checker_char_for_position(position[point], row, :upper)
         line += " #{char.center(2)} |"
       end
-      
+
       # OFF column for Player 2 (from position[25] when negative)
-      off_checkers = position[25] < 0 ? position[25] : 0  # Only negative values (Player 2's bear-off)
+      off_checkers = (position[25] < 0) ? position[25] : 0  # Only negative values (Player 2's bear-off)
       off_char = get_checker_char_for_position(off_checkers, row, :upper)
       line += " #{off_char.center(3)} |"
-      
+
       lines << line
     end
-    
+
     # Middle separator
     separator = "|-----------------------------|     |-----------------------------|     |"
     lines << separator
-    
-    # Bottom half checker rows (5 rows) 
+
+    # Bottom half checker rows (5 rows)
     5.times do |row|
       line = "|"
-      
+
       # Points 12-7 (outer board) - note the reversed order for bottom half
       [12, 11, 10, 9, 8, 7].each do |point|
         char = get_checker_char_for_position(position[point], row, :lower)
         line += " #{char.center(2)} |"
       end
-      
+
       # BAR column for bottom half - assume we'll handle bar separately from bear-off
       # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
       bar_char = get_checker_char_for_position(0, row, :lower)
       line += " #{bar_char.center(3)} |"
-      
+
       # Points 6-1 (home board)
       [6, 5, 4, 3, 2, 1].each do |point|
         char = get_checker_char_for_position(position[point], row, :lower)
         line += " #{char.center(2)} |"
       end
-      
+
       # OFF column for Player 1 (from position[0])
       off_char = get_checker_char_for_position(position[0], row, :lower)
       line += " #{off_char.center(3)} |"
-      
+
       lines << line
     end
-    
+
     # Section label for bottom half
     section_bottom = "|--------Outer Board----------|     |-------P=X Home Board--------|     |"
     lines << section_bottom
-    
+
     # Bottom header row: | 12 | 11 | 10 |  9 |  8 |  7 | BAR |  6 |  5 |  4 |  3 |  2 |  1 | OFF |
     header_bottom = "|"
     [12, 11, 10, 9, 8, 7].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
@@ -225,7 +225,7 @@ module XGUtils
   end
 
   # Render dice values as a formatted string.
-  # 
+  #
   # @param dice [Array<Integer>] Array of 2 integers representing dice values
   # @return [String] Space-separated dice values (e.g., "4 6")
   def self.render_dice(dice)
@@ -247,47 +247,41 @@ module XGUtils
   # @return [String] Character to display ('X', 'O', number, or space)
   def self.get_checker_char_for_position(checkers, row, half)
     abs_checkers = checkers.abs
-    
+
     return " " if abs_checkers == 0
-    
+
     if abs_checkers > 5
       # Tall stack logic
       if half == :upper
         # Upper half: count in innermost row (row 4), checkers in rows 0-3
         if row == 4
-          return abs_checkers.to_s
+          abs_checkers.to_s
         elsif row < 4
-          return checkers > 0 ? "X" : "O"
+          (checkers > 0) ? "X" : "O"
         else
-          return " "
+          " "
         end
-      else
+      elsif row == 0
         # Lower half: count in topmost row (row 0), checkers in rows 1-4
-        if row == 0
-          return abs_checkers.to_s
-        elsif row > 0
-          return checkers > 0 ? "X" : "O"
-        else
-          return " "
-        end
-      end
-    else
-      # Normal stack (1-5 checkers)
-      if half == :upper
-        # Upper half fills from top down (row 0 is topmost)
-        if checkers > 0
-          return checkers > row ? "X" : " "
-        else
-          return abs_checkers > row ? "O" : " "
-        end
+        abs_checkers.to_s
+      elsif row > 0
+        (checkers > 0) ? "X" : "O"
       else
-        # Lower half fills from bottom up (row 4 is bottommost)
-        if checkers > 0
-          return checkers > (4 - row) ? "X" : " "
-        else
-          return abs_checkers > (4 - row) ? "O" : " "
-        end
+        " "
       end
+    elsif half == :upper
+      # Normal stack (1-5 checkers)
+      # Upper half fills from top down (row 0 is topmost)
+      if checkers > 0
+        (checkers > row) ? "X" : " "
+      else
+        (abs_checkers > row) ? "O" : " "
+      end
+    elsif checkers > 0
+      # Lower half fills from bottom up (row 4 is bottommost)
+      (checkers > (4 - row)) ? "X" : " "
+    else
+      (abs_checkers > (4 - row)) ? "O" : " "
     end
   end
 

@@ -337,10 +337,10 @@ class TestXGUtils < Minitest::Test
 
     # Test with invalid parameters that should still restore position
     crc = XGUtils.streamcrc32(stream, startpos: 0, numbytes: test_data.length)
-    
+
     # Position should be restored to original
     assert_equal original_pos, stream.tell
-    
+
     # CRC should be correct
     expected_crc = Zlib.crc32(test_data) & 0xffffffff
     assert_equal expected_crc, crc
@@ -350,7 +350,7 @@ class TestXGUtils < Minitest::Test
     # Test with fraction exactly at 0.5 (noon)
     delphi_datetime = 0.5
     result = XGUtils.delphidatetimeconv(delphi_datetime)
-    
+
     assert_equal 1899, result.year
     assert_equal 12, result.month
     assert_equal 30, result.day
@@ -364,7 +364,7 @@ class TestXGUtils < Minitest::Test
     # Using values that are valid but might test edge cases
     int_array = [0x41, 0x42, 0x43, 0]  # Simple ASCII
     result = XGUtils.utf16intarraytostr(int_array)
-    
+
     assert_equal "ABC", result
     assert_equal Encoding::UTF_8, result.encoding
   end
@@ -373,10 +373,10 @@ class TestXGUtils < Minitest::Test
     # Test CRC calculation when startpos is at the end of stream
     test_data = "Test data"
     stream = StringIO.new(test_data)
-    
+
     # Start position at end of stream
     crc = XGUtils.streamcrc32(stream, startpos: test_data.length)
-    
+
     # Should get CRC of empty data
     expected_crc = Zlib.crc32("") & 0xffffffff
     assert_equal expected_crc, crc
@@ -386,7 +386,7 @@ class TestXGUtils < Minitest::Test
     # Test exactly at boundary conditions
     shortstring_bytes = [0, 65, 66, 67]  # Length 0, followed by data
     result = XGUtils.delphishortstrtostr(shortstring_bytes)
-    
+
     assert_equal "", result
   end
 
@@ -431,7 +431,7 @@ class TestXGUtils < Minitest::Test
     assert result.include?("OFF"), "Should contain OFF column"
     assert result.include?("Outer Board"), "Should contain section label"
     assert result.include?("Home Board"), "Should contain section label"
-    
+
     # Point numbers should be present (1-24 in goal_board format)
     (1..24).each do |point|
       assert result.include?(sprintf("%2d", point)), "Should contain point #{point}"
@@ -443,13 +443,13 @@ class TestXGUtils < Minitest::Test
     # Standard starting position has 2 checkers on 24, 5 on 13, 3 on 8, 5 on 6 for player 1
     # And opposite for player 2
     position = [0] * 26
-    
+
     # Player 1 checkers (positive values)
     position[24] = 2   # 2 checkers on point 24
-    position[13] = 5   # 5 checkers on point 13 
+    position[13] = 5   # 5 checkers on point 13
     position[8] = 3    # 3 checkers on point 8
     position[6] = 5    # 5 checkers on point 6
-    
+
     # Player 2 checkers (negative values)
     position[1] = -2   # 2 checkers on point 1
     position[12] = -5  # 5 checkers on point 12
@@ -461,7 +461,7 @@ class TestXGUtils < Minitest::Test
     # Should contain checkers representation
     assert result.include?("X"), "Should contain Player 1 checkers"
     assert result.include?("O"), "Should contain Player 2 checkers"
-    
+
     # Should not crash and return valid string
     assert result.is_a?(String)
     assert result.length > 100, "Should return substantial output"
@@ -472,9 +472,9 @@ class TestXGUtils < Minitest::Test
     position = [0] * 26
     position[0] = 5    # Player 1 bear-off
     position[25] = -3  # Player 2 bear-off
-    
+
     result = XGUtils.render_board(position)
-    
+
     # Should show bear-off checkers in OFF columns (goal_board format)
     assert result.include?("X"), "Should show Player 1 checkers in bear-off"
     assert result.include?("O"), "Should show Player 2 checkers in bear-off"
@@ -491,17 +491,17 @@ class TestXGUtils < Minitest::Test
     position[24] = -8  # 8 Player 2 checkers on point 24 (upper half)
     position[13] = 7   # 7 Player 1 checkers on point 13 (upper half)
     position[6] = -6   # 6 Player 2 checkers on point 6 (lower half)
-    
+
     result = XGUtils.render_board(position)
-    
+
     # Should handle high stacks gracefully
     assert result.is_a?(String)
     assert result.include?("X"), "Should show Player 1 checkers"
     assert result.include?("O"), "Should show Player 2 checkers"
-    
+
     # Verify stack counts are displayed for tall stacks
     assert result.include?("10"), "Should show count 10 for point 1 stack"
-    assert result.include?(" 8"), "Should show count 8 for point 24 stack" 
+    assert result.include?(" 8"), "Should show count 8 for point 24 stack"
     assert result.include?(" 7"), "Should show count 7 for point 13 stack"
     assert result.include?(" 6"), "Should show count 6 for point 6 stack"
   end
@@ -509,7 +509,7 @@ class TestXGUtils < Minitest::Test
   def test_render_board_mixed_positions
     # Test with various checker positions
     position = [0] * 26
-    
+
     # Mix of positions for both players
     position[1] = 3
     position[5] = -2
@@ -518,9 +518,9 @@ class TestXGUtils < Minitest::Test
     position[23] = 2
     position[0] = 1    # Bear-off
     position[25] = -1  # Bear-off
-    
+
     result = XGUtils.render_board(position)
-    
+
     # Basic validation that board renders (goal_board format)
     assert result.is_a?(String)
     assert result.include?("|"), "Should have table structure"
@@ -535,17 +535,17 @@ class TestXGUtils < Minitest::Test
     # Test that the board has the expected structure (goal_board format)
     position = [0] * 26
     result = XGUtils.render_board(position)
-    
+
     lines = result.split("\n")
-    
+
     # Should have multiple lines
     assert lines.length > 10, "Should have multiple lines"
-    
+
     # Should have table structure with headers
     assert lines.first.include?("|"), "First line should be table header"
     assert lines.first.include?("BAR"), "First line should include BAR column"
     assert lines.first.include?("OFF"), "First line should include OFF column"
-    
+
     # Should have section labels
     section_lines = lines.select { |line| line.include?("Outer Board") || line.include?("Home Board") }
     assert section_lines.length >= 2, "Should have section labels"
@@ -555,12 +555,12 @@ class TestXGUtils < Minitest::Test
     # Test that point numbers are correctly displayed (goal_board format)
     position = [0] * 26
     result = XGUtils.render_board(position)
-    
+
     # All points (1-24) should be present in goal_board format
     (1..24).each do |point|
       assert result.include?(sprintf("%2d", point)), "Should include point #{point}"
     end
-    
+
     # BAR and OFF columns should be present
     assert result.include?("BAR"), "Should include BAR column"
     assert result.include?("OFF"), "Should include OFF column"
@@ -569,35 +569,35 @@ class TestXGUtils < Minitest::Test
   def test_render_board_tall_stack_positioning
     # Test specific positioning of stack counts for tall stacks
     position = [0] * 26
-    
+
     # Create different tall stacks to test positioning
     position[13] = 9    # Upper half - should show count in innermost row
     position[1] = 8     # Lower half - should show count in topmost row
     position[18] = -7   # Upper half, player 2
     position[6] = -6    # Lower half, player 2
-    
+
     result = XGUtils.render_board(position)
     lines = result.split("\n")
-    
+
     # Based on the goal_board structure:
     # Line 6: Upper half innermost row (before middle separator)
     # Line 8: Lower half topmost row (after middle separator)
-    
+
     # Upper half: stack count should be in innermost row
     upper_innermost_line = lines[6]
     assert upper_innermost_line.include?("9"), "Point 13 count should be in innermost row of upper half"
     assert upper_innermost_line.include?("7"), "Point 18 count should be in innermost row of upper half"
-    
-    # Lower half: stack count should be in topmost row  
+
+    # Lower half: stack count should be in topmost row
     lower_topmost_line = lines[8]
     assert lower_topmost_line.include?("8"), "Point 1 count should be in topmost row of lower half"
     assert lower_topmost_line.include?("6"), "Point 6 count should be in topmost row of lower half"
-    
+
     # Verify that normal stacks (≤5) still work correctly
     position[2] = 3
     position[14] = -4
     result2 = XGUtils.render_board(position)
-    
+
     assert result2.include?("X"), "Should still show normal stacks"
     assert result2.include?("O"), "Should still show normal stacks"
   end
@@ -634,12 +634,12 @@ class TestXGUtils < Minitest::Test
     # Test normal player conversions
     assert_equal "X", XGUtils.player_to_symbol(1), "Player 1 should be X"
     assert_equal "O", XGUtils.player_to_symbol(2), "Player 2 should be O"
-    
+
     # Test edge cases
     assert_equal "0", XGUtils.player_to_symbol(0), "Player 0 should fallback to string"
     assert_equal "3", XGUtils.player_to_symbol(3), "Player 3 should fallback to string"
     assert_equal "-1", XGUtils.player_to_symbol(-1), "Negative player should fallback to string"
-    
+
     # Test with nil and other types
     assert_equal "", XGUtils.player_to_symbol(nil), "nil should fallback to empty string"
     assert_equal "test", XGUtils.player_to_symbol("test"), "String should fallback to itself"

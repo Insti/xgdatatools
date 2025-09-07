@@ -439,7 +439,7 @@ class TestXGStruct < Minitest::Test
     converted_classes.each do |klass|
       instance = klass.new
       assert instance.is_a?(Hash), "#{klass} should maintain Hash inheritance for compatibility"
-      assert instance.empty?, "#{klass} should be empty by default" 
+      assert instance.empty?, "#{klass} should be empty by default"
       assert_equal({}, instance)
     end
   end
@@ -461,19 +461,19 @@ class TestXGStruct < Minitest::Test
   def test_snake_case_properties_work
     # Test that converted classes use snake_case properties internally
     record = XGStruct::GameDataFormatHdrRecord.new("MagicNumber" => 42, "GameName" => "Test Game")
-    
+
     # Snake_case accessors should work
     assert_equal 42, record.magic_number
     assert_equal "Test Game", record.game_name
-    
+
     # PascalCase accessors should still work for backward compatibility
     assert_equal 42, record.MagicNumber
     assert_equal "Test Game", record.GameName
-    
+
     # Hash-style access should still work for backward compatibility
     assert_equal 42, record["MagicNumber"]
     assert_equal "Test Game", record["GameName"]
-    
+
     # Setting via snake_case should work
     record.magic_number = 100
     assert_equal 100, record.magic_number
@@ -551,7 +551,7 @@ class TestXGStruct < Minitest::Test
     data = [0] * XGStruct::GameDataFormatHdrRecord::SIZEOFREC
     # Set correct magic number 'HMGR' (reversed for little-endian)
     data[0] = 82  # 'R'
-    data[1] = 71  # 'G' 
+    data[1] = 71  # 'G'
     data[2] = 77  # 'M'
     data[3] = 72  # 'H'
     # Set wrong version
@@ -570,19 +570,19 @@ class TestXGStruct < Minitest::Test
   def test_time_setting_record_fromstream_with_invalid_boolean
     # Test TimeSettingRecord with different boolean values
     data = [0] * XGStruct::TimeSettingRecord::SIZEOFREC
-    
+
     # Set ClockType = 2
     data[0] = 2
     data[1] = 0
     data[2] = 0
     data[3] = 0
-    
+
     # Set PerGame to non-zero (should convert to true)
     data[4] = 255
-    
+
     stream = StringIO.new(data.pack("C*"))
     record = XGStruct::TimeSettingRecord.new
-    
+
     result = record.fromstream(stream)
     assert_equal record, result
     assert_equal 2, record["ClockType"]
@@ -590,29 +590,29 @@ class TestXGStruct < Minitest::Test
   end
 
   def test_eval_level_record_fromstream_with_boolean_conversion
-    # Test EvalLevelRecord with different boolean values  
+    # Test EvalLevelRecord with different boolean values
     data = [0] * XGStruct::EvalLevelRecord::SIZEOFREC
-    
+
     # Set Level = -1 (signed short)
     data[0] = 0xFF  # -1 in little-endian signed short
     data[1] = 0xFF
-    
+
     # Set isDouble to non-zero
     data[2] = 1
-    
+
     stream = StringIO.new(data.pack("C*"))
     record = XGStruct::EvalLevelRecord.new
-    
+
     result = record.fromstream(stream)
     assert_equal record, result
-    assert_equal -1, record["Level"]
+    assert_equal(-1, record["Level"])
     assert_equal true, record["isDouble"]
   end
 
   def test_game_file_record_version_attribute
     # Test that version attribute is stored separately from hash
     record = XGStruct::GameFileRecord.new(version: 25)
-    
+
     # Version should be accessible via instance variable but not hash
     assert_equal 25, record.instance_variable_get(:@version)
     refute record.has_key?("version")
@@ -621,10 +621,10 @@ class TestXGStruct < Minitest::Test
   def test_header_match_entry_version_edge_cases
     # Test HeaderMatchEntry version handling
     entry = XGStruct::HeaderMatchEntry.new
-    
+
     # Test default version
-    assert_equal -1, entry.version
-    
+    assert_equal(-1, entry.version)
+
     # Test version assignment
     entry.version = 99
     assert_equal 99, entry.version
@@ -634,7 +634,7 @@ class TestXGStruct < Minitest::Test
   def test_all_hash_classes_method_missing_behavior
     classes = [
       XGStruct::GameDataFormatHdrRecord,
-      XGStruct::TimeSettingRecord, 
+      XGStruct::TimeSettingRecord,
       XGStruct::EvalLevelRecord,
       XGStruct::UnimplementedEntry,
       XGStruct::GameFileRecord,
@@ -643,24 +643,24 @@ class TestXGStruct < Minitest::Test
 
     classes.each do |klass|
       obj = klass.new
-      
+
       # Test setter method_missing
       obj.TestField = "test_value"
       assert_equal "test_value", obj["TestField"]
-      
+
       # Test getter method_missing for existing key
       obj["ExistingKey"] = "existing_value"
       assert_equal "existing_value", obj.ExistingKey
-      
+
       # Test respond_to_missing for setter
       assert obj.respond_to?(:TestField=)
-      
+
       # Test respond_to_missing for getter of existing key
       assert obj.respond_to?(:ExistingKey)
-      
+
       # Test respond_to_missing for non-existent key
       refute obj.respond_to?(:NonExistentKey)
-      
+
       # Test NoMethodError for non-existent getter
       assert_raises(NoMethodError) { obj.NonExistentKey }
     end
@@ -669,25 +669,25 @@ class TestXGStruct < Minitest::Test
   def test_game_data_format_hdr_record_fromstream_with_valid_guid
     # Test with valid data including proper GUID handling
     data = [0] * XGStruct::GameDataFormatHdrRecord::SIZEOFREC
-    
+
     # Set magic number 'HMGR' (reversed for little-endian)
     data[0] = 82   # 'R'
     data[1] = 71   # 'G'
     data[2] = 77   # 'M'
     data[3] = 72   # 'H'
-    
+
     # Set version to 1 (32-bit little-endian)
     data[4] = 1
     data[5] = 0
     data[6] = 0
     data[7] = 0
-    
+
     # Set header size (32-bit little-endian) = 1000
     data[8] = 232   # 1000 & 0xFF
-    data[9] = 3     # (1000 >> 8) & 0xFF  
+    data[9] = 3     # (1000 >> 8) & 0xFF
     data[10] = 0    # (1000 >> 16) & 0xFF
     data[11] = 0    # (1000 >> 24) & 0xFF
-    
+
     # Set thumbnail offset (64-bit little-endian) = 100
     data[12] = 100
     data[13] = 0
@@ -697,16 +697,16 @@ class TestXGStruct < Minitest::Test
     data[17] = 0
     data[18] = 0
     data[19] = 0
-    
+
     # Set thumbnail size (32-bit little-endian) = 50
     data[20] = 50
     data[21] = 0
     data[22] = 0
     data[23] = 0
-    
+
     stream = StringIO.new(data.pack("C*"))
     record = XGStruct::GameDataFormatHdrRecord.new
-    
+
     result = record.fromstream(stream)
     assert_equal record, result
     assert_equal "HMGR", record["MagicNumber"]
@@ -720,10 +720,10 @@ class TestXGStruct < Minitest::Test
   def test_unimplemented_entry_default_behavior
     # Test that UnimplementedEntry has correct defaults and behavior
     entry = XGStruct::UnimplementedEntry.new
-    
+
     assert_equal "UNKNOWN", entry["EntryType"]
     assert_equal "UnimplementedEntry", entry["Name"]
-    
+
     # Test fromstream always returns self
     stream = StringIO.new("any data here")
     result = entry.fromstream(stream)
@@ -787,7 +787,7 @@ class TestXGStruct < Minitest::Test
     assert_nil result
   end
 
-  # Test MoveEntry  
+  # Test MoveEntry
   def test_move_entry_initialization
     move = XGStruct::MoveEntry.new
 
@@ -842,7 +842,7 @@ class TestXGStruct < Minitest::Test
 
     # Test setter and getter
     move.ActiveP = -1
-    assert_equal -1, move["ActiveP"]
+    assert_equal(-1, move["ActiveP"])
 
     move["Played"] = true
     assert_equal true, move.Played
@@ -860,39 +860,39 @@ class TestXGStruct < Minitest::Test
   def test_move_entry_fromstream_basic_data
     # Create test data that matches the MoveEntry structure
     data = [0] * XGStruct::MoveEntry::SIZEOFREC
-    
+
     # Set up initial positions and values
     # Skip first 9 bytes (Previous + Next + EntryType)
     offset = 9
-    
+
     # PositionI: 26 signed bytes
     (0..25).each { |i| data[offset + i] = i - 12 }  # Some test values
     offset += 26
-    
-    # PositionEnd: 26 signed bytes  
+
+    # PositionEnd: 26 signed bytes
     (0..25).each { |i| data[offset + i] = i - 5 }   # Different test values
     offset += 26
-    
+
     # ActiveP: 1 signed long (4 bytes) - set to player 1
     data[offset, 4] = [1].pack("l<").bytes
     offset += 4
-    
+
     # Skip 3 padding bytes
     offset += 3
-    
+
     stream = create_string_io(data)
     move = XGStruct::MoveEntry.new
-    
+
     result = move.fromstream(stream)
     assert_equal move, result
-    
+
     # Test that values were parsed correctly
     assert_equal "Move", move["Name"]
     assert_equal "Move", move["Type"]
     assert_equal 3, move["EntryType"]
     assert_equal 1, move["ActiveP"]
     assert_equal 1, move["ActivePlayer"]
-    
+
     # Test position arrays
     assert_equal 26, move["PositionI"].length
     assert_equal 26, move["PositionEnd"].length
@@ -903,24 +903,24 @@ class TestXGStruct < Minitest::Test
   def test_move_entry_fromstream_with_complex_data
     # Create a more complex test with actual move data
     data = [0] * XGStruct::MoveEntry::SIZEOFREC
-    
+
     # Set entry type to Move (3)
     data[8] = 3
-    
+
     # Set ActiveP to -1 (player 2) at correct position
     data[9 + 52, 4] = [-1].pack("l<").bytes
-    
+
     # Set some dice values at appropriate positions
     # According to format: after PositionI(26) + PositionEnd(26) + ActiveP(4) + padding(3) + Moves(32)
     dice_offset = 9 + 26 + 26 + 4 + 3 + 32
     data[dice_offset, 8] = [3, 5].pack("l<2").bytes  # Rolled 3 and 5
-    
+
     stream = create_string_io(data)
     move = XGStruct::MoveEntry.new
-    
+
     result = move.fromstream(stream)
     assert_equal move, result
-    
+
     # Verify parsed data
     assert_equal(-1, move["ActiveP"])
     assert_equal(-1, move["ActivePlayer"])
@@ -1070,13 +1070,13 @@ class TestXGStruct < Minitest::Test
   def test_cube_entry_fromstream_basic_data
     # Create minimal valid data for cube entry (2560 bytes)
     data = "\x00" * 2560
-    
+
     # Set some recognizable values in the correct positions
     # Skip first 12 bytes (9 + 3 padding), then set 6 longs for ActiveP, Double, Take, BeaverR, RaccoonR, CubeB
     data[12, 4] = [-1].pack("l<")  # ActiveP = -1 (signed)
     data[16, 4] = [1].pack("l<")   # Double = 1
     data[20, 4] = [1].pack("l<")   # Take = 1
-    data[24, 4] = [0].pack("l<")   # BeaverR = 0  
+    data[24, 4] = [0].pack("l<")   # BeaverR = 0
     data[28, 4] = [0].pack("l<")   # RaccoonR = 0
     data[32, 4] = [2].pack("l<")   # CubeB = 2
 
@@ -1085,7 +1085,7 @@ class TestXGStruct < Minitest::Test
     result = record.fromstream(stream)
 
     assert_equal record, result
-    
+
     # Verify parsed data
     assert_equal(-1, record["ActiveP"])  # -1 correctly parsed as signed
     assert_equal 1, record["Double"]
@@ -1096,7 +1096,7 @@ class TestXGStruct < Minitest::Test
   def test_cube_entry_fromstream_negative_values
     # Test that negative values are correctly parsed as signed integers
     data = "\x00" * 2560
-    
+
     # Test various negative values that are meaningful in cube context
     data[12, 4] = [-1].pack("l<")   # ActiveP = -1 (player 2)
     data[16, 4] = [0].pack("l<")    # Double = 0 (no double)
@@ -1110,11 +1110,11 @@ class TestXGStruct < Minitest::Test
     result = record.fromstream(stream)
 
     assert_equal record, result
-    
-    # Verify negative values are preserved correctly 
+
+    # Verify negative values are preserved correctly
     assert_equal(-1, record["ActiveP"])   # Player 2 is active
     assert_equal 0, record["Double"]
-    assert_equal 0, record["Take"]  
+    assert_equal 0, record["Take"]
     assert_equal(-3, record["CubeB"])     # Opponent owns 8-cube (2^3)
   end
 
@@ -1122,18 +1122,18 @@ class TestXGStruct < Minitest::Test
     # Test module structure and constants
     assert defined?(XGStruct)
     assert XGStruct.is_a?(Module)
-    
+
     # Test all classes are defined
     classes = [
       :GameDataFormatHdrRecord, :TimeSettingRecord, :EvalLevelRecord,
       :UnimplementedEntry, :GameFileRecord, :RolloutFileRecord, :HeaderMatchEntry,
       :EngineStructBestMoveRecord, :EngineStructDoubleAction, :CubeEntry, :MoveEntry
     ]
-    
+
     classes.each do |class_name|
       assert XGStruct.const_defined?(class_name), "XGStruct should define #{class_name}"
     end
-    
+
     # Test SIZE constants
     assert_equal 8232, XGStruct::GameDataFormatHdrRecord::SIZEOFREC
     assert_equal 32, XGStruct::TimeSettingRecord::SIZEOFREC

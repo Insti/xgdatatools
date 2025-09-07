@@ -43,12 +43,12 @@ module Xgdatatools
   def self.create_logger(level: :info, output: STDOUT)
     logger = Logger.new(output)
     logger.level = case level
-                   when :debug then Logger::DEBUG
-                   when :info then Logger::INFO  
-                   when :warn then Logger::WARN
-                   when :error then Logger::ERROR
-                   else Logger::INFO
-                   end
+    when :debug then Logger::DEBUG
+    when :info then Logger::INFO
+    when :warn then Logger::WARN
+    when :error then Logger::ERROR
+    else Logger::INFO
+    end
     logger.formatter = proc do |severity, datetime, progname, msg|
       "[#{severity}] #{msg}\n"
     end

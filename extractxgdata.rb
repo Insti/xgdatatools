@@ -45,7 +45,7 @@ def directoryisvalid(dir)
 end
 
 if __FILE__ == $PROGRAM_NAME
-  options = { log_level: :info }
+  options = {log_level: :info}
 
   parser = OptionParser.new do |opts|
     opts.banner = "Usage: #{$PROGRAM_NAME} [options] FILE [FILE ...]"
@@ -62,7 +62,7 @@ if __FILE__ == $PROGRAM_NAME
       options[:outdir] = directoryisvalid(dir)
     end
 
-    opts.on("-v", "--verbose LEVEL", [:debug, :info, :warn, :error], 
+    opts.on("-v", "--verbose LEVEL", [:debug, :info, :warn, :error],
       "Set logging level (debug, info, warn, error). Default: info") do |level|
       options[:log_level] = level
     end
@@ -94,7 +94,7 @@ if __FILE__ == $PROGRAM_NAME
   ARGV.each do |xgfilename|
     logger.info "Processing file: #{xgfilename}"
     logger.debug "File size: #{File.size(xgfilename)} bytes" if File.exist?(xgfilename)
-    
+
     xgbasepath = File.dirname(xgfilename)
     xgbasefile = File.basename(xgfilename)
     xgext = File.extname(xgfilename)

@@ -121,7 +121,7 @@ module XGImport
       File.open(@filename, "rb") do |xginfile|
         # Extract the uncompressed Game Data Header (GDH)
         gdfheader = XGStruct::GameDataFormatHdrRecord.new.fromstream(xginfile)
-        logger.debug "Game data format header: #{gdfheader ? gdfheader.to_h : 'nil'}"
+        logger.debug "Game data format header: #{gdfheader ? gdfheader.to_h : "nil"}"
 
         raise Error.new("Not a game data format file", @filename) if gdfheader.nil?
 

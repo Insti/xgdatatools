@@ -14,11 +14,11 @@ class TestXgdatatools < Minitest::Test
   def test_singleton_logger
     # Reset logger to ensure we're testing from fresh state
     Xgdatatools.instance_variable_set(:@logger, nil)
-    
+
     # Get two logger instances
     logger1 = Xgdatatools.logger
     logger2 = Xgdatatools.logger
-    
+
     # They should be the same object (singleton)
     assert_same logger1, logger2, "Logger should be a singleton"
   end
@@ -33,7 +33,7 @@ class TestXgdatatools < Minitest::Test
     Xgdatatools.init_logger(level: :debug)
     logger = Xgdatatools.logger
     assert_equal Logger::DEBUG, logger.level
-    
+
     Xgdatatools.init_logger(level: :error)
     logger = Xgdatatools.logger
     assert_equal Logger::ERROR, logger.level
@@ -44,7 +44,7 @@ class TestXgdatatools < Minitest::Test
     output = StringIO.new
     Xgdatatools.init_logger(output: output)
     logger = Xgdatatools.logger
-    
+
     logger.info "Test message"
     output.rewind
     assert_includes output.read, "Test message"
@@ -53,7 +53,7 @@ class TestXgdatatools < Minitest::Test
   def test_logger_assignment
     custom_logger = Logger.new(StringIO.new)
     Xgdatatools.logger = custom_logger
-    
+
     assert_same custom_logger, Xgdatatools.logger
   end
 
@@ -68,11 +68,11 @@ class TestXgdatatools < Minitest::Test
     output = StringIO.new
     Xgdatatools.init_logger(output: output)
     logger = Xgdatatools.logger
-    
+
     logger.info "Test message"
     output.rewind
     result = output.read
-    
+
     # Should have the expected format: [SEVERITY] message\n
     assert_match(/\[INFO\] Test message\n/, result)
   end

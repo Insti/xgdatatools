@@ -59,36 +59,86 @@ module XGZarc
     end
 
     # Define explicit getter and setter methods for all known keys
-    def crc; self["crc"]; end
-    def crc=(value); self["crc"] = value; end
-    
-    def filecount; self["filecount"]; end
-    def filecount=(value); self["filecount"] = value; end
-    
-    def version; self["version"]; end
-    def version=(value); self["version"] = value; end
-    
-    def registrysize; self["registrysize"]; end
-    def registrysize=(value); self["registrysize"] = value; end
-    
-    def archivesize; self["archivesize"]; end
-    def archivesize=(value); self["archivesize"] = value; end
-    
-    def compressedregistry; self["compressedregistry"]; end
-    def compressedregistry=(value); self["compressedregistry"] = value; end
-    
-    def reserved; self["reserved"]; end
-    def reserved=(value); self["reserved"] = value; end
+    def crc
+      self["crc"]
+    end
+
+    def crc=(value)
+      self["crc"] = value
+    end
+
+    def filecount
+      self["filecount"]
+    end
+
+    def filecount=(value)
+      self["filecount"] = value
+    end
+
+    def version
+      self["version"]
+    end
+
+    def version=(value)
+      self["version"] = value
+    end
+
+    def registrysize
+      self["registrysize"]
+    end
+
+    def registrysize=(value)
+      self["registrysize"] = value
+    end
+
+    def archivesize
+      self["archivesize"]
+    end
+
+    def archivesize=(value)
+      self["archivesize"] = value
+    end
+
+    def compressedregistry
+      self["compressedregistry"]
+    end
+
+    def compressedregistry=(value)
+      self["compressedregistry"] = value
+    end
+
+    def reserved
+      self["reserved"]
+    end
+
+    def reserved=(value)
+      self["reserved"] = value
+    end
 
     # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
-    
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
-    
-    def TestKey; self["TestKey"]; end
-    def TestKey=(value); self["TestKey"] = value; end
+    def TestField
+      self["TestField"]
+    end
+
+    def TestField=(value)
+      self["TestField"] = value
+    end
+
+    def ExistingKey
+      self["ExistingKey"]
+    end
+
+    def ExistingKey=(value)
+      self["ExistingKey"] = value
+    end
+
+    def TestKey
+      self["TestKey"]
+    end
+
+    def TestKey=(value)
+      self["TestKey"] = value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
@@ -124,42 +174,102 @@ module XGZarc
     end
 
     # Define explicit getter and setter methods for all known keys
-    def name; self["name"]; end
-    def name=(value); self["name"] = value; end
-    
-    def path; self["path"]; end
-    def path=(value); self["path"] = value; end
-    
-    def osize; self["osize"]; end
-    def osize=(value); self["osize"] = value; end
-    
-    def csize; self["csize"]; end
-    def csize=(value); self["csize"] = value; end
-    
-    def start; self["start"]; end
-    def start=(value); self["start"] = value; end
-    
-    def crc; self["crc"]; end
-    def crc=(value); self["crc"] = value; end
-    
-    def compressed; self["compressed"]; end
-    def compressed=(value); self["compressed"] = value; end
-    
-    def stored; self["stored"]; end
-    def stored=(value); self["stored"] = value; end
-    
-    def compressionlevel; self["compressionlevel"]; end
-    def compressionlevel=(value); self["compressionlevel"] = value; end
+    def name
+      self["name"]
+    end
+
+    def name=(value)
+      self["name"] = value
+    end
+
+    def path
+      self["path"]
+    end
+
+    def path=(value)
+      self["path"] = value
+    end
+
+    def osize
+      self["osize"]
+    end
+
+    def osize=(value)
+      self["osize"] = value
+    end
+
+    def csize
+      self["csize"]
+    end
+
+    def csize=(value)
+      self["csize"] = value
+    end
+
+    def start
+      self["start"]
+    end
+
+    def start=(value)
+      self["start"] = value
+    end
+
+    def crc
+      self["crc"]
+    end
+
+    def crc=(value)
+      self["crc"] = value
+    end
+
+    def compressed
+      self["compressed"]
+    end
+
+    def compressed=(value)
+      self["compressed"] = value
+    end
+
+    def stored
+      self["stored"]
+    end
+
+    def stored=(value)
+      self["stored"] = value
+    end
+
+    def compressionlevel
+      self["compressionlevel"]
+    end
+
+    def compressionlevel=(value)
+      self["compressionlevel"] = value
+    end
 
     # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
-    
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
-    
-    def TestKey; self["TestKey"]; end
-    def TestKey=(value); self["TestKey"] = value; end
+    def TestField
+      self["TestField"]
+    end
+
+    def TestField=(value)
+      self["TestField"] = value
+    end
+
+    def ExistingKey
+      self["ExistingKey"]
+    end
+
+    def ExistingKey=(value)
+      self["ExistingKey"] = value
+    end
+
+    def TestKey
+      self["TestKey"]
+    end
+
+    def TestKey=(value)
+      self["TestKey"] = value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
@@ -198,7 +308,11 @@ module XGZarc
 
       logger = Xgdatatools.logger
       logger.debug "Initializing ZlibArchive for file: #{@filename}"
-      logger.debug "Stream size: #{@stream.size rescue 'unknown'} bytes"
+      logger.debug "Stream size: #{begin
+        @stream.size
+      rescue
+        "unknown"
+      end} bytes"
 
       get_archive_index
     end
@@ -283,7 +397,7 @@ module XGZarc
           startpos: @startofarcdata,
           numbytes: (@endofarcdata - @startofarcdata)
         )
-        
+
         logger = Xgdatatools.logger
         logger.debug "Archive CRC check: computed=0x#{streamcrc.to_s(16)}, expected=0x#{@arcrec["crc"].to_s(16)}"
         logger.debug "Archive data: start=#{@startofarcdata}, end=#{@endofarcdata}, size=#{@endofarcdata - @startofarcdata}"
@@ -322,7 +436,7 @@ module XGZarc
       logger = Xgdatatools.logger
       logger.debug "Extracting file: #{filerec["name"]}"
       logger.debug "File position: #{filerec["start"]} + #{@startofarcdata} = #{filerec["start"] + @startofarcdata}"
-      
+
       # Do processing on the temporary file
       @stream.seek(filerec["start"] + @startofarcdata, IO::SEEK_SET)
       tmpfilename = extract_segment(
@@ -337,11 +451,11 @@ module XGZarc
 
       # Compute the CRC32 on the uncompressed file
       streamcrc = XGUtils.streamcrc32(tmpfile)
-      
+
       logger = Xgdatatools.logger
       logger.debug "File '#{filerec["name"]}' CRC check: computed=0x#{streamcrc.to_s(16)}, expected=0x#{filerec["crc"].to_s(16)}"
       logger.debug "File details: osize=#{filerec["osize"]}, csize=#{filerec["csize"]}, compressed=#{filerec["compressed"]}"
-      
+
       raise Error.new("File CRC check failed - file corrupt") if streamcrc != filerec["crc"]
 
       [tmpfile, tmpfilename]
