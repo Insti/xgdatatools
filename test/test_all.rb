@@ -10,5 +10,6 @@ require_relative "test_xgimport"
 require_relative "test_extractxgdata"
 require_relative "test_xgfile_parser"
 require_relative "test_xgdatatools"
+require_relative "test_xgbinaryextract"
 
 # Minitest will autorun all tests at exit
