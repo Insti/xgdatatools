@@ -780,13 +780,10 @@ module XGStruct
       return nil if data.nil? || data.length < SIZEOFREC
 
       # Parse first 64 bytes according to Python format: '<9xxxxllllll26bxx'
-      # Skip first 9 bytes
-      offset = 9
+      # Skip first 9 bytes, then 4 more padding bytes = 13 bytes total
+      offset = 13
       
-      # Skip 4 padding bytes 
-      offset += 4
-      
-      # ActiveP, Double, Take, BeaverR, RaccoonR, CubeB: 6 signed longs (24 bytes)
+      # ActiveP, Double, Take, BeaverR, RaccoonR, CubeB: 6 unsigned longs (24 bytes)
       initial_data = data[offset, 24].unpack("VVVVVV")
       offset += 24
       

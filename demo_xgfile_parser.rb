@@ -57,16 +57,26 @@ def demo_create_sample_xg_file
   record2[8] = 1  # tsHeaderGame
   record2[9, 4] = [0].pack("l<").bytes   # Score1 = 0
   record2[13, 4] = [0].pack("l<").bytes  # Score2 = 0
-  
-  # Record 3: FooterMatch  
+
+  # Record 3: Simple Cube record for demonstration
   record3 = [0] * 2560
-  record3[8] = 5  # tsFooterMatch
-  record3[9, 4] = [7].pack("l<").bytes   # Score1 = 7
-  record3[13, 4] = [3].pack("l<").bytes  # Score2 = 3
-  record3[17, 4] = [1].pack("l<").bytes  # Winner = 1 (Player1)
+  record3[8] = 2  # tsCube
+  record3[9, 4] = [1].pack("l<").bytes    # ActiveP = 1 (Player 1) - at offset 9 for XG file format
+  record3[13, 4] = [1].pack("l<").bytes   # Double = 1 (Yes) - at offset 13 for XG file format
+  record3[17, 4] = [1].pack("l<").bytes   # Take = 1 (Yes)
+  record3[21, 4] = [0].pack("l<").bytes   # BeaverR = 0 (No)
+  record3[25, 4] = [0].pack("l<").bytes   # RaccoonR = 0 (No)
+  record3[29, 4] = [1].pack("l<").bytes   # CubeB = 1 (cube value 2 owned by player 1)
   
+  # Record 4: FooterMatch  
+  record4 = [0] * 2560
+  record4[8] = 5  # tsFooterMatch
+  record4[9, 4] = [7].pack("l<").bytes   # Score1 = 7
+  record4[13, 4] = [3].pack("l<").bytes  # Score2 = 3
+  record4[17, 4] = [1].pack("l<").bytes  # Winner = 1 (Player1)
+
   # Combine game data
-  game_data = (record1 + record2 + record3).pack("C*")
+  game_data = (record1 + record2 + record3 + record4).pack("C*")
   
   # Compress the game data
   compressed_data = Zlib::Deflate.deflate(game_data)
@@ -79,7 +89,7 @@ def demo_create_sample_xg_file
     f.write(file_data.pack("C*"))
   end
   
-  puts "Sample XG file 'demo.xg' created (#{file_data.size} bytes)"
+  puts "Sample XG file 'demo.xg' created (#{file_data.size} bytes) - includes cube record"
   "demo.xg"
 end
 
@@ -128,8 +138,68 @@ def demo_parse_xg_file(filename)
         puts "  Score 1: #{record['Score1']}"
         puts "  Score 2: #{record['Score2']}"
       when "Cube"
-        puts "  Active Player: #{record['Active']}"
-        puts "  Double: #{record['Double']}"
+        puts "  === CUBE DECISION ==="
+        puts "  Active Player: #{record['ActiveP'] || record['Active']} #{record['ActiveP'] == 1 ? '(Player 1)' : record['ActiveP'] == -1 ? '(Player 2)' : ''}"
+        puts "  Double Decision: #{record['Double'] == 1 ? 'YES' : 'NO'}"
+        puts "  Take Decision: #{record['Take'] == 1 ? 'YES' : record['Take'] == 2 ? 'BEAVER' : 'NO'}"
+        
+        # Show cube position/ownership
+        cube_val = record['CubeB'] || 0
+        if cube_val == 0
+          puts "  Cube Position: CENTER (value 1)"
+        elsif cube_val > 0
+          puts "  Cube Position: OWNED by Player 1 (value #{2 ** cube_val})"
+        else
+          puts "  Cube Position: OWNED by Player 2 (value #{2 ** (-cube_val)})"
+        end
+        
+        # Show validation status
+        valid_status = record['isValid'] || 0
+        case valid_status
+        when 0
+          puts "  Decision Status: ✓ VALID"
+        when 1
+          puts "  Decision Status: ⚠ ERROR DETECTED"
+        when 2
+          puts "  Decision Status: ✗ INVALID"
+        else
+          puts "  Decision Status: UNKNOWN (#{valid_status})"
+        end
+        
+        # Show error analysis (human-readable) - only show if values are reasonable
+        if record['ErrCube'] && record['ErrCube'].is_a?(Numeric) && record['ErrCube'].abs < 100
+          if record['ErrCube'] == -1000.0
+            puts "  Double Analysis: Not analyzed"
+          elsif record['ErrCube'] > 0.001
+            puts "  Double Error: #{sprintf('%.3f', record['ErrCube'])} (should have NOT doubled)"
+          elsif record['ErrCube'] < -0.001
+            puts "  Double Error: #{sprintf('%.3f', -record['ErrCube'])} (should have doubled)"
+          else
+            puts "  Double Analysis: Perfect decision (#{sprintf('%.3f', record['ErrCube'])} error)"
+          end
+        end
+        
+        if record['ErrTake'] && record['ErrTake'].is_a?(Numeric) && record['ErrTake'].abs < 100
+          if record['ErrTake'] == -1000.0
+            puts "  Take Analysis: Not analyzed"
+          elsif record['ErrTake'] > 0.001
+            puts "  Take Error: #{sprintf('%.3f', record['ErrTake'])} (should have PASSED)"
+          elsif record['ErrTake'] < -0.001
+            puts "  Take Error: #{sprintf('%.3f', -record['ErrTake'])} (should have TAKEN)"
+          else
+            puts "  Take Analysis: Perfect decision (#{sprintf('%.3f', record['ErrTake'])} error)"
+          end
+        end
+        
+        # Show if flagged for review
+        if record['FlaggedDouble']
+          puts "  🚩 FLAGGED for review"
+        end
+        
+        # Show analysis level if available and reasonable
+        if record['AnalyzeCR'] && record['AnalyzeCR'].is_a?(Numeric) && record['AnalyzeCR'] > 0 && record['AnalyzeCR'] < 10
+          puts "  Analysis Level: #{record['AnalyzeCR']}-ply"
+        end
       when "Move"
         puts "  Active Player: #{record['ActivePlayer']}"
         position = record['PositionI'] # or record['XGID']
