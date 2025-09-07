@@ -23,7 +23,7 @@
 
 require "tempfile"
 require "zlib"
-require "logger"
+require_relative "xgdatatools"
 require_relative "xgutils"
 
 module XGZarc
@@ -196,7 +196,7 @@ module XGZarc
       @filename = filename
       @stream = stream || File.open(filename, "rb")
 
-      logger = $logger || Logger.new(STDOUT)
+      logger = Xgdatatools.logger
       logger.debug "Initializing ZlibArchive for file: #{@filename}"
       logger.debug "Stream size: #{@stream.size rescue 'unknown'} bytes"
 
@@ -269,7 +269,7 @@ module XGZarc
         @endofarcdata = @stream.tell
         @arcrec.fromstream(@stream)
 
-        logger = $logger || Logger.new(STDOUT)
+        logger = Xgdatatools.logger
         logger.debug "Archive record: filecount=#{@arcrec["filecount"]}, registrysize=#{@arcrec["registrysize"]}, archivesize=#{@arcrec["archivesize"]}"
         logger.debug "Archive compressed registry: #{@arcrec["compressedregistry"]}"
 
@@ -284,7 +284,7 @@ module XGZarc
           numbytes: (@endofarcdata - @startofarcdata)
         )
         
-        logger = $logger || Logger.new(STDOUT)
+        logger = Xgdatatools.logger
         logger.debug "Archive CRC check: computed=0x#{streamcrc.to_s(16)}, expected=0x#{@arcrec["crc"].to_s(16)}"
         logger.debug "Archive data: start=#{@startofarcdata}, end=#{@endofarcdata}, size=#{@endofarcdata - @startofarcdata}"
 
@@ -319,7 +319,7 @@ module XGZarc
     public
 
     def getarchivefile(filerec)
-      logger = $logger || Logger.new(STDOUT)
+      logger = Xgdatatools.logger
       logger.debug "Extracting file: #{filerec["name"]}"
       logger.debug "File position: #{filerec["start"]} + #{@startofarcdata} = #{filerec["start"] + @startofarcdata}"
       
@@ -338,7 +338,7 @@ module XGZarc
       # Compute the CRC32 on the uncompressed file
       streamcrc = XGUtils.streamcrc32(tmpfile)
       
-      logger = $logger || Logger.new(STDOUT)
+      logger = Xgdatatools.logger
       logger.debug "File '#{filerec["name"]}' CRC check: computed=0x#{streamcrc.to_s(16)}, expected=0x#{filerec["crc"].to_s(16)}"
       logger.debug "File details: osize=#{filerec["osize"]}, csize=#{filerec["csize"]}, compressed=#{filerec["compressed"]}"
       
