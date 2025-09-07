@@ -219,6 +219,86 @@ class TestMoveClassIntegration < Minitest::Test
     File.delete(filename)
   end
 
+  def test_move_entry_from_3_move_bin_fixture
+    # Test parsing the actual 3_Move.bin fixture file
+    fixture_path = File.join(File.dirname(__FILE__), "fixtures", "3_Move.bin")
+    
+    # Verify fixture exists
+    assert File.exist?(fixture_path), "3_Move.bin fixture not found at #{fixture_path}"
+    
+    # Read and parse the fixture
+    data = File.binread(fixture_path)
+    assert_equal 2560, data.length, "3_Move.bin should be exactly 2560 bytes"
+    
+    stream = StringIO.new(data)
+    move = XGStruct::MoveEntry.new
+    result = move.fromstream(stream)
+    
+    # Verify parsing succeeded
+    refute_nil result, "MoveEntry.fromstream should successfully parse 3_Move.bin"
+    assert_instance_of XGStruct::MoveEntry, result
+    
+    # Test basic move information
+    assert_equal "Move", result["Type"]
+    assert_equal 3, result["EntryType"]
+    assert_equal(-16777216, result["ActiveP"])  # This appears to be the parsed value from the fixture
+    assert_equal [6, 3], result["Dice"]
+    assert_equal 0, result["CubeA"]
+    assert_equal true, result["Played"]
+    
+    # Test position arrays
+    assert_equal 26, result["PositionI"].length
+    assert_equal 26, result["PositionEnd"].length
+    assert_equal [0, -2, 0, 0, 0], result["PositionI"][0..4]
+    assert_equal [0, -2, 0, 0, 0], result["PositionEnd"][0..4]
+    
+    # Test move data
+    assert_equal [23, 17, 12, 9, -1, -1, -1, -1], result["Moves"]
+    assert_equal 10, result["NMoveEval"]
+    assert_equal 0.0, result["ErrorM"]
+    
+    # Test move evaluation data
+    assert_equal 0.0, result["ErrMove"]
+    assert_in_delta 0.0061259400099515915, result["ErrLuck"], 1e-15
+    assert_equal 1, result["CompChoice"]
+    assert_equal 0.0, result["InitEq"]
+    
+    # Test analysis data  
+    assert_equal 3, result["AnalyzeM"]
+    assert_equal 3, result["AnalyzeL"]
+    assert_equal 0, result["InvalidM"]
+    
+    # Test tutor data
+    assert_equal 26, result["PositionTutor"].length
+    assert_equal(-1, result["Tutor"])
+    assert_equal 0.0, result["ErrTutorMove"]
+    assert_equal false, result["Flagged"]
+    
+    # Test other fields
+    assert_equal(-1, result["CommentMove"])
+    assert_equal false, result["EditedMove"]
+    assert_equal 0, result["TimeDelayMove"]
+    assert_equal 0, result["TimeDelayMoveDone"]
+    assert_equal 0, result["NumberOfAutoDoubleMove"]
+    
+    # Test DataMoves (EngineStructBestMoveRecord)
+    refute_nil result["DataMoves"]
+    assert_instance_of XGStruct::EngineStructBestMoveRecord, result["DataMoves"]
+    
+    engine = result["DataMoves"]
+    assert_equal 3, engine["Level"]
+    assert_equal 1, engine["Cube"]
+    assert_equal 26, engine["Pos"].length
+    assert_equal [6, 3], engine["Dice"]
+    assert_equal [4, 4], engine["Score"]
+    
+    # Test accessor methods work with the fixture data
+    assert_equal(-16777216, result.ActiveP)
+    assert_equal [6, 3], result.Dice
+    assert_equal true, result.Played
+    assert_equal [23, 17, 12, 9, -1, -1, -1, -1], result.Moves
+  end
+
   private
 
   def create_move_record_data(active_player, dice, cube_value)
