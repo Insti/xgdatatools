@@ -308,7 +308,7 @@ module XGZarc
           end
         end
 
-        File.unlink(idx_filename)
+        File.unlink(idx_filename) if File.exist?(idx_filename)
       ensure
         @stream.seek(curstreampos, IO::SEEK_SET)
       end

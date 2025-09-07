@@ -751,6 +751,32 @@ class TestXGZarc < Minitest::Test
     assert_equal 532, XGZarc::FileRecord::SIZEOFREC
   end
 
+  # Test that file cleanup is safe against race conditions
+  def test_safe_file_cleanup_race_condition
+    fixture_path = File.join(__dir__, "fixtures", "test_archive.zla")
+    
+    # Run the test multiple times with aggressive garbage collection
+    # to try to trigger the original race condition
+    10.times do
+      archive = XGZarc::ZlibArchive.new(filename: fixture_path)
+      file_record = archive.arcregistry.first
+      
+      # Extract the archived file
+      extracted_file, temp_filename = archive.getarchivefile(file_record)
+      
+      # Force garbage collection to try to trigger the race condition
+      GC.start
+      
+      # Cleanup should not fail even if GC cleaned up the Tempfile
+      extracted_file.close
+      File.unlink(temp_filename) if File.exist?(temp_filename)
+      archive.stream.close
+    end
+    
+    # Test should complete without any Errno::ENOENT exceptions
+    assert true, "Safe cleanup test completed successfully"
+  end
+
   private
 
   def create_minimal_archive_data
