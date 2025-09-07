@@ -26,6 +26,7 @@
 
 require_relative "xgutils"
 require "securerandom"
+require "stringio"
 
 module XGStruct
   class GameDataFormatHdrRecord < Hash
@@ -475,6 +476,435 @@ module XGStruct
         self["met"] = final_data[1]
         self["Choice0"] = final_data[2]
         self["Choice3"] = final_data[3]
+      end
+
+      self
+    end
+  end
+
+  class EngineStructDoubleAction < Hash
+    SIZEOFREC = 132
+
+    def initialize(**kw)
+      defaults = {
+        "Pos" => nil,                    # Current position (PositionEngine = array[0..25] of ShortInt)
+        "Level" => 0,                    # analyze level performed
+        "Score" => nil,                  # current score (array of 2 integers)
+        "Cube" => 0,                     # cube value 1,2,4, etc.
+        "CubePos" => 0,                  # 0: Center 1: Player owns cube -1 Opponent owns cube
+        "Jacoby" => 0,                   # 1 = Jacoby   0 = No Jacoby
+        "Crawford" => 0,                 # 1 = Crawford   0 = No Crawford
+        "met" => 0,                      # unused
+        "FlagDouble" => 0,               # 0: Dont double 1: Double
+        "isBeaver" => 0,                 # is it a beaver if doubled
+        "Eval" => nil,                   # eval value for No double (array of 7 floats)
+        "equB" => 0.0,                   # equity No Double
+        "equDouble" => 0.0,              # equity Double/take
+        "equDrop" => 0.0,                # equity double/drop (-1)
+        "LevelRequest" => 0,             # analyze level requested
+        "DoubleChoice3" => 0,            # 3-ply choice as double+take*2
+        "EvalDouble" => nil              # eval value for Double/Take (array of 7 floats)
+      }
+      super()
+      merge!(defaults.merge(kw))
+    end
+
+    # Define explicit getter and setter methods for all known keys
+    def Pos; self["Pos"]; end
+    def Pos=(value); self["Pos"] = value; end
+    
+    def Level; self["Level"]; end
+    def Level=(value); self["Level"] = value; end
+    
+    def Score; self["Score"]; end
+    def Score=(value); self["Score"] = value; end
+    
+    def Cube; self["Cube"]; end
+    def Cube=(value); self["Cube"] = value; end
+    
+    def CubePos; self["CubePos"]; end
+    def CubePos=(value); self["CubePos"] = value; end
+    
+    def Jacoby; self["Jacoby"]; end
+    def Jacoby=(value); self["Jacoby"] = value; end
+    
+    def Crawford; self["Crawford"]; end
+    def Crawford=(value); self["Crawford"] = value; end
+    
+    def met; self["met"]; end
+    def met=(value); self["met"] = value; end
+    
+    def FlagDouble; self["FlagDouble"]; end
+    def FlagDouble=(value); self["FlagDouble"] = value; end
+    
+    def isBeaver; self["isBeaver"]; end
+    def isBeaver=(value); self["isBeaver"] = value; end
+    
+    def Eval; self["Eval"]; end
+    def Eval=(value); self["Eval"] = value; end
+    
+    def equB; self["equB"]; end
+    def equB=(value); self["equB"] = value; end
+    
+    def equDouble; self["equDouble"]; end
+    def equDouble=(value); self["equDouble"] = value; end
+    
+    def equDrop; self["equDrop"]; end
+    def equDrop=(value); self["equDrop"] = value; end
+    
+    def LevelRequest; self["LevelRequest"]; end
+    def LevelRequest=(value); self["LevelRequest"] = value; end
+    
+    def DoubleChoice3; self["DoubleChoice3"]; end
+    def DoubleChoice3=(value); self["DoubleChoice3"] = value; end
+    
+    def EvalDouble; self["EvalDouble"]; end
+    def EvalDouble=(value); self["EvalDouble"] = value; end
+
+    def fromstream(stream)
+      data = stream.read(SIZEOFREC)
+      return nil if data.nil? || data.length < SIZEOFREC
+
+      # Parse according to Python format: '<26bxxl2llllhhhh7ffffhh7f'
+      offset = 0
+      
+      # Pos: 26 signed bytes
+      pos = data[offset, 26].unpack("c26")
+      offset += 26
+      
+      # Skip 2 padding bytes
+      offset += 2
+      
+      # Level: 1 signed long (4 bytes)
+      level = data[offset, 4].unpack("V")[0]
+      offset += 4
+      
+      # Score: 2 signed longs (8 bytes)
+      score = data[offset, 8].unpack("VV")
+      offset += 8
+      
+      # Cube, CubePos, Jacoby, Crawford: 4 signed longs (16 bytes)
+      cube_data = data[offset, 16].unpack("VVVV")
+      offset += 16
+      
+      # met, FlagDouble, isBeaver: 3 signed shorts (6 bytes)
+      short_data = data[offset, 6].unpack("vvv")
+      offset += 6
+      
+      # Skip 2 padding bytes
+      offset += 2
+      
+      # Eval: 7 floats (28 bytes)
+      eval_data = data[offset, 28].unpack("eeeeeee")
+      offset += 28
+      
+      # equB, equDouble, equDrop: 3 floats (12 bytes)
+      equity_data = data[offset, 12].unpack("eee")
+      offset += 12
+      
+      # LevelRequest, DoubleChoice3: 2 signed shorts (4 bytes)
+      request_data = data[offset, 4].unpack("vv")
+      offset += 4
+      
+      # EvalDouble: 7 floats (28 bytes)
+      eval_double_data = data[offset, 28].unpack("eeeeeee")
+      offset += 28
+      
+      self["Pos"] = pos
+      self["Level"] = level
+      self["Score"] = score
+      self["Cube"] = cube_data[0]
+      self["CubePos"] = cube_data[1]
+      self["Jacoby"] = cube_data[2]
+      self["Crawford"] = cube_data[3]
+      self["met"] = short_data[0]
+      self["FlagDouble"] = short_data[1]
+      self["isBeaver"] = short_data[2]
+      self["Eval"] = eval_data
+      self["equB"] = equity_data[0]
+      self["equDouble"] = equity_data[1]
+      self["equDrop"] = equity_data[2]
+      self["LevelRequest"] = request_data[0]
+      self["DoubleChoice3"] = request_data[1]
+      self["EvalDouble"] = eval_double_data
+
+      self
+    end
+  end
+
+  class CubeEntry < Hash
+    SIZEOFREC = 2560
+
+    def initialize(**kw)
+      defaults = {
+        "Name" => "Cube",
+        "Type" => "Cube",                # For backwards compatibility
+        "EntryType" => 2,                # tsCube
+        "ActiveP" => 0,                  # Active player (1=p1, -1=p2)
+        "Double" => 0,                   # player double (0= no, 1=yes)
+        "Take" => 0,                     # opp take (0= no, 1=yes, 2=beaver )
+        "BeaverR" => 0,                  # player accept beaver (0= no, 1=yes, 2=raccoon)
+        "RaccoonR" => 0,                 # player accept raccoon (0= no, 1=yes)
+        "CubeB" => 0,                    # Cube value 0=center, +1=2 own, +2=4 own ... -1=2 opp, -2=4 opp
+        "Position" => nil,               # initial position (PositionEngine = array[0..25] of ShortInt)
+        "Doubled" => nil,                # Analyze result (EngineStructDoubleAction)
+        "ErrCube" => 0.0,                # error made on doubling (-1000 if not analyze)
+        "DiceRolled" => nil,             # dice rolled (string[2])
+        "ErrTake" => 0.0,                # error made on taking (-1000 if not analyze)
+        "RolloutIndexD" => 0,            # index of the Rollout in temp.xgr
+        "CompChoiceD" => 0,              # 3-ply choice as Double+2*take
+        "AnalyzeC" => 0,                 # Level of the analyze
+        "ErrBeaver" => 0.0,              # error made on beavering (-1000 if not analyze)
+        "ErrRaccoon" => 0.0,             # error made on racconning (-1000 if not analyze)
+        "AnalyzeCR" => 0,                # requested Level of the analyze
+        "isValid" => 0,                  # invalid decision 0=Ok, 1=error, 2=invalid
+        "TutorCube" => 0,                # player initial double in tutor mode (0= no, 1=yes)
+        "TutorTake" => 0,                # player initial take in tutor mode (0= no, 1=yes)
+        "ErrTutorCube" => 0.0,           # error initialy made on doubling (-1000 if not analyze)
+        "ErrTutorTake" => 0.0,           # error initialy made on taking (-1000 if not analyze)
+        "FlaggedDouble" => false,        # cube has been flagged
+        "CommentCube" => -1,             # index of the cube comment in temp.xgc
+        "EditedCube" => false,           # v24: Position was edited at this point
+        "TimeDelayCube" => false,        # v26: position is marked for later RO
+        "TimeDelayCubeDone" => false,    # v26: position later RO has been done
+        "NumberOfAutoDoubleCube" => 0,   # v27: Number of Autodouble that happen in that game
+        "TimeBot" => 0,                  # v28: time left for both players
+        "TimeTop" => 0                   # v28: time left for both players
+      }
+      super()
+      merge!(defaults.merge(kw))
+    end
+
+    # Define explicit getter and setter methods for all known keys
+    def Name; self["Name"]; end
+    def Name=(value); self["Name"] = value; end
+    
+    def Type; self["Type"]; end
+    def Type=(value); self["Type"] = value; end
+    
+    def EntryType; self["EntryType"]; end
+    def EntryType=(value); self["EntryType"] = value; end
+    
+    def ActiveP; self["ActiveP"]; end
+    def ActiveP=(value); self["ActiveP"] = value; end
+    
+    def Double; self["Double"]; end
+    def Double=(value); self["Double"] = value; end
+    
+    def Take; self["Take"]; end
+    def Take=(value); self["Take"] = value; end
+    
+    def BeaverR; self["BeaverR"]; end
+    def BeaverR=(value); self["BeaverR"] = value; end
+    
+    def RaccoonR; self["RaccoonR"]; end
+    def RaccoonR=(value); self["RaccoonR"] = value; end
+    
+    def CubeB; self["CubeB"]; end
+    def CubeB=(value); self["CubeB"] = value; end
+    
+    def Position; self["Position"]; end
+    def Position=(value); self["Position"] = value; end
+    
+    def Doubled; self["Doubled"]; end
+    def Doubled=(value); self["Doubled"] = value; end
+    
+    def ErrCube; self["ErrCube"]; end
+    def ErrCube=(value); self["ErrCube"] = value; end
+    
+    def DiceRolled; self["DiceRolled"]; end
+    def DiceRolled=(value); self["DiceRolled"] = value; end
+    
+    def ErrTake; self["ErrTake"]; end
+    def ErrTake=(value); self["ErrTake"] = value; end
+    
+    def RolloutIndexD; self["RolloutIndexD"]; end
+    def RolloutIndexD=(value); self["RolloutIndexD"] = value; end
+    
+    def CompChoiceD; self["CompChoiceD"]; end
+    def CompChoiceD=(value); self["CompChoiceD"] = value; end
+    
+    def AnalyzeC; self["AnalyzeC"]; end
+    def AnalyzeC=(value); self["AnalyzeC"] = value; end
+    
+    def ErrBeaver; self["ErrBeaver"]; end
+    def ErrBeaver=(value); self["ErrBeaver"] = value; end
+    
+    def ErrRaccoon; self["ErrRaccoon"]; end
+    def ErrRaccoon=(value); self["ErrRaccoon"] = value; end
+    
+    def AnalyzeCR; self["AnalyzeCR"]; end
+    def AnalyzeCR=(value); self["AnalyzeCR"] = value; end
+    
+    def isValid; self["isValid"]; end
+    def isValid=(value); self["isValid"] = value; end
+    
+    def TutorCube; self["TutorCube"]; end
+    def TutorCube=(value); self["TutorCube"] = value; end
+    
+    def TutorTake; self["TutorTake"]; end
+    def TutorTake=(value); self["TutorTake"] = value; end
+    
+    def ErrTutorCube; self["ErrTutorCube"]; end
+    def ErrTutorCube=(value); self["ErrTutorCube"] = value; end
+    
+    def ErrTutorTake; self["ErrTutorTake"]; end
+    def ErrTutorTake=(value); self["ErrTutorTake"] = value; end
+    
+    def FlaggedDouble; self["FlaggedDouble"]; end
+    def FlaggedDouble=(value); self["FlaggedDouble"] = value; end
+    
+    def CommentCube; self["CommentCube"]; end
+    def CommentCube=(value); self["CommentCube"] = value; end
+    
+    def EditedCube; self["EditedCube"]; end
+    def EditedCube=(value); self["EditedCube"] = value; end
+    
+    def TimeDelayCube; self["TimeDelayCube"]; end
+    def TimeDelayCube=(value); self["TimeDelayCube"] = value; end
+    
+    def TimeDelayCubeDone; self["TimeDelayCubeDone"]; end
+    def TimeDelayCubeDone=(value); self["TimeDelayCubeDone"] = value; end
+    
+    def NumberOfAutoDoubleCube; self["NumberOfAutoDoubleCube"]; end
+    def NumberOfAutoDoubleCube=(value); self["NumberOfAutoDoubleCube"] = value; end
+    
+    def TimeBot; self["TimeBot"]; end
+    def TimeBot=(value); self["TimeBot"] = value; end
+    
+    def TimeTop; self["TimeTop"]; end
+    def TimeTop=(value); self["TimeTop"] = value; end
+
+    def fromstream(stream)
+      data = stream.read(SIZEOFREC)
+      return nil if data.nil? || data.length < SIZEOFREC
+
+      # Parse first 64 bytes according to Python format: '<9xxxxllllll26bxx'
+      # Skip first 9 bytes
+      offset = 9
+      
+      # Skip 4 padding bytes 
+      offset += 4
+      
+      # ActiveP, Double, Take, BeaverR, RaccoonR, CubeB: 6 signed longs (24 bytes)
+      initial_data = data[offset, 24].unpack("VVVVVV")
+      offset += 24
+      
+      # Position: 26 signed bytes
+      position = data[offset, 26].unpack("c26")
+      offset += 26
+      
+      # Skip 2 padding bytes
+      offset += 2
+      
+      self["ActiveP"] = initial_data[0]
+      self["Double"] = initial_data[1]
+      self["Take"] = initial_data[2]
+      self["BeaverR"] = initial_data[3]
+      self["RaccoonR"] = initial_data[4]
+      self["CubeB"] = initial_data[5]
+      self["Position"] = position
+
+      # Parse EngineStructDoubleAction (132 bytes)
+      if offset + EngineStructDoubleAction::SIZEOFREC <= data.length
+        doubled_stream = StringIO.new(data[offset, EngineStructDoubleAction::SIZEOFREC])
+        self["Doubled"] = EngineStructDoubleAction.new.fromstream(doubled_stream)
+        offset += EngineStructDoubleAction::SIZEOFREC
+      end
+
+      # Parse remaining 116 bytes according to Python format: 
+      # '<xxxxd3BxxxxxdlllxxxxddllbbxxxxxxddBxxxlBBBxlll'
+      if offset + 116 <= data.length
+        remaining_offset = offset
+        
+        # Skip 4 padding bytes
+        remaining_offset += 4
+        
+        # ErrCube: 1 double (8 bytes)
+        err_cube = data[remaining_offset, 8].unpack("E")[0]
+        remaining_offset += 8
+        
+        # DiceRolled: 3 bytes (convert to string)
+        dice_bytes = data[remaining_offset, 3].unpack("CCC")
+        dice_rolled = dice_bytes[0] > 0 ? dice_bytes[0..1].pack("CC") : ""
+        remaining_offset += 3
+        
+        # Skip 5 padding bytes
+        remaining_offset += 5
+        
+        # ErrTake: 1 double (8 bytes)
+        err_take = data[remaining_offset, 8].unpack("E")[0]
+        remaining_offset += 8
+        
+        # RolloutIndexD, CompChoiceD, AnalyzeC: 3 signed longs (12 bytes)
+        rollout_data = data[remaining_offset, 12].unpack("VVV")
+        remaining_offset += 12
+        
+        # Skip 4 padding bytes
+        remaining_offset += 4
+        
+        # ErrBeaver, ErrRaccoon: 2 doubles (16 bytes)
+        error_data = data[remaining_offset, 16].unpack("EE")
+        remaining_offset += 16
+        
+        # AnalyzeCR, isValid: 2 signed longs (8 bytes)
+        analyze_data = data[remaining_offset, 8].unpack("VV")
+        remaining_offset += 8
+        
+        # TutorCube, TutorTake: 2 signed bytes
+        tutor_data = data[remaining_offset, 2].unpack("cc")
+        remaining_offset += 2
+        
+        # Skip 6 padding bytes
+        remaining_offset += 6
+        
+        # ErrTutorCube, ErrTutorTake: 2 doubles (16 bytes)
+        tutor_error_data = data[remaining_offset, 16].unpack("EE")
+        remaining_offset += 16
+        
+        # FlaggedDouble: 1 byte
+        flagged_double = data[remaining_offset, 1].unpack("C")[0] != 0
+        remaining_offset += 1
+        
+        # Skip 3 padding bytes
+        remaining_offset += 3
+        
+        # CommentCube: 1 signed long (4 bytes)
+        comment_cube = data[remaining_offset, 4].unpack("V")[0]
+        remaining_offset += 4
+        
+        # EditedCube, TimeDelayCube, TimeDelayCubeDone: 3 bytes
+        version_data = data[remaining_offset, 3].unpack("CCC")
+        remaining_offset += 3
+        
+        # Skip 1 padding byte
+        remaining_offset += 1
+        
+        # NumberOfAutoDoubleCube, TimeBot, TimeTop: 3 signed longs (12 bytes)
+        final_data = data[remaining_offset, 12].unpack("VVV")
+        
+        self["ErrCube"] = err_cube
+        self["DiceRolled"] = dice_rolled
+        self["ErrTake"] = err_take
+        self["RolloutIndexD"] = rollout_data[0]
+        self["CompChoiceD"] = rollout_data[1]
+        self["AnalyzeC"] = rollout_data[2]
+        self["ErrBeaver"] = error_data[0]
+        self["ErrRaccoon"] = error_data[1]
+        self["AnalyzeCR"] = analyze_data[0]
+        self["isValid"] = analyze_data[1]
+        self["TutorCube"] = tutor_data[0]
+        self["TutorTake"] = tutor_data[1]
+        self["ErrTutorCube"] = tutor_error_data[0]
+        self["ErrTutorTake"] = tutor_error_data[1]
+        self["FlaggedDouble"] = flagged_double
+        self["CommentCube"] = comment_cube
+        self["EditedCube"] = version_data[0] != 0
+        self["TimeDelayCube"] = version_data[1] != 0
+        self["TimeDelayCubeDone"] = version_data[2] != 0
+        self["NumberOfAutoDoubleCube"] = final_data[0]
+        self["TimeBot"] = final_data[1]
+        self["TimeTop"] = final_data[2]
       end
 
       self

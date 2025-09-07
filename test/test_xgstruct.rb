@@ -885,6 +885,172 @@ class TestXGStruct < Minitest::Test
     assert_equal([3, 5], move["Dice"])
   end
 
+  def test_engine_struct_double_action_initialization
+    record = XGStruct::EngineStructDoubleAction.new
+
+    # Test default values
+    assert_nil record["Pos"]
+    assert_equal 0, record["Level"]
+    assert_nil record["Score"]
+    assert_equal 0, record["Cube"]
+    assert_equal 0, record["CubePos"]
+    assert_equal 0, record["Jacoby"]
+    assert_equal 0, record["Crawford"]
+    assert_equal 0, record["met"]
+    assert_equal 0, record["FlagDouble"]
+    assert_equal 0, record["isBeaver"]
+    assert_nil record["Eval"]
+    assert_equal 0.0, record["equB"]
+    assert_equal 0.0, record["equDouble"]
+    assert_equal 0.0, record["equDrop"]
+    assert_equal 0, record["LevelRequest"]
+    assert_equal 0, record["DoubleChoice3"]
+    assert_nil record["EvalDouble"]
+  end
+
+  def test_engine_struct_double_action_initialization_with_params
+    record = XGStruct::EngineStructDoubleAction.new(
+      "Level" => 3,
+      "Cube" => 2,
+      "FlagDouble" => 1
+    )
+
+    assert_equal 3, record["Level"]
+    assert_equal 2, record["Cube"]
+    assert_equal 1, record["FlagDouble"]
+    assert_equal 0, record["CubePos"]  # Default value preserved
+  end
+
+  def test_engine_struct_double_action_method_missing
+    record = XGStruct::EngineStructDoubleAction.new
+
+    # Test setter and getter methods
+    record.Cube = 4
+    assert_equal 4, record.Cube
+    assert_equal 4, record["Cube"]
+
+    record.equB = 0.5
+    assert_equal 0.5, record.equB
+    assert_equal 0.5, record["equB"]
+  end
+
+  def test_engine_struct_double_action_fromstream_insufficient_data
+    # Test with insufficient data
+    stream = StringIO.new("short")
+    record = XGStruct::EngineStructDoubleAction.new
+    result = record.fromstream(stream)
+
+    assert_nil result
+  end
+
+  def test_cube_entry_initialization
+    record = XGStruct::CubeEntry.new
+
+    # Test default values
+    assert_equal "Cube", record["Name"]
+    assert_equal "Cube", record["Type"]
+    assert_equal 2, record["EntryType"]
+    assert_equal 0, record["ActiveP"]
+    assert_equal 0, record["Double"]
+    assert_equal 0, record["Take"]
+    assert_equal 0, record["BeaverR"]
+    assert_equal 0, record["RaccoonR"]
+    assert_equal 0, record["CubeB"]
+    assert_nil record["Position"]
+    assert_nil record["Doubled"]
+    assert_equal 0.0, record["ErrCube"]
+    assert_nil record["DiceRolled"]
+    assert_equal 0.0, record["ErrTake"]
+    assert_equal 0, record["RolloutIndexD"]
+    assert_equal 0, record["CompChoiceD"]
+    assert_equal 0, record["AnalyzeC"]
+    assert_equal 0.0, record["ErrBeaver"]
+    assert_equal 0.0, record["ErrRaccoon"]
+    assert_equal 0, record["AnalyzeCR"]
+    assert_equal 0, record["isValid"]
+    assert_equal 0, record["TutorCube"]
+    assert_equal 0, record["TutorTake"]
+    assert_equal 0.0, record["ErrTutorCube"]
+    assert_equal 0.0, record["ErrTutorTake"]
+    assert_equal false, record["FlaggedDouble"]
+    assert_equal(-1, record["CommentCube"])
+    assert_equal false, record["EditedCube"]
+    assert_equal false, record["TimeDelayCube"]
+    assert_equal false, record["TimeDelayCubeDone"]
+    assert_equal 0, record["NumberOfAutoDoubleCube"]
+    assert_equal 0, record["TimeBot"]
+    assert_equal 0, record["TimeTop"]
+  end
+
+  def test_cube_entry_initialization_with_params
+    record = XGStruct::CubeEntry.new(
+      "ActiveP" => -1,
+      "Double" => 1,
+      "Take" => 1,
+      "CubeB" => 2,
+      "FlaggedDouble" => true
+    )
+
+    assert_equal(-1, record["ActiveP"])
+    assert_equal 1, record["Double"]
+    assert_equal 1, record["Take"]
+    assert_equal 2, record["CubeB"]
+    assert_equal true, record["FlaggedDouble"]
+    assert_equal 0, record["BeaverR"]  # Default value preserved
+  end
+
+  def test_cube_entry_method_missing
+    record = XGStruct::CubeEntry.new
+
+    # Test setter and getter methods
+    record.CubeB = 4
+    assert_equal 4, record.CubeB
+    assert_equal 4, record["CubeB"]
+
+    record.ErrCube = 0.25
+    assert_equal 0.25, record.ErrCube
+    assert_equal 0.25, record["ErrCube"]
+
+    record.FlaggedDouble = true
+    assert_equal true, record.FlaggedDouble
+    assert_equal true, record["FlaggedDouble"]
+  end
+
+  def test_cube_entry_fromstream_insufficient_data
+    # Test with insufficient data
+    stream = StringIO.new("short")
+    record = XGStruct::CubeEntry.new
+    result = record.fromstream(stream)
+
+    assert_nil result
+  end
+
+  def test_cube_entry_fromstream_basic_data
+    # Create minimal valid data for cube entry (2560 bytes)
+    data = "\x00" * 2560
+    
+    # Set some recognizable values in the correct positions
+    # Skip first 13 bytes (9 + 4 padding), then set 6 longs for ActiveP, Double, Take, BeaverR, RaccoonR, CubeB
+    data[13, 4] = [0xFFFFFFFF].pack("V")  # ActiveP = -1 (as unsigned)
+    data[17, 4] = [1].pack("V")   # Double = 1
+    data[21, 4] = [1].pack("V")   # Take = 1
+    data[25, 4] = [0].pack("V")   # BeaverR = 0  
+    data[29, 4] = [0].pack("V")   # RaccoonR = 0
+    data[33, 4] = [2].pack("V")   # CubeB = 2
+
+    stream = StringIO.new(data)
+    record = XGStruct::CubeEntry.new
+    result = record.fromstream(stream)
+
+    assert_equal record, result
+    
+    # Verify parsed data
+    assert_equal(4294967295, record["ActiveP"])  # -1 as unsigned 32-bit
+    assert_equal 1, record["Double"]
+    assert_equal 1, record["Take"]
+    assert_equal 2, record["CubeB"]
+  end
+
   def test_module_constants_and_structure
     # Test module structure and constants
     assert defined?(XGStruct)
@@ -894,7 +1060,7 @@ class TestXGStruct < Minitest::Test
     classes = [
       :GameDataFormatHdrRecord, :TimeSettingRecord, :EvalLevelRecord,
       :UnimplementedEntry, :GameFileRecord, :RolloutFileRecord, :HeaderMatchEntry,
-      :EngineStructBestMoveRecord, :MoveEntry
+      :EngineStructBestMoveRecord, :EngineStructDoubleAction, :CubeEntry, :MoveEntry
     ]
     
     classes.each do |class_name|
@@ -906,6 +1072,8 @@ class TestXGStruct < Minitest::Test
     assert_equal 32, XGStruct::TimeSettingRecord::SIZEOFREC
     assert_equal 4, XGStruct::EvalLevelRecord::SIZEOFREC
     assert_equal 2184, XGStruct::EngineStructBestMoveRecord::SIZEOFREC
+    assert_equal 132, XGStruct::EngineStructDoubleAction::SIZEOFREC
+    assert_equal 2560, XGStruct::CubeEntry::SIZEOFREC
     assert_equal 2560, XGStruct::MoveEntry::SIZEOFREC
   end
 end
