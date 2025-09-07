@@ -19,7 +19,7 @@ class TestArchiveCreator
 
   private
 
-  def self.create_archive(output_file, compressed_files: false)
+  private_class_method def self.create_archive(output_file, compressed_files: false)
     # Test file content (make it simple)
     test_content = "Hello, World!\n"
 
@@ -79,7 +79,7 @@ class TestArchiveCreator
 
   private
 
-  def self.create_file_record(name:, path:, original_size:, compressed_size:, crc:, compressed:, start:)
+  private_class_method def self.create_file_record(name:, path:, original_size:, compressed_size:, crc:, compressed:, start:)
     # FileRecord structure: 532 bytes total
     # Bytes 0-255: name (shortstring format)
     # Bytes 256-511: path (shortstring format)
@@ -122,7 +122,7 @@ class TestArchiveCreator
     record
   end
 
-  def self.create_archive_record(crc:, filecount:, version:, registrysize:, archivesize:, compressedregistry:)
+  private_class_method def self.create_archive_record(crc:, filecount:, version:, registrysize:, archivesize:, compressedregistry:)
     # ArchiveRecord structure: 36 bytes total
     # Bytes 0-3: crc (uint32 little-endian)
     # Bytes 4-7: filecount (int32 little-endian)

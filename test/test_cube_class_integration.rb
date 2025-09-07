@@ -153,7 +153,7 @@ class TestCubeClassIntegration < Minitest::Test
     record_data[8] = 2  # EntryType = tsCube
 
     # Copy the cube data starting from offset 9 in XG format
-    cube_bytes = cube_data[12..-1].bytes  # Convert to byte array first
+    cube_bytes = cube_data[12..].bytes  # Convert to byte array first
     record_data[9, cube_bytes.length] = cube_bytes  # Copy byte data
 
     game_data = record_data.pack("C*")
