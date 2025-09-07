@@ -43,4 +43,34 @@ task :test_xgfile_parser do
   ruby "test/test_xgfile_parser.rb"
 end
 
+desc "Run XGDataTools tests"
+task :test_xgdatatools do
+  ruby "test/test_xgdatatools.rb"
+end
+
+desc "Run XGBinaryExtract tests"
+task :test_xgbinaryextract do
+  ruby "test/test_xgbinaryextract.rb"
+end
+
+desc "Run Board Alignment tests"
+task :test_board_alignment do
+  ruby "test/test_board_alignment.rb"
+end
+
+desc "Run Cube Class Integration tests"
+task :test_cube_class_integration do
+  ruby "test/test_cube_class_integration.rb"
+end
+
+desc "Run Goal Board Format tests"
+task :test_goal_board_format do
+  ruby "test/test_goal_board_format.rb"
+end
+
+desc "Run Move Class Integration tests"
+task :test_move_class_integration do
+  ruby "test/test_move_class_integration.rb"
+end
+
 task default: :test

@@ -11,5 +11,9 @@ require_relative "test_extractxgdata"
 require_relative "test_xgfile_parser"
 require_relative "test_xgdatatools"
 require_relative "test_xgbinaryextract"
+require_relative "test_board_alignment"
+require_relative "test_cube_class_integration"
+require_relative "test_goal_board_format"
+require_relative "test_move_class_integration"
 
 # Minitest will autorun all tests at exit
