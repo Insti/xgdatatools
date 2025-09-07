@@ -131,6 +131,8 @@ def demo_parse_xg_file(filename)
         puts "  Double: #{record['Double']}"
       when "Move"
         puts "  Active Player: #{record['ActivePlayer']}"
+        position = record['PositionI'] # or record['XGID']
+        puts XGUtils.render_board(position)
       when "FooterGame"
         puts "  Final Score 1: #{record['Score1']}"
         puts "  Final Score 2: #{record['Score2']}"
