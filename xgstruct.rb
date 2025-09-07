@@ -25,7 +25,6 @@
 #
 
 require_relative "xgutils"
-require "securerandom"
 require "stringio"
 
 module XGStruct
