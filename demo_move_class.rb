@@ -46,7 +46,7 @@ if result
   puts "  EntryType: #{result['EntryType']}"
   puts "  ActiveP: #{result['ActiveP']} (#{result['ActiveP'] == 1 ? 'Player 1' : 'Player 2'})"
   puts "  ActivePlayer: #{result['ActivePlayer']} (backwards compatibility)"
-  puts "  Dice: #{result['Dice']}"
+  puts "  Dice: #{XGUtils.render_dice(result['Dice'])}"
   puts "  CubeA: #{result['CubeA']}"
   puts "  Played: #{result['Played']}"
   puts "  PositionI (first 5): #{result['PositionI'][0..4]}"

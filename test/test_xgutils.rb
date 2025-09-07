@@ -601,4 +601,32 @@ class TestXGUtils < Minitest::Test
     assert result2.include?("X"), "Should still show normal stacks"
     assert result2.include?("O"), "Should still show normal stacks"
   end
+
+  def test_render_dice
+    # Test render_dice method with valid dice arrays
+    result = XGUtils.render_dice([4, 6])
+    assert_equal "4 6", result
+
+    result = XGUtils.render_dice([1, 1])
+    assert_equal "1 1", result
+
+    result = XGUtils.render_dice([6, 3])
+    assert_equal "6 3", result
+
+    # Test with invalid inputs
+    result = XGUtils.render_dice(nil)
+    assert_equal "", result
+
+    result = XGUtils.render_dice([])
+    assert_equal "", result
+
+    result = XGUtils.render_dice([1])
+    assert_equal "", result
+
+    result = XGUtils.render_dice([1, 2, 3])
+    assert_equal "", result
+
+    result = XGUtils.render_dice("not an array")
+    assert_equal "", result
+  end
 end
