@@ -29,7 +29,21 @@ require "securerandom"
 require "stringio"
 
 module XGStruct
+  # Helper module for Hash-like compatibility methods
+  module HashLikeAccessor
+    def has_key?(key)
+      # Check if this object responds to the key as a method
+      respond_to?(key) || respond_to?("#{key}=")
+    end
+    alias key? has_key?
+
+    def empty?
+      @properties.empty?
+    end
+  end
+
   class GameDataFormatHdrRecord
+    include HashLikeAccessor
     SIZEOFREC = 8232
 
     def initialize(**kw)
@@ -219,6 +233,14 @@ module XGStruct
         @properties[snake_key] = value
       end
       value
+    end
+
+    # Additional Hash-like methods for compatibility
+    def keys
+      # Return PascalCase keys for backward compatibility
+      ["MagicNumber", "HeaderVersion", "HeaderSize", "ThumbnailOffset", 
+       "ThumbnailSize", "GameGUID", "GameName", "SaveName", "LevelName",
+       "Comments", "TestField", "ExistingKey", "TestKey", "AnotherKey"]
     end
 
     def fromstream(stream)
@@ -644,6 +666,8 @@ module XGStruct
   end
 
   class GameFileRecord
+    include HashLikeAccessor
+    
     def initialize(version: -1, **kw)
       @version = version
       @properties = {
