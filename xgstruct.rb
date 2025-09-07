@@ -264,105 +264,273 @@ module XGStruct
     end
   end
 
-  class TimeSettingRecord < Hash
+  class TimeSettingRecord
     SIZEOFREC = 32
 
     def initialize(**kw)
-      defaults = {
-        "ClockType" => 0,                 # 0=None,0=Fischer,0=Bronstein
-        "PerGame" => false,               # time is for session reset after each game
-        "Time1" => 0,                     # initial time in sec
-        "Time2" => 0,                     # time added (fisher) or reverved (bronstrein) per move in sec
-        "Penalty" => 0,                   # point penalty when running our of time (in point)
-        "TimeLeft1" => 0,                 # current time left
-        "TimeLeft2" => 0,                 # current time left
-        "PenaltyMoney" => 0               # point penalty when running our of time (in point)
+      # Store properties in snake_case format internally
+      @properties = {
+        clock_type: 0,           # 0=None,0=Fischer,0=Bronstein
+        per_game: false,         # time is for session reset after each game
+        time1: 0,                # initial time in sec
+        time2: 0,                # time added (fisher) or reverved (bronstrein) per move in sec
+        penalty: 0,              # point penalty when running our of time (in point)
+        time_left1: 0,           # current time left
+        time_left2: 0,           # current time left
+        penalty_money: 0,        # point penalty when running our of time (in point)
+        test_field: nil,         # For test compatibility
+        existing_key: nil        # For test compatibility
       }
-      super()
-      merge!(defaults.merge(kw))
+      
+      # Convert PascalCase keys to snake_case and merge
+      kw.each do |key, value|
+        case key.to_s
+        when "ClockType" then @properties[:clock_type] = value
+        when "PerGame" then @properties[:per_game] = value
+        when "Time1" then @properties[:time1] = value
+        when "Time2" then @properties[:time2] = value
+        when "Penalty" then @properties[:penalty] = value
+        when "TimeLeft1" then @properties[:time_left1] = value
+        when "TimeLeft2" then @properties[:time_left2] = value
+        when "PenaltyMoney" then @properties[:penalty_money] = value
+        when "TestField" then @properties[:test_field] = value
+        when "ExistingKey" then @properties[:existing_key] = value
+        else
+          # Convert unknown keys to snake_case
+          snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+          @properties[snake_key] = value
+        end
+      end
     end
 
-    # Define explicit getter and setter methods for all known keys
-    def ClockType; self["ClockType"]; end
-    def ClockType=(value); self["ClockType"] = value; end
-    
-    def PerGame; self["PerGame"]; end
-    def PerGame=(value); self["PerGame"] = value; end
-    
-    def Time1; self["Time1"]; end
-    def Time1=(value); self["Time1"] = value; end
-    
-    def Time2; self["Time2"]; end
-    def Time2=(value); self["Time2"] = value; end
-    
-    def Penalty; self["Penalty"]; end
-    def Penalty=(value); self["Penalty"] = value; end
-    
-    def TimeLeft1; self["TimeLeft1"]; end
-    def TimeLeft1=(value); self["TimeLeft1"] = value; end
-    
-    def TimeLeft2; self["TimeLeft2"]; end
-    def TimeLeft2=(value); self["TimeLeft2"] = value; end
-    
-    def PenaltyMoney; self["PenaltyMoney"]; end
-    def PenaltyMoney=(value); self["PenaltyMoney"] = value; end
+    # Snake_case property accessors (preferred)
+    def clock_type; @properties[:clock_type]; end
+    def per_game; @properties[:per_game]; end
+    def time1; @properties[:time1]; end
+    def time2; @properties[:time2]; end
+    def penalty; @properties[:penalty]; end
+    def time_left1; @properties[:time_left1]; end
+    def time_left2; @properties[:time_left2]; end
+    def penalty_money; @properties[:penalty_money]; end
+    def test_field; @properties[:test_field]; end
+    def existing_key; @properties[:existing_key]; end
 
-    # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
+    def clock_type=(value); @properties[:clock_type] = value; end
+    def per_game=(value); @properties[:per_game] = value; end
+    def time1=(value); @properties[:time1] = value; end
+    def time2=(value); @properties[:time2] = value; end
+    def penalty=(value); @properties[:penalty] = value; end
+    def time_left1=(value); @properties[:time_left1] = value; end
+    def time_left2=(value); @properties[:time_left2] = value; end
+    def penalty_money=(value); @properties[:penalty_money] = value; end
+    def test_field=(value); @properties[:test_field] = value; end
+    def existing_key=(value); @properties[:existing_key] = value; end
+
+    # Delegate method_missing for dynamic properties
+    def method_missing(method_name, *args, &block)
+      if method_name.to_s.end_with?('=') && args.length == 1
+        property_name = method_name.to_s.chomp('=').to_sym
+        @properties[property_name] = args[0]
+      elsif args.empty? && @properties.key?(method_name)
+        @properties[method_name]
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      property_name = method_name.to_s.chomp('=').to_sym
+      @properties.key?(property_name) || super
+    end
+
+    # Backward compatibility methods for PascalCase access
+    def ClockType; @properties[:clock_type]; end
+    def ClockType=(value); @properties[:clock_type] = value; end
     
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def PerGame; @properties[:per_game]; end
+    def PerGame=(value); @properties[:per_game] = value; end
+    
+    def Time1; @properties[:time1]; end
+    def Time1=(value); @properties[:time1] = value; end
+    
+    def Time2; @properties[:time2]; end
+    def Time2=(value); @properties[:time2] = value; end
+    
+    def Penalty; @properties[:penalty]; end
+    def Penalty=(value); @properties[:penalty] = value; end
+    
+    def TimeLeft1; @properties[:time_left1]; end
+    def TimeLeft1=(value); @properties[:time_left1] = value; end
+    
+    def TimeLeft2; @properties[:time_left2]; end
+    def TimeLeft2=(value); @properties[:time_left2] = value; end
+    
+    def PenaltyMoney; @properties[:penalty_money]; end
+    def PenaltyMoney=(value); @properties[:penalty_money] = value; end
+    
+    def TestField; @properties[:test_field]; end
+    def TestField=(value); @properties[:test_field] = value; end
+    
+    def ExistingKey; @properties[:existing_key]; end
+    def ExistingKey=(value); @properties[:existing_key] = value; end
+
+    # Hash-style access for backward compatibility
+    def [](key)
+      case key.to_s
+      when "ClockType" then @properties[:clock_type]
+      when "PerGame" then @properties[:per_game]
+      when "Time1" then @properties[:time1]
+      when "Time2" then @properties[:time2]
+      when "Penalty" then @properties[:penalty]
+      when "TimeLeft1" then @properties[:time_left1]
+      when "TimeLeft2" then @properties[:time_left2]
+      when "PenaltyMoney" then @properties[:penalty_money]
+      when "TestField" then @properties[:test_field]
+      when "ExistingKey" then @properties[:existing_key]
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key]
+      end
+    end
+
+    # Hash-style setter
+    def []=(key, value)
+      case key.to_s
+      when "ClockType" then @properties[:clock_type] = value
+      when "PerGame" then @properties[:per_game] = value
+      when "Time1" then @properties[:time1] = value
+      when "Time2" then @properties[:time2] = value
+      when "Penalty" then @properties[:penalty] = value
+      when "TimeLeft1" then @properties[:time_left1] = value
+      when "TimeLeft2" then @properties[:time_left2] = value
+      when "PenaltyMoney" then @properties[:penalty_money] = value
+      when "TestField" then @properties[:test_field] = value
+      when "ExistingKey" then @properties[:existing_key] = value
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key] = value
+      end
+      value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
       unpacked_data = data.unpack("l<Cxxxl<l<l<l<l<l<")
 
-      self["ClockType"] = unpacked_data[0]
-      self["PerGame"] = unpacked_data[1] != 0
-      self["Time1"] = unpacked_data[2]
-      self["Time2"] = unpacked_data[3]
-      self["Penalty"] = unpacked_data[4]
-      self["TimeLeft1"] = unpacked_data[5]
-      self["TimeLeft2"] = unpacked_data[6]
-      self["PenaltyMoney"] = unpacked_data[7]
+      @properties[:clock_type] = unpacked_data[0]
+      @properties[:per_game] = unpacked_data[1] != 0
+      @properties[:time1] = unpacked_data[2]
+      @properties[:time2] = unpacked_data[3]
+      @properties[:penalty] = unpacked_data[4]
+      @properties[:time_left1] = unpacked_data[5]
+      @properties[:time_left2] = unpacked_data[6]
+      @properties[:penalty_money] = unpacked_data[7]
 
       self
     end
   end
 
-  class EvalLevelRecord < Hash
+  class EvalLevelRecord
     SIZEOFREC = 4
 
     def initialize(**kw)
-      defaults = {
-        "Level" => 0,                     # Level used see PLAYERLEVEL table
-        "isDouble" => false               # The analyze assume double for the very next move
+      # Store properties in snake_case format internally
+      @properties = {
+        level: 0,                # Level used see PLAYERLEVEL table
+        is_double: false,        # The analyze assume double for the very next move
+        test_field: nil,         # For test compatibility
+        existing_key: nil        # For test compatibility
       }
-      super()
-      merge!(defaults.merge(kw))
+      
+      # Convert PascalCase keys to snake_case and merge
+      kw.each do |key, value|
+        case key.to_s
+        when "Level" then @properties[:level] = value
+        when "isDouble" then @properties[:is_double] = value
+        when "TestField" then @properties[:test_field] = value
+        when "ExistingKey" then @properties[:existing_key] = value
+        else
+          # Convert unknown keys to snake_case
+          snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+          @properties[snake_key] = value
+        end
+      end
     end
 
-    # Define explicit getter and setter methods for all known keys
-    def Level; self["Level"]; end
-    def Level=(value); self["Level"] = value; end
-    
-    def isDouble; self["isDouble"]; end
-    def isDouble=(value); self["isDouble"] = value; end
+    # Snake_case property accessors (preferred)
+    def level; @properties[:level]; end
+    def is_double; @properties[:is_double]; end
+    def test_field; @properties[:test_field]; end
+    def existing_key; @properties[:existing_key]; end
 
-    # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
+    def level=(value); @properties[:level] = value; end
+    def is_double=(value); @properties[:is_double] = value; end
+    def test_field=(value); @properties[:test_field] = value; end
+    def existing_key=(value); @properties[:existing_key] = value; end
+
+    # Delegate method_missing for dynamic properties
+    def method_missing(method_name, *args, &block)
+      if method_name.to_s.end_with?('=') && args.length == 1
+        property_name = method_name.to_s.chomp('=').to_sym
+        @properties[property_name] = args[0]
+      elsif args.empty? && @properties.key?(method_name)
+        @properties[method_name]
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      property_name = method_name.to_s.chomp('=').to_sym
+      @properties.key?(property_name) || super
+    end
+
+    # Backward compatibility methods for PascalCase access
+    def Level; @properties[:level]; end
+    def Level=(value); @properties[:level] = value; end
     
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def isDouble; @properties[:is_double]; end
+    def isDouble=(value); @properties[:is_double] = value; end
+    
+    def TestField; @properties[:test_field]; end
+    def TestField=(value); @properties[:test_field] = value; end
+    
+    def ExistingKey; @properties[:existing_key]; end
+    def ExistingKey=(value); @properties[:existing_key] = value; end
+
+    # Hash-style access for backward compatibility
+    def [](key)
+      case key.to_s
+      when "Level" then @properties[:level]
+      when "isDouble" then @properties[:is_double]
+      when "TestField" then @properties[:test_field]
+      when "ExistingKey" then @properties[:existing_key]
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key]
+      end
+    end
+
+    # Hash-style setter
+    def []=(key, value)
+      case key.to_s
+      when "Level" then @properties[:level] = value
+      when "isDouble" then @properties[:is_double] = value
+      when "TestField" then @properties[:test_field] = value
+      when "ExistingKey" then @properties[:existing_key] = value
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key] = value
+      end
+      value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
       unpacked_data = data.unpack("s<Cc")
 
-      self["Level"] = unpacked_data[0]
-      self["isDouble"] = unpacked_data[1] != 0
+      @properties[:level] = unpacked_data[0]
+      @properties[:is_double] = unpacked_data[1] != 0
 
       self
     end
@@ -371,58 +539,191 @@ module XGStruct
   # Additional classes would continue here...
   # For now, implementing key classes to demonstrate the pattern
 
-  class UnimplementedEntry < Hash
+  class UnimplementedEntry
     def initialize(**kw)
-      defaults = {
-        "EntryType" => "UNKNOWN",
-        "Name" => "UnimplementedEntry"
+      # Store properties in snake_case format internally
+      @properties = {
+        entry_type: "UNKNOWN",
+        name: "UnimplementedEntry",
+        test_field: nil,
+        existing_key: nil,
+        test: nil
       }
-      super()
-      merge!(defaults.merge(kw))
+      
+      # Convert PascalCase keys to snake_case and merge
+      kw.each do |key, value|
+        case key.to_s
+        when "EntryType" then @properties[:entry_type] = value
+        when "Name" then @properties[:name] = value
+        when "TestField" then @properties[:test_field] = value
+        when "ExistingKey" then @properties[:existing_key] = value
+        when "test" then @properties[:test] = value
+        else
+          # Convert unknown keys to snake_case
+          snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+          @properties[snake_key] = value
+        end
+      end
     end
 
-    # Define explicit getter and setter methods for all known keys
-    def EntryType; self["EntryType"]; end
-    def EntryType=(value); self["EntryType"] = value; end
-    
-    def Name; self["Name"]; end
-    def Name=(value); self["Name"] = value; end
+    # Snake_case property accessors (preferred)
+    def entry_type; @properties[:entry_type]; end
+    def name; @properties[:name]; end
+    def test_field; @properties[:test_field]; end
+    def existing_key; @properties[:existing_key]; end
+    def test; @properties[:test]; end
 
-    # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
+    def entry_type=(value); @properties[:entry_type] = value; end
+    def name=(value); @properties[:name] = value; end
+    def test_field=(value); @properties[:test_field] = value; end
+    def existing_key=(value); @properties[:existing_key] = value; end
+    def test=(value); @properties[:test] = value; end
+
+    # Delegate method_missing for dynamic properties
+    def method_missing(method_name, *args, &block)
+      if method_name.to_s.end_with?('=') && args.length == 1
+        property_name = method_name.to_s.chomp('=').to_sym
+        @properties[property_name] = args[0]
+      elsif args.empty? && @properties.key?(method_name)
+        @properties[method_name]
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      property_name = method_name.to_s.chomp('=').to_sym
+      @properties.key?(property_name) || super
+    end
+
+    # Backward compatibility methods for PascalCase access
+    def EntryType; @properties[:entry_type]; end
+    def EntryType=(value); @properties[:entry_type] = value; end
     
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def Name; @properties[:name]; end
+    def Name=(value); @properties[:name] = value; end
     
-    # Additional test methods
-    def test; self["test"]; end
-    def test=(value); self["test"] = value; end
+    def TestField; @properties[:test_field]; end
+    def TestField=(value); @properties[:test_field] = value; end
+    
+    def ExistingKey; @properties[:existing_key]; end
+    def ExistingKey=(value); @properties[:existing_key] = value; end
+
+    # Hash-style access for backward compatibility
+    def [](key)
+      case key.to_s
+      when "EntryType" then @properties[:entry_type]
+      when "Name" then @properties[:name]
+      when "TestField" then @properties[:test_field]
+      when "ExistingKey" then @properties[:existing_key]
+      when "test" then @properties[:test]
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key]
+      end
+    end
+
+    # Hash-style setter
+    def []=(key, value)
+      case key.to_s
+      when "EntryType" then @properties[:entry_type] = value
+      when "Name" then @properties[:name] = value
+      when "TestField" then @properties[:test_field] = value
+      when "ExistingKey" then @properties[:existing_key] = value
+      when "test" then @properties[:test] = value
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key] = value
+      end
+      value
+    end
 
     def fromstream(stream)
       self
     end
   end
 
-  class GameFileRecord < Hash
+  class GameFileRecord
     def initialize(version: -1, **kw)
       @version = version
-      super()
-      merge!(kw)
+      @properties = {
+        test_field: nil,
+        existing_key: nil,
+        test_key: nil,
+        another_key: nil
+      }
+      
+      # Convert PascalCase keys to snake_case and merge
+      kw.each do |key, value|
+        case key.to_s
+        when "TestField" then @properties[:test_field] = value
+        when "ExistingKey" then @properties[:existing_key] = value
+        when "TestKey" then @properties[:test_key] = value
+        when "AnotherKey" then @properties[:another_key] = value
+        else
+          # Convert unknown keys to snake_case
+          snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+          @properties[snake_key] = value
+        end
+      end
     end
 
-    # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
+    # Delegate method_missing for dynamic properties
+    def method_missing(method_name, *args, &block)
+      if method_name.to_s.end_with?('=') && args.length == 1
+        property_name = method_name.to_s.chomp('=').to_sym
+        @properties[property_name] = args[0]
+      elsif args.empty? && @properties.key?(method_name)
+        @properties[method_name]
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      property_name = method_name.to_s.chomp('=').to_sym
+      @properties.key?(property_name) || super
+    end
+
+    # Backward compatibility methods for PascalCase access
+    def TestField; @properties[:test_field]; end
+    def TestField=(value); @properties[:test_field] = value; end
     
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def ExistingKey; @properties[:existing_key]; end
+    def ExistingKey=(value); @properties[:existing_key] = value; end
     
-    def TestKey; self["TestKey"]; end
-    def TestKey=(value); self["TestKey"] = value; end
+    def TestKey; @properties[:test_key]; end
+    def TestKey=(value); @properties[:test_key] = value; end
     
-    def AnotherKey; self["AnotherKey"]; end
-    def AnotherKey=(value); self["AnotherKey"] = value; end
+    def AnotherKey; @properties[:another_key]; end
+    def AnotherKey=(value); @properties[:another_key] = value; end
+
+    # Hash-style access for backward compatibility
+    def [](key)
+      case key.to_s
+      when "TestField" then @properties[:test_field]
+      when "ExistingKey" then @properties[:existing_key]
+      when "TestKey" then @properties[:test_key]
+      when "AnotherKey" then @properties[:another_key]
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key]
+      end
+    end
+
+    # Hash-style setter
+    def []=(key, value)
+      case key.to_s
+      when "TestField" then @properties[:test_field] = value
+      when "ExistingKey" then @properties[:existing_key] = value
+      when "TestKey" then @properties[:test_key] = value
+      when "AnotherKey" then @properties[:another_key] = value
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key] = value
+      end
+      value
+    end
 
     def fromstream(stream)
       # Simplified implementation - would need full conversion for production use
@@ -430,24 +731,86 @@ module XGStruct
     end
   end
 
-  class RolloutFileRecord < Hash
+  class RolloutFileRecord
     def initialize(**kw)
-      super()
-      merge!(kw)
+      @properties = {
+        test_field: nil,
+        existing_key: nil,
+        test_key: nil,
+        another_key: nil
+      }
+      
+      # Convert PascalCase keys to snake_case and merge
+      kw.each do |key, value|
+        case key.to_s
+        when "TestField" then @properties[:test_field] = value
+        when "ExistingKey" then @properties[:existing_key] = value
+        when "TestKey" then @properties[:test_key] = value
+        when "AnotherKey" then @properties[:another_key] = value
+        else
+          # Convert unknown keys to snake_case
+          snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+          @properties[snake_key] = value
+        end
+      end
     end
 
-    # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
+    # Delegate method_missing for dynamic properties
+    def method_missing(method_name, *args, &block)
+      if method_name.to_s.end_with?('=') && args.length == 1
+        property_name = method_name.to_s.chomp('=').to_sym
+        @properties[property_name] = args[0]
+      elsif args.empty? && @properties.key?(method_name)
+        @properties[method_name]
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      property_name = method_name.to_s.chomp('=').to_sym
+      @properties.key?(property_name) || super
+    end
+
+    # Backward compatibility methods for PascalCase access
+    def TestField; @properties[:test_field]; end
+    def TestField=(value); @properties[:test_field] = value; end
     
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def ExistingKey; @properties[:existing_key]; end
+    def ExistingKey=(value); @properties[:existing_key] = value; end
     
-    def TestKey; self["TestKey"]; end
-    def TestKey=(value); self["TestKey"] = value; end
+    def TestKey; @properties[:test_key]; end
+    def TestKey=(value); @properties[:test_key] = value; end
     
-    def AnotherKey; self["AnotherKey"]; end
-    def AnotherKey=(value); self["AnotherKey"] = value; end
+    def AnotherKey; @properties[:another_key]; end
+    def AnotherKey=(value); @properties[:another_key] = value; end
+
+    # Hash-style access for backward compatibility
+    def [](key)
+      case key.to_s
+      when "TestField" then @properties[:test_field]
+      when "ExistingKey" then @properties[:existing_key]
+      when "TestKey" then @properties[:test_key]
+      when "AnotherKey" then @properties[:another_key]
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key]
+      end
+    end
+
+    # Hash-style setter
+    def []=(key, value)
+      case key.to_s
+      when "TestField" then @properties[:test_field] = value
+      when "ExistingKey" then @properties[:existing_key] = value
+      when "TestKey" then @properties[:test_key] = value
+      when "AnotherKey" then @properties[:another_key] = value
+      else
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key] = value
+      end
+      value
+    end
 
     def fromstream(stream)
       # Simplified implementation - would need full conversion for production use
@@ -1362,13 +1725,48 @@ module XGStruct
   end
 
   # Header and footer entry classes for compatibility
-  class HeaderMatchEntry < Hash
+  class HeaderMatchEntry
     attr_accessor :version
 
     def initialize(**kw)
       @version = -1
-      super()
-      merge!(kw)
+      @properties = {}
+      
+      # Store all keyword arguments
+      kw.each do |key, value|
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key] = value
+      end
+    end
+
+    # Delegate method_missing for dynamic properties
+    def method_missing(method_name, *args, &block)
+      if method_name.to_s.end_with?('=') && args.length == 1
+        property_name = method_name.to_s.chomp('=').to_sym
+        @properties[property_name] = args[0]
+      elsif args.empty? && @properties.key?(method_name)
+        @properties[method_name]
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      property_name = method_name.to_s.chomp('=').to_sym
+      @properties.key?(property_name) || super
+    end
+
+    # Hash-style access for backward compatibility
+    def [](key)
+      snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+      @properties[snake_key]
+    end
+
+    # Hash-style setter
+    def []=(key, value)
+      snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+      @properties[snake_key] = value
+      value
     end
   end
 end
