@@ -423,8 +423,10 @@ class TestXGStruct < Minitest::Test
     end
   end
 
-  def test_classes_inherit_from_hash
-    hash_classes = [
+  def test_converted_classes_maintain_hash_inheritance_for_compatibility
+    # These classes were converted to use snake_case properties internally
+    # but maintain Hash inheritance for backward compatibility
+    converted_classes = [
       XGStruct::GameDataFormatHdrRecord,
       XGStruct::TimeSettingRecord,
       XGStruct::EvalLevelRecord,
@@ -434,9 +436,49 @@ class TestXGStruct < Minitest::Test
       XGStruct::HeaderMatchEntry
     ]
 
-    hash_classes.each do |klass|
-      assert klass.new.is_a?(Hash), "#{klass} should inherit from Hash"
+    converted_classes.each do |klass|
+      instance = klass.new
+      assert instance.is_a?(Hash), "#{klass} should maintain Hash inheritance for compatibility"
+      assert instance.empty?, "#{klass} should be empty by default" 
+      assert_equal({}, instance)
     end
+  end
+
+  def test_remaining_classes_still_inherit_from_hash
+    # These classes have not yet been converted
+    remaining_hash_classes = [
+      XGStruct::EngineStructBestMoveRecord,
+      XGStruct::EngineStructDoubleAction,
+      XGStruct::CubeEntry,
+      XGStruct::MoveEntry
+    ]
+
+    remaining_hash_classes.each do |klass|
+      assert klass.new.is_a?(Hash), "#{klass} should still inherit from Hash (not yet converted)"
+    end
+  end
+
+  def test_snake_case_properties_work
+    # Test that converted classes use snake_case properties internally
+    record = XGStruct::GameDataFormatHdrRecord.new("MagicNumber" => 42, "GameName" => "Test Game")
+    
+    # Snake_case accessors should work
+    assert_equal 42, record.magic_number
+    assert_equal "Test Game", record.game_name
+    
+    # PascalCase accessors should still work for backward compatibility
+    assert_equal 42, record.MagicNumber
+    assert_equal "Test Game", record.GameName
+    
+    # Hash-style access should still work for backward compatibility
+    assert_equal 42, record["MagicNumber"]
+    assert_equal "Test Game", record["GameName"]
+    
+    # Setting via snake_case should work
+    record.magic_number = 100
+    assert_equal 100, record.magic_number
+    assert_equal 100, record.MagicNumber
+    assert_equal 100, record["MagicNumber"]
   end
 
   def test_constants_defined
