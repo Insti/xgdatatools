@@ -131,3 +131,6 @@ dmypy.json
 # Ruby coverage reports
 coverage/
 .simplecov
+
+# Binary test artifacts
+*.bin
