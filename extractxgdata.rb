@@ -52,6 +52,9 @@ if __FILE__ == $PROGRAM_NAME
     opts.separator ""
     opts.separator "XG data extraction utility"
     opts.separator ""
+    opts.separator "NOTE: For binary component extraction with [type]_[number]_[subtype].bin naming,"
+    opts.separator "      use xgbinaryextract.rb instead."
+    opts.separator ""
     opts.separator "Options:"
 
     opts.on("-d", "--directory DIR", "Directory to write segments to",
