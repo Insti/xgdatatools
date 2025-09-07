@@ -417,4 +417,31 @@ class TestXGFileParser < Minitest::Test
     assert_equal :test_code, error.code
     assert_equal "test details", error.details
   end
+  
+  def test_cube_record_with_large_cube_value
+    # Test that large CubeB values don't cause issues when displaying
+    record_data = [0] * 2560
+    record_data[8] = 2  # Cube record
+    record_data[9, 4] = [1].pack("l<").bytes    # ActiveP = 1
+    record_data[13, 4] = [1].pack("l<").bytes   # Double = 1
+    record_data[17, 4] = [1].pack("l<").bytes   # Take = 1
+    record_data[29, 4] = [900].pack("l<").bytes # CubeB = 900 (very large)
+    
+    game_data = record_data.pack("C*")
+    file_data = create_xg_file_with_data(game_data)
+    filename = create_temp_xg_file(file_data)
+    
+    parser = XGFileParser::XGFile.new(filename)
+    parser.parse
+    
+    record = parser.game_records.first
+    assert_equal "Cube", record["Type"]
+    assert_equal 1, record["ActiveP"]
+    assert_equal 1, record["Double"]
+    assert_equal 1, record["Take"]
+    assert_equal 900, record["CubeB"]
+    
+    # This large value should be handled gracefully in display logic
+    # The value 2^900 would have hundreds of digits - this is the issue we need to fix
+  end
 end
