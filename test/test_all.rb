@@ -2,14 +2,16 @@
 ## test/test_all.rb
 require_relative "test_helper"
 
-# Require all test files (do NOT use system calls)
-require_relative "test_xgutils"
-require_relative "test_xgstruct"
-require_relative "test_xgzarc"
-require_relative "test_xgimport"
-require_relative "test_extractxgdata"
-require_relative "test_xgfile_parser"
-require_relative "test_xgdatatools"
-require_relative "test_xgbinaryextract"
+# Dynamically require all test files in the test directory
+test_dir = File.dirname(__FILE__)
+test_files = Dir.glob(File.join(test_dir, "test_*.rb")).sort
+
+test_files.each do |test_file|
+  test_name = File.basename(test_file, ".rb")
+  # Skip test_all.rb and test_helper.rb
+  unless test_name == "test_all" || test_name == "test_helper"
+    require_relative test_name
+  end
+end
 
 # Minitest will autorun all tests at exit
