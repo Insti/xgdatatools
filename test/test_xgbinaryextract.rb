@@ -103,7 +103,7 @@ class TestXGBinaryExtract < Minitest::Test
   end
 
   def test_extract_xg_components_basic_functionality
-    skip "Need XGFileParser for test XG file creation"
+    # skip "Need XGFileParser for test XG file creation"
     
     # Create a simple test XG file
     game_data = "test game data"
