@@ -10,6 +10,20 @@ require_relative "xgutils"
 require "pp"
 require "debug"
 
+# Helper function to safely display cube values
+# Prevents displaying numbers with hundreds/thousands of digits
+def safe_cube_value_display(cube_power)
+  # In backgammon, cube values rarely go beyond 2^10 = 1024
+  # Values like 2^900 are likely data corruption or parsing errors
+  max_reasonable_power = 10
+  
+  if cube_power > max_reasonable_power
+    "INVALID (#{cube_power} - unreasonable cube power, would be 2^#{cube_power})"
+  else
+    2 ** cube_power
+  end
+end
+
 def demo_create_sample_xg_file
   puts "Creating a sample XG file for demonstration..."
   
@@ -149,9 +163,11 @@ def demo_parse_xg_file(filename)
         if cube_val == 0
           puts "  Cube Position: CENTER (value 1)"
         elsif cube_val > 0
-          puts "  Cube Position: OWNED by Player 1 (value #{2 ** cube_val})"
+          value_display = safe_cube_value_display(cube_val)
+          puts "  Cube Position: OWNED by Player 1 (value #{value_display})"
         else
-          puts "  Cube Position: OWNED by Player 2 (value #{2 ** (-cube_val)})"
+          value_display = safe_cube_value_display(-cube_val)
+          puts "  Cube Position: OWNED by Player 2 (value #{value_display})"
         end
         
         # Show validation status
