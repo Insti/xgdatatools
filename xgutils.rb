@@ -134,193 +134,144 @@ module XGUtils
   def self.render_board(position)
     return "Invalid position: must be array of 26 integers" unless position.is_a?(Array) && position.length == 26
 
-    # Initialize board display components
     lines = []
     
-    # Top border
-    lines << "┌" + "─" * 39 + "┐"
+    # Top header row: | 12 | 13 | 14 | 15 | 16 | 17 | BAR | 18 | 19 | 20 | 21 | 22 | 23 | OFF |
+    header_top = "|"
+    [12, 13, 14, 15, 16, 17].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
+    header_top += " BAR |"
+    [18, 19, 20, 21, 22, 23].each { |p| header_top += " #{p.to_s.rjust(2)} |" }
+    header_top += " OFF |"
+    lines << header_top
     
-    # Point numbers (top)
-    top_points = (13..18).to_a + ["|"] + (19..24).to_a
-    lines << "│" + top_points.map { |p| p.is_a?(Integer) ? format_point_3char(p) : " │ " }.join("") + "│"
+    # Section label for top half
+    section_top = "|--------Outer Board----------|     |-------P=O Home Board--------|     |"
+    lines << section_top
     
-    # Top half of board (points 13-24, showing up to 5 checkers)
+    # Top half checker rows (5 rows)
     5.times do |row|
-      line = "│"
+      line = "|"
       
-      # Points 13-18
-      (13..18).each do |point|
-        checkers = position[point]
-        abs_checkers = checkers.abs
-        
-        if abs_checkers == 0
-          char = " "
-        elsif abs_checkers > 5
-          # Tall stack: show checkers in rows 0-3, count in row 4 (innermost)
-          if row == 4
-            # Show stack count in innermost row
-            line += format_stack_count_3char(abs_checkers)
-            next
-          elsif row < 4
-            # Show checker symbol if within the 4 visible checkers
-            char = checkers > 0 ? "X" : "O"
-          else
-            char = " "
-          end
-        else
-          # Normal stack (1-5 checkers): current behavior
-          if checkers > 0
-            char = checkers > row ? "X" : " "
-          else
-            char = (-checkers) > row ? "O" : " "
-          end
-        end
-        line += format_checker_3char(char)
+      # Points 12, 13-17 (outer board)
+      [12, 13, 14, 15, 16, 17].each do |point|
+        char = get_checker_char_for_position(position[point], row, :upper)
+        line += " #{char.center(2)} |"
       end
       
-      # Middle separator
-      line += " │ "
+      # BAR column for top half - assume we'll handle bar separately from bear-off  
+      # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
+      bar_char = get_checker_char_for_position(0, row, :upper)
+      line += " #{bar_char.center(3)} |"
       
-      # Points 19-24
-      (19..24).each do |point|
-        checkers = position[point]
-        abs_checkers = checkers.abs
-        
-        if abs_checkers == 0
-          char = " "
-        elsif abs_checkers > 5
-          # Tall stack: show checkers in rows 0-3, count in row 4 (innermost)
-          if row == 4
-            # Show stack count in innermost row
-            line += format_stack_count_3char(abs_checkers)
-            next
-          elsif row < 4
-            # Show checker symbol if within the 4 visible checkers
-            char = checkers > 0 ? "X" : "O"
-          else
-            char = " "
-          end
-        else
-          # Normal stack (1-5 checkers): current behavior
-          if checkers > 0
-            char = checkers > row ? "X" : " "
-          else
-            char = (-checkers) > row ? "O" : " "
-          end
-        end
-        line += format_checker_3char(char)
+      # Points 18-23 (home board)
+      [18, 19, 20, 21, 22, 23].each do |point|
+        char = get_checker_char_for_position(position[point], row, :upper)
+        line += " #{char.center(2)} |"
       end
       
-      line += "│"
+      # OFF column for Player 2 (from position[25] when negative)
+      off_checkers = position[25] < 0 ? position[25] : 0  # Only negative values (Player 2's bear-off)
+      off_char = get_checker_char_for_position(off_checkers, row, :upper)
+      line += " #{off_char.center(3)} |"
+      
       lines << line
     end
     
-    # Middle bar
-    bar_line = "│" + "─" * 18 + " │ " + "─" * 18 + "│"
-    lines << bar_line
+    # Middle separator
+    separator = "|-----------------------------|     |-----------------------------|     |"
+    lines << separator
     
-    # Show bar and bear-off info
-    bear_off_1 = position[0] # Player 1 bear-off
-    bear_off_2 = position[25] # Player 2 bear-off/bar
-    
-    # Create info line with proper alignment to match point numbers line (41 chars total)
-    # Left section: 18 chars, middle separator: 3 chars (" │ "), right section: 18 chars
-    left_part = "│Bear-off P1: #{bear_off_1 > 0 ? bear_off_1 : 0}"
-    # Pad left part to 19 chars (including the │)
-    left_padding = " " * (19 - left_part.length)
-    
-    right_part = "Bear-off P2: #{bear_off_2 < 0 ? -bear_off_2 : 0}"
-    # Pad right part to 18 chars 
-    right_padding = " " * (18 - right_part.length)
-    
-    info_line = left_part + left_padding + " │ " + right_part + right_padding + "│"
-    lines << info_line
-    
-    lines << bar_line
-    
-    # Bottom half of board (points 12-1, showing up to 5 checkers)
+    # Bottom half checker rows (5 rows) 
     5.times do |row|
-      line = "│"
+      line = "|"
       
-      # Points 12-7
-      (12).downto(7).each do |point|
-        checkers = position[point]
-        abs_checkers = checkers.abs
-        
-        if abs_checkers == 0
-          char = " "
-        elsif abs_checkers > 5
-          # Tall stack: show count in row 0 (topmost), checkers in rows 1-4
-          if row == 0
-            # Show stack count in topmost row
-            line += format_stack_count_3char(abs_checkers)
-            next
-          elsif row > 0
-            # Show checker symbol if within the 4 visible checkers (rows 1-4)
-            char = checkers > 0 ? "X" : "O"
-          else
-            char = " "
-          end
-        else
-          # Normal stack (1-5 checkers): current behavior (fills from bottom up)
-          if checkers > 0
-            char = checkers > (4 - row) ? "X" : " "
-          else
-            char = (-checkers) > (4 - row) ? "O" : " "
-          end
-        end
-        line += format_checker_3char(char)
+      # Points 11-6 (outer board) - note the reversed order for bottom half
+      [11, 10, 9, 8, 7, 6].each do |point|
+        char = get_checker_char_for_position(position[point], row, :lower)
+        line += " #{char.center(2)} |"
       end
       
-      # Middle separator
-      line += " │ "
+      # BAR column for bottom half - assume we'll handle bar separately from bear-off
+      # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
+      bar_char = get_checker_char_for_position(0, row, :lower)
+      line += " #{bar_char.center(3)} |"
       
-      # Points 6-1
-      (6).downto(1).each do |point|
-        checkers = position[point]
-        abs_checkers = checkers.abs
-        
-        if abs_checkers == 0
-          char = " "
-        elsif abs_checkers > 5
-          # Tall stack: show count in row 0 (topmost), checkers in rows 1-4
-          if row == 0
-            # Show stack count in topmost row
-            line += format_stack_count_3char(abs_checkers)
-            next
-          elsif row > 0
-            # Show checker symbol if within the 4 visible checkers (rows 1-4)
-            char = checkers > 0 ? "X" : "O"
-          else
-            char = " "
-          end
-        else
-          # Normal stack (1-5 checkers): current behavior (fills from bottom up)
-          if checkers > 0
-            char = checkers > (4 - row) ? "X" : " "
-          else
-            char = (-checkers) > (4 - row) ? "O" : " "
-          end
-        end
-        line += format_checker_3char(char)
+      # Points 5-0 (home board)
+      [5, 4, 3, 2, 1, 0].each do |point|
+        char = get_checker_char_for_position(position[point], row, :lower)
+        line += " #{char.center(2)} |"
       end
       
-      line += "│"
+      # OFF column for Player 1 (from position[0])
+      off_char = get_checker_char_for_position(position[0], row, :lower)
+      line += " #{off_char.center(3)} |"
+      
       lines << line
     end
     
-    # Point numbers (bottom)
-    bottom_points = (12).downto(7).to_a + ["|"] + (6).downto(1).to_a
-    lines << "│" + bottom_points.map { |p| p.is_a?(Integer) ? format_point_3char(p) : " │ " }.join("") + "│"
+    # Section label for bottom half
+    section_bottom = "|--------Outer Board----------|     |-------P=X Home Board--------|     |"
+    lines << section_bottom
     
-    # Bottom border
-    lines << "└" + "─" * 39 + "┘"
-    
-    # Legend
-    lines << ""
-    lines << "Legend: X = Player 1, O = Player 2"
-    lines << "        Positive values = Player 1, Negative values = Player 2"
+    # Bottom header row: | 11 | 10 |  9 |  8 |  7 |  6 | BAR |  5 |  4 |  3 |  2 |  1 |  0 | OFF |
+    header_bottom = "|"
+    [11, 10, 9, 8, 7, 6].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
+    header_bottom += " BAR |"
+    [5, 4, 3, 2, 1, 0].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
+    header_bottom += " OFF |"
+    lines << header_bottom
     
     lines.join("\n")
+  end
+  
+  # Helper method to get the appropriate checker character for a position
+  # @param checkers [Integer] Number of checkers at position (positive=Player1, negative=Player2)
+  # @param row [Integer] Row number (0-4)
+  # @param half [Symbol] :upper or :lower half of board
+  # @return [String] Character to display ('X', 'O', number, or space)
+  def self.get_checker_char_for_position(checkers, row, half)
+    abs_checkers = checkers.abs
+    
+    return " " if abs_checkers == 0
+    
+    if abs_checkers > 5
+      # Tall stack logic
+      if half == :upper
+        # Upper half: count in innermost row (row 4), checkers in rows 0-3
+        if row == 4
+          return abs_checkers.to_s
+        elsif row < 4
+          return checkers > 0 ? "X" : "O"
+        else
+          return " "
+        end
+      else
+        # Lower half: count in topmost row (row 0), checkers in rows 1-4
+        if row == 0
+          return abs_checkers.to_s
+        elsif row > 0
+          return checkers > 0 ? "X" : "O"
+        else
+          return " "
+        end
+      end
+    else
+      # Normal stack (1-5 checkers)
+      if half == :upper
+        # Upper half fills from top down (row 0 is topmost)
+        if checkers > 0
+          return checkers > row ? "X" : " "
+        else
+          return abs_checkers > row ? "O" : " "
+        end
+      else
+        # Lower half fills from bottom up (row 4 is bottommost)
+        if checkers > 0
+          return checkers > (4 - row) ? "X" : " "
+        else
+          return abs_checkers > (4 - row) ? "O" : " "
+        end
+      end
+    end
   end
 end

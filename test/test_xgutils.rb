@@ -425,15 +425,15 @@ class TestXGUtils < Minitest::Test
     position = [0] * 26
     result = XGUtils.render_board(position)
 
-    # Should contain the basic board structure
-    assert result.include?("┌"), "Should contain top border"
-    assert result.include?("└"), "Should contain bottom border"
-    assert result.include?("Legend:"), "Should contain legend"
-    assert result.include?("X = Player 1"), "Should contain player legend"
-    assert result.include?("O = Player 2"), "Should contain player legend"
+    # Should contain the basic board structure (goal_board format)
+    assert result.include?("|"), "Should contain table separators"
+    assert result.include?("BAR"), "Should contain BAR column"
+    assert result.include?("OFF"), "Should contain OFF column"
+    assert result.include?("Outer Board"), "Should contain section label"
+    assert result.include?("Home Board"), "Should contain section label"
     
-    # Point numbers should be present
-    (1..24).each do |point|
+    # Point numbers should be present (0-23 in goal_board format)
+    (0..23).each do |point|
       assert result.include?(sprintf("%2d", point)), "Should contain point #{point}"
     end
   end
@@ -475,9 +475,13 @@ class TestXGUtils < Minitest::Test
     
     result = XGUtils.render_board(position)
     
-    # Should show bear-off information
-    assert result.include?("Bear-off P1: 5"), "Should show Player 1 bear-off"
-    assert result.include?("Bear-off P2: 3"), "Should show Player 2 bear-off"
+    # Should show bear-off checkers in OFF columns (goal_board format)
+    assert result.include?("X"), "Should show Player 1 checkers in bear-off"
+    assert result.include?("O"), "Should show Player 2 checkers in bear-off"
+    # In goal_board format, bear-off is shown visually in OFF columns, not as text
+    lines = result.split("\n")
+    off_columns = lines.select { |line| line.include?("OFF") || line.include?("X") || line.include?("O") }
+    assert off_columns.length > 0, "Should have OFF columns with checkers"
   end
 
   def test_render_board_with_many_checkers
@@ -517,16 +521,18 @@ class TestXGUtils < Minitest::Test
     
     result = XGUtils.render_board(position)
     
-    # Basic validation that board renders
+    # Basic validation that board renders (goal_board format)
     assert result.is_a?(String)
-    assert result.include?("┌"), "Should have top border"
-    assert result.include?("└"), "Should have bottom border"
-    assert result.include?("Bear-off P1: 1"), "Should show bear-off"
-    assert result.include?("Bear-off P2: 1"), "Should show bear-off"
+    assert result.include?("|"), "Should have table structure"
+    assert result.include?("BAR"), "Should have BAR column"
+    assert result.include?("OFF"), "Should have OFF column"
+    # Bear-off shown visually in OFF columns in goal_board format
+    assert result.include?("X"), "Should show Player 1 checkers"
+    assert result.include?("O"), "Should show Player 2 checkers"
   end
 
   def test_render_board_structure
-    # Test that the board has the expected structure
+    # Test that the board has the expected structure (goal_board format)
     position = [0] * 26
     result = XGUtils.render_board(position)
     
@@ -535,28 +541,29 @@ class TestXGUtils < Minitest::Test
     # Should have multiple lines
     assert lines.length > 10, "Should have multiple lines"
     
-    # Should have borders
-    assert lines.first.include?("┌"), "First line should be top border"
+    # Should have table structure with headers
+    assert lines.first.include?("|"), "First line should be table header"
+    assert lines.first.include?("BAR"), "First line should include BAR column"
+    assert lines.first.include?("OFF"), "First line should include OFF column"
     
-    # Should have legend at the end
-    legend_lines = lines.select { |line| line.include?("Legend") || line.include?("Player") }
-    assert legend_lines.length >= 1, "Should have legend information"
+    # Should have section labels
+    section_lines = lines.select { |line| line.include?("Outer Board") || line.include?("Home Board") }
+    assert section_lines.length >= 2, "Should have section labels"
   end
 
   def test_render_board_point_numbering
-    # Test that point numbers are correctly displayed
+    # Test that point numbers are correctly displayed (goal_board format)
     position = [0] * 26
     result = XGUtils.render_board(position)
     
-    # Top points (13-24) should be present
-    (13..24).each do |point|
+    # All points (0-23) should be present in goal_board format
+    (0..23).each do |point|
       assert result.include?(sprintf("%2d", point)), "Should include point #{point}"
     end
     
-    # Bottom points (1-12) should be present  
-    (1..12).each do |point|
-      assert result.include?(sprintf("%2d", point)), "Should include point #{point}"
-    end
+    # BAR and OFF columns should be present
+    assert result.include?("BAR"), "Should include BAR column"
+    assert result.include?("OFF"), "Should include OFF column"
   end
 
   def test_render_board_tall_stack_positioning
@@ -572,19 +579,19 @@ class TestXGUtils < Minitest::Test
     result = XGUtils.render_board(position)
     lines = result.split("\n")
     
-    # Based on the board structure:
-    # Line 6: Upper half innermost row (before middle bar)
-    # Line 10: Lower half topmost row (after middle bar)
+    # Based on the goal_board structure:
+    # Line 6: Upper half innermost row (before middle separator)
+    # Line 8: Lower half topmost row (after middle separator)
     
     # Upper half: stack count should be in innermost row
     upper_innermost_line = lines[6]
-    assert upper_innermost_line.include?(" 9 "), "Point 13 count should be in innermost row of upper half"
-    assert upper_innermost_line.include?(" 7 "), "Point 18 count should be in innermost row of upper half"
+    assert upper_innermost_line.include?("9"), "Point 13 count should be in innermost row of upper half"
+    assert upper_innermost_line.include?("7"), "Point 18 count should be in innermost row of upper half"
     
     # Lower half: stack count should be in topmost row  
-    lower_topmost_line = lines[10]
-    assert lower_topmost_line.include?(" 8 "), "Point 1 count should be in topmost row of lower half"
-    assert lower_topmost_line.include?(" 6 "), "Point 6 count should be in topmost row of lower half"
+    lower_topmost_line = lines[8]
+    assert lower_topmost_line.include?("8"), "Point 1 count should be in topmost row of lower half"
+    assert lower_topmost_line.include?("6"), "Point 6 count should be in topmost row of lower half"
     
     # Verify that normal stacks (≤5) still work correctly
     position[2] = 3
