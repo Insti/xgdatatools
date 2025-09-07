@@ -44,7 +44,7 @@ if result
   puts "Move details:"
   puts "  Type: #{result['Type']}"
   puts "  ActiveP: #{result['ActiveP']} (#{result['ActiveP'] == 1 ? 'Player 1' : 'Player 2'})"
-  puts "  Dice: #{result['Dice']}"
+  puts "  Dice: #{XGUtils.render_dice(result['Dice'])}"
   puts "  CubeA: #{result['CubeA']}"
   puts
 

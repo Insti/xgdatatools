@@ -224,6 +224,15 @@ module XGUtils
     lines.join("\n")
   end
 
+  # Render dice values as a formatted string.
+  # 
+  # @param dice [Array<Integer>] Array of 2 integers representing dice values
+  # @return [String] Space-separated dice values (e.g., "4 6")
+  def self.render_dice(dice)
+    return "" unless dice.is_a?(Array) && dice.length == 2
+    dice.join(" ")
+  end
+
   def self.render_moves(moves)
     moves.each_slice(2)
       .take_while { |from, to| from != -1 && to != -1 }
