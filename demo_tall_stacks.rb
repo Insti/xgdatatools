@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require_relative 'xgutils'
+require_relative "xgutils"
 
 puts "Demonstrating Tall Stack Rendering with Stack Counts"
 puts "=" * 60

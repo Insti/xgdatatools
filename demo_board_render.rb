@@ -3,7 +3,7 @@
 # Demo script showing the backgammon board renderer in action
 #
 
-require_relative 'xgutils'
+require_relative "xgutils"
 
 puts "Demo: Backgammon Board ASCII Renderer"
 puts "=" * 50

@@ -36,7 +36,7 @@ end
 # Map segment types to human-readable names
 SEGMENT_TYPE_NAMES = {
   XGImport::Import::Segment::GDF_HDR => "gdf_hdr",
-  XGImport::Import::Segment::GDF_IMAGE => "gdf_image", 
+  XGImport::Import::Segment::GDF_IMAGE => "gdf_image",
   XGImport::Import::Segment::XG_GAMEHDR => "xg_gamehdr",
   XGImport::Import::Segment::XG_GAMEFILE => "xg_gamefile",
   XGImport::Import::Segment::XG_ROLLOUTS => "xg_rollouts",
@@ -48,7 +48,7 @@ SEGMENT_TYPE_NAMES = {
 # Map segment types to subtypes (for future expansion)
 SEGMENT_SUBTYPES = {
   XGImport::Import::Segment::GDF_HDR => "header",
-  XGImport::Import::Segment::GDF_IMAGE => "thumbnail", 
+  XGImport::Import::Segment::GDF_IMAGE => "thumbnail",
   XGImport::Import::Segment::XG_GAMEHDR => "header",
   XGImport::Import::Segment::XG_GAMEFILE => "data",
   XGImport::Import::Segment::XG_ROLLOUTS => "data",
@@ -59,58 +59,57 @@ SEGMENT_SUBTYPES = {
 
 def extract_xg_components(xgfilename, output_dir, logger)
   logger.info "Processing file: #{xgfilename}"
-  
+
   unless File.exist?(xgfilename)
     logger.error "File does not exist: #{xgfilename}"
     return false
   end
-  
+
   logger.debug "File size: #{File.size(xgfilename)} bytes"
-  
+
   begin
     xgobj = XGImport::Import.new(xgfilename)
     puts "Processing file: #{xgfilename}"
-    
+
     # Counter for numbering segments of the same type
     segment_counters = Hash.new(0)
-    
+
     # Extract each segment as a binary file
     xgobj.getfilesegment do |segment|
       # Get type name and subtype for this segment
       type_name = SEGMENT_TYPE_NAMES[segment.type] || "unknown"
       subtype = SEGMENT_SUBTYPES[segment.type] || "data"
-      
+
       # Increment counter for this segment type
       segment_counters[segment.type] += 1
       number = segment_counters[segment.type]
-      
+
       # Generate output filename: [type]_[number]_[subtype].bin
       output_filename = File.join(
         File.expand_path(output_dir),
-        "#{type_name}_#{number.to_s.rjust(3, '0')}_#{subtype}.bin"
+        "#{type_name}_#{number.to_s.rjust(3, "0")}_#{subtype}.bin"
       )
-      
+
       logger.debug "Extracting segment: #{segment.type} (#{type_name}) -> #{output_filename}"
-      
+
       # Copy the binary data to the output file
       segment.copyto(output_filename)
       logger.debug "Segment extracted successfully: #{File.size(output_filename)} bytes"
-      
+
       puts "Extracted: #{File.basename(output_filename)} (#{File.size(output_filename)} bytes)"
     end
-    
   rescue XGImport::Error, XGZarc::Error, Errno::ENOENT => e
     error_message = e.respond_to?(:value) ? e.value : e.message
     logger.error "Error processing #{xgfilename}: #{error_message}"
     puts "Error: #{error_message}"
     return false
   end
-  
+
   true
 end
 
 if __FILE__ == $PROGRAM_NAME
-  options = { log_level: :info }
+  options = {log_level: :info}
 
   parser = OptionParser.new do |opts|
     opts.banner = "Usage: #{$PROGRAM_NAME} [options] FILE [FILE ...]"
@@ -127,7 +126,7 @@ if __FILE__ == $PROGRAM_NAME
       options[:outdir] = directoryisvalid(dir)
     end
 
-    opts.on("-v", "--verbose LEVEL", [:debug, :info, :warn, :error], 
+    opts.on("-v", "--verbose LEVEL", [:debug, :info, :warn, :error],
       "Set logging level (debug, info, warn, error). Default: info") do |level|
       options[:log_level] = level
     end
@@ -162,17 +161,17 @@ if __FILE__ == $PROGRAM_NAME
       puts "Error: File '#{xgfilename}' does not exist"
       next
     end
-    
+
     # Determine output directory
     output_dir = options[:outdir] || File.dirname(xgfilename)
     logger.debug "Output directory: #{output_dir}"
-    
+
     # Extract components from this file
     if extract_xg_components(xgfilename, output_dir, logger)
       success_count += 1
     end
   end
-  
+
   puts "\nSuccessfully processed #{success_count} of #{ARGV.length} files."
-  exit success_count == ARGV.length ? 0 : 1
+  exit (success_count == ARGV.length) ? 0 : 1
 end

@@ -3,9 +3,9 @@
 # Demo script showing board rendering with actual move data
 #
 
-require_relative 'xgstruct'
-require_relative 'xgutils'
-require 'stringio'
+require_relative "xgstruct"
+require_relative "xgutils"
+require "stringio"
 
 puts "Demo: Board Rendering with Move Class Data"
 puts "=" * 50
@@ -42,18 +42,18 @@ if result
   puts "✓ Move parsed successfully!"
   puts
   puts "Move details:"
-  puts "  Type: #{result['Type']}"
-  puts "  ActiveP: #{result['ActiveP']} (#{result['ActiveP'] == 1 ? 'Player 1' : 'Player 2'})"
-  puts "  Dice: #{XGUtils.render_dice(result['Dice'])}"
-  puts "  CubeA: #{result['CubeA']}"
+  puts "  Type: #{result["Type"]}"
+  puts "  ActiveP: #{result["ActiveP"]} (#{(result["ActiveP"] == 1) ? "Player 1" : "Player 2"})"
+  puts "  Dice: #{XGUtils.render_dice(result["Dice"])}"
+  puts "  CubeA: #{result["CubeA"]}"
   puts
 
   puts "Initial Position:"
-  puts XGUtils.render_board(result['PositionI'])
+  puts XGUtils.render_board(result["PositionI"])
 
   puts "\n" + "=" * 50
   puts "Final Position:"
-  puts XGUtils.render_board(result['PositionEnd'])
+  puts XGUtils.render_board(result["PositionEnd"])
 
 else
   puts "✗ Failed to parse move data"

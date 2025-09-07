@@ -10,21 +10,21 @@ require "tempfile"
 # Helper to create minimal valid XG header (adapted from test files)
 def create_minimal_xg_header
   header = [0] * XGFileParser::XGFile::RICH_GAME_HEADER_SIZE
-  
+
   # Set magic number (little-endian)
   magic_bytes = [0x52, 0x47, 0x4D, 0x48]  # "RGMH"
   header[0..3] = magic_bytes
-  
+
   # Set header version (1)
   header[4..7] = [1, 0, 0, 0]
-  
+
   # Set header size (8232)
   size_bytes = [0x28, 0x20, 0, 0]  # 8232 in little-endian
   header[8..11] = size_bytes
-  
+
   # Set thumbnail offset (0) and size (0)
   header[12..19] = [0] * 8
-  
+
   header
 end
 
@@ -32,7 +32,7 @@ end
 def create_xg_file_with_data(game_data = "")
   header = create_minimal_xg_header
   compressed_data = Zlib::Deflate.deflate(game_data)
-  
+
   header + compressed_data.bytes
 end
 

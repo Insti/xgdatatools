@@ -34,7 +34,7 @@ module XGStruct
       # Check if this object responds to the key as a method
       respond_to?(key) || respond_to?("#{key}=")
     end
-    alias key? has_key?
+    alias_method :key?, :has_key?
 
     def empty?
       @properties.empty?
@@ -63,7 +63,7 @@ module XGStruct
         test_key: nil,           # For test compatibility
         another_key: nil         # For test compatibility
       }
-      
+
       # Convert PascalCase keys to snake_case and merge
       kw.each do |key, value|
         case key.to_s
@@ -91,44 +91,126 @@ module XGStruct
     end
 
     # Snake_case property accessors (preferred)
-    def magic_number; @properties[:magic_number]; end
-    def header_version; @properties[:header_version]; end
-    def header_size; @properties[:header_size]; end
-    def thumbnail_offset; @properties[:thumbnail_offset]; end
-    def thumbnail_size; @properties[:thumbnail_size]; end
-    def game_guid; @properties[:game_guid]; end
-    def game_name; @properties[:game_name]; end
-    def save_name; @properties[:save_name]; end
-    def level_name; @properties[:level_name]; end
-    def comments; @properties[:comments]; end
-    def test_field; @properties[:test_field]; end
-    def existing_key; @properties[:existing_key]; end
-    def test_key; @properties[:test_key]; end
-    def another_key; @properties[:another_key]; end
+    def magic_number
+      @properties[:magic_number]
+    end
 
-    def magic_number=(value); @properties[:magic_number] = value; end
-    def header_version=(value); @properties[:header_version] = value; end
-    def header_size=(value); @properties[:header_size] = value; end
-    def thumbnail_offset=(value); @properties[:thumbnail_offset] = value; end
-    def thumbnail_size=(value); @properties[:thumbnail_size] = value; end
-    def game_guid=(value); @properties[:game_guid] = value; end
-    def game_name=(value); @properties[:game_name] = value; end
-    def save_name=(value); @properties[:save_name] = value; end
-    def level_name=(value); @properties[:level_name] = value; end
-    def comments=(value); @properties[:comments] = value; end
-    def test_field=(value); @properties[:test_field] = value; end
-    def existing_key=(value); @properties[:existing_key] = value; end
-    def test_key=(value); @properties[:test_key] = value; end
-    def another_key=(value); @properties[:another_key] = value; end
+    def header_version
+      @properties[:header_version]
+    end
+
+    def header_size
+      @properties[:header_size]
+    end
+
+    def thumbnail_offset
+      @properties[:thumbnail_offset]
+    end
+
+    def thumbnail_size
+      @properties[:thumbnail_size]
+    end
+
+    def game_guid
+      @properties[:game_guid]
+    end
+
+    def game_name
+      @properties[:game_name]
+    end
+
+    def save_name
+      @properties[:save_name]
+    end
+
+    def level_name
+      @properties[:level_name]
+    end
+
+    def comments
+      @properties[:comments]
+    end
+
+    def test_field
+      @properties[:test_field]
+    end
+
+    def existing_key
+      @properties[:existing_key]
+    end
+
+    def test_key
+      @properties[:test_key]
+    end
+
+    def another_key
+      @properties[:another_key]
+    end
+
+    def magic_number=(value)
+      @properties[:magic_number] = value
+    end
+
+    def header_version=(value)
+      @properties[:header_version] = value
+    end
+
+    def header_size=(value)
+      @properties[:header_size] = value
+    end
+
+    def thumbnail_offset=(value)
+      @properties[:thumbnail_offset] = value
+    end
+
+    def thumbnail_size=(value)
+      @properties[:thumbnail_size] = value
+    end
+
+    def game_guid=(value)
+      @properties[:game_guid] = value
+    end
+
+    def game_name=(value)
+      @properties[:game_name] = value
+    end
+
+    def save_name=(value)
+      @properties[:save_name] = value
+    end
+
+    def level_name=(value)
+      @properties[:level_name] = value
+    end
+
+    def comments=(value)
+      @properties[:comments] = value
+    end
+
+    def test_field=(value)
+      @properties[:test_field] = value
+    end
+
+    def existing_key=(value)
+      @properties[:existing_key] = value
+    end
+
+    def test_key=(value)
+      @properties[:test_key] = value
+    end
+
+    def another_key=(value)
+      @properties[:another_key] = value
+    end
 
     # Delegate snake_case readers to @properties
     def method_missing(method_name, *args, &block)
-      if method_name.to_s.end_with?('=') && args.length == 1
+      if method_name.to_s.end_with?("=") && args.length == 1
         # Setter method
-        property_name = method_name.to_s.chomp('=').to_sym
+        property_name = method_name.to_s.chomp("=").to_sym
         @properties[property_name] = args[0]
       elsif args.empty? && @properties.key?(method_name)
-        # Getter method  
+        # Getter method
         @properties[method_name]
       else
         super
@@ -136,52 +218,122 @@ module XGStruct
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      property_name = method_name.to_s.chomp('=').to_sym
+      property_name = method_name.to_s.chomp("=").to_sym
       @properties.key?(property_name) || super
     end
 
     # Backward compatibility methods for PascalCase access
-    def MagicNumber; @properties[:magic_number]; end
-    def MagicNumber=(value); @properties[:magic_number] = value; end
-    
-    def HeaderVersion; @properties[:header_version]; end
-    def HeaderVersion=(value); @properties[:header_version] = value; end
-    
-    def HeaderSize; @properties[:header_size]; end
-    def HeaderSize=(value); @properties[:header_size] = value; end
-    
-    def ThumbnailOffset; @properties[:thumbnail_offset]; end
-    def ThumbnailOffset=(value); @properties[:thumbnail_offset] = value; end
-    
-    def ThumbnailSize; @properties[:thumbnail_size]; end
-    def ThumbnailSize=(value); @properties[:thumbnail_size] = value; end
-    
-    def GameGUID; @properties[:game_guid]; end
-    def GameGUID=(value); @properties[:game_guid] = value; end
-    
-    def GameName; @properties[:game_name]; end
-    def GameName=(value); @properties[:game_name] = value; end
-    
-    def SaveName; @properties[:save_name]; end
-    def SaveName=(value); @properties[:save_name] = value; end
-    
-    def LevelName; @properties[:level_name]; end
-    def LevelName=(value); @properties[:level_name] = value; end
-    
-    def Comments; @properties[:comments]; end
-    def Comments=(value); @properties[:comments] = value; end
-    
-    def TestField; @properties[:test_field]; end
-    def TestField=(value); @properties[:test_field] = value; end
-    
-    def ExistingKey; @properties[:existing_key]; end
-    def ExistingKey=(value); @properties[:existing_key] = value; end
-    
-    def TestKey; @properties[:test_key]; end
-    def TestKey=(value); @properties[:test_key] = value; end
-    
-    def AnotherKey; @properties[:another_key]; end
-    def AnotherKey=(value); @properties[:another_key] = value; end
+    def MagicNumber
+      @properties[:magic_number]
+    end
+
+    def MagicNumber=(value)
+      @properties[:magic_number] = value
+    end
+
+    def HeaderVersion
+      @properties[:header_version]
+    end
+
+    def HeaderVersion=(value)
+      @properties[:header_version] = value
+    end
+
+    def HeaderSize
+      @properties[:header_size]
+    end
+
+    def HeaderSize=(value)
+      @properties[:header_size] = value
+    end
+
+    def ThumbnailOffset
+      @properties[:thumbnail_offset]
+    end
+
+    def ThumbnailOffset=(value)
+      @properties[:thumbnail_offset] = value
+    end
+
+    def ThumbnailSize
+      @properties[:thumbnail_size]
+    end
+
+    def ThumbnailSize=(value)
+      @properties[:thumbnail_size] = value
+    end
+
+    def GameGUID
+      @properties[:game_guid]
+    end
+
+    def GameGUID=(value)
+      @properties[:game_guid] = value
+    end
+
+    def GameName
+      @properties[:game_name]
+    end
+
+    def GameName=(value)
+      @properties[:game_name] = value
+    end
+
+    def SaveName
+      @properties[:save_name]
+    end
+
+    def SaveName=(value)
+      @properties[:save_name] = value
+    end
+
+    def LevelName
+      @properties[:level_name]
+    end
+
+    def LevelName=(value)
+      @properties[:level_name] = value
+    end
+
+    def Comments
+      @properties[:comments]
+    end
+
+    def Comments=(value)
+      @properties[:comments] = value
+    end
+
+    def TestField
+      @properties[:test_field]
+    end
+
+    def TestField=(value)
+      @properties[:test_field] = value
+    end
+
+    def ExistingKey
+      @properties[:existing_key]
+    end
+
+    def ExistingKey=(value)
+      @properties[:existing_key] = value
+    end
+
+    def TestKey
+      @properties[:test_key]
+    end
+
+    def TestKey=(value)
+      @properties[:test_key] = value
+    end
+
+    def AnotherKey
+      @properties[:another_key]
+    end
+
+    def AnotherKey=(value)
+      @properties[:another_key] = value
+    end
 
     # Hash-style access for backward compatibility
     def [](key)
@@ -231,15 +383,14 @@ module XGStruct
         snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
         @properties[snake_key] = value
       end
-      value
     end
 
     # Additional Hash-like methods for compatibility
     def keys
       # Return PascalCase keys for backward compatibility
-      ["MagicNumber", "HeaderVersion", "HeaderSize", "ThumbnailOffset", 
-       "ThumbnailSize", "GameGUID", "GameName", "SaveName", "LevelName",
-       "Comments", "TestField", "ExistingKey", "TestKey", "AnotherKey"]
+      ["MagicNumber", "HeaderVersion", "HeaderSize", "ThumbnailOffset",
+        "ThumbnailSize", "GameGUID", "GameName", "SaveName", "LevelName",
+        "Comments", "TestField", "ExistingKey", "TestKey", "AnotherKey"]
     end
 
     def fromstream(stream)
@@ -303,7 +454,7 @@ module XGStruct
         test_field: nil,         # For test compatibility
         existing_key: nil        # For test compatibility
       }
-      
+
       # Convert PascalCase keys to snake_case and merge
       kw.each do |key, value|
         case key.to_s
@@ -326,32 +477,90 @@ module XGStruct
     end
 
     # Snake_case property accessors (preferred)
-    def clock_type; @properties[:clock_type]; end
-    def per_game; @properties[:per_game]; end
-    def time1; @properties[:time1]; end
-    def time2; @properties[:time2]; end
-    def penalty; @properties[:penalty]; end
-    def time_left1; @properties[:time_left1]; end
-    def time_left2; @properties[:time_left2]; end
-    def penalty_money; @properties[:penalty_money]; end
-    def test_field; @properties[:test_field]; end
-    def existing_key; @properties[:existing_key]; end
+    def clock_type
+      @properties[:clock_type]
+    end
 
-    def clock_type=(value); @properties[:clock_type] = value; end
-    def per_game=(value); @properties[:per_game] = value; end
-    def time1=(value); @properties[:time1] = value; end
-    def time2=(value); @properties[:time2] = value; end
-    def penalty=(value); @properties[:penalty] = value; end
-    def time_left1=(value); @properties[:time_left1] = value; end
-    def time_left2=(value); @properties[:time_left2] = value; end
-    def penalty_money=(value); @properties[:penalty_money] = value; end
-    def test_field=(value); @properties[:test_field] = value; end
-    def existing_key=(value); @properties[:existing_key] = value; end
+    def per_game
+      @properties[:per_game]
+    end
+
+    def time1
+      @properties[:time1]
+    end
+
+    def time2
+      @properties[:time2]
+    end
+
+    def penalty
+      @properties[:penalty]
+    end
+
+    def time_left1
+      @properties[:time_left1]
+    end
+
+    def time_left2
+      @properties[:time_left2]
+    end
+
+    def penalty_money
+      @properties[:penalty_money]
+    end
+
+    def test_field
+      @properties[:test_field]
+    end
+
+    def existing_key
+      @properties[:existing_key]
+    end
+
+    def clock_type=(value)
+      @properties[:clock_type] = value
+    end
+
+    def per_game=(value)
+      @properties[:per_game] = value
+    end
+
+    def time1=(value)
+      @properties[:time1] = value
+    end
+
+    def time2=(value)
+      @properties[:time2] = value
+    end
+
+    def penalty=(value)
+      @properties[:penalty] = value
+    end
+
+    def time_left1=(value)
+      @properties[:time_left1] = value
+    end
+
+    def time_left2=(value)
+      @properties[:time_left2] = value
+    end
+
+    def penalty_money=(value)
+      @properties[:penalty_money] = value
+    end
+
+    def test_field=(value)
+      @properties[:test_field] = value
+    end
+
+    def existing_key=(value)
+      @properties[:existing_key] = value
+    end
 
     # Delegate method_missing for dynamic properties
     def method_missing(method_name, *args, &block)
-      if method_name.to_s.end_with?('=') && args.length == 1
-        property_name = method_name.to_s.chomp('=').to_sym
+      if method_name.to_s.end_with?("=") && args.length == 1
+        property_name = method_name.to_s.chomp("=").to_sym
         @properties[property_name] = args[0]
       elsif args.empty? && @properties.key?(method_name)
         @properties[method_name]
@@ -361,40 +570,90 @@ module XGStruct
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      property_name = method_name.to_s.chomp('=').to_sym
+      property_name = method_name.to_s.chomp("=").to_sym
       @properties.key?(property_name) || super
     end
 
     # Backward compatibility methods for PascalCase access
-    def ClockType; @properties[:clock_type]; end
-    def ClockType=(value); @properties[:clock_type] = value; end
-    
-    def PerGame; @properties[:per_game]; end
-    def PerGame=(value); @properties[:per_game] = value; end
-    
-    def Time1; @properties[:time1]; end
-    def Time1=(value); @properties[:time1] = value; end
-    
-    def Time2; @properties[:time2]; end
-    def Time2=(value); @properties[:time2] = value; end
-    
-    def Penalty; @properties[:penalty]; end
-    def Penalty=(value); @properties[:penalty] = value; end
-    
-    def TimeLeft1; @properties[:time_left1]; end
-    def TimeLeft1=(value); @properties[:time_left1] = value; end
-    
-    def TimeLeft2; @properties[:time_left2]; end
-    def TimeLeft2=(value); @properties[:time_left2] = value; end
-    
-    def PenaltyMoney; @properties[:penalty_money]; end
-    def PenaltyMoney=(value); @properties[:penalty_money] = value; end
-    
-    def TestField; @properties[:test_field]; end
-    def TestField=(value); @properties[:test_field] = value; end
-    
-    def ExistingKey; @properties[:existing_key]; end
-    def ExistingKey=(value); @properties[:existing_key] = value; end
+    def ClockType
+      @properties[:clock_type]
+    end
+
+    def ClockType=(value)
+      @properties[:clock_type] = value
+    end
+
+    def PerGame
+      @properties[:per_game]
+    end
+
+    def PerGame=(value)
+      @properties[:per_game] = value
+    end
+
+    def Time1
+      @properties[:time1]
+    end
+
+    def Time1=(value)
+      @properties[:time1] = value
+    end
+
+    def Time2
+      @properties[:time2]
+    end
+
+    def Time2=(value)
+      @properties[:time2] = value
+    end
+
+    def Penalty
+      @properties[:penalty]
+    end
+
+    def Penalty=(value)
+      @properties[:penalty] = value
+    end
+
+    def TimeLeft1
+      @properties[:time_left1]
+    end
+
+    def TimeLeft1=(value)
+      @properties[:time_left1] = value
+    end
+
+    def TimeLeft2
+      @properties[:time_left2]
+    end
+
+    def TimeLeft2=(value)
+      @properties[:time_left2] = value
+    end
+
+    def PenaltyMoney
+      @properties[:penalty_money]
+    end
+
+    def PenaltyMoney=(value)
+      @properties[:penalty_money] = value
+    end
+
+    def TestField
+      @properties[:test_field]
+    end
+
+    def TestField=(value)
+      @properties[:test_field] = value
+    end
+
+    def ExistingKey
+      @properties[:existing_key]
+    end
+
+    def ExistingKey=(value)
+      @properties[:existing_key] = value
+    end
 
     # Hash-style access for backward compatibility
     def [](key)
@@ -432,7 +691,6 @@ module XGStruct
         snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
         @properties[snake_key] = value
       end
-      value
     end
 
     def fromstream(stream)
@@ -464,7 +722,7 @@ module XGStruct
         test_field: nil,         # For test compatibility
         existing_key: nil        # For test compatibility
       }
-      
+
       # Convert PascalCase keys to snake_case and merge
       kw.each do |key, value|
         case key.to_s
@@ -481,20 +739,42 @@ module XGStruct
     end
 
     # Snake_case property accessors (preferred)
-    def level; @properties[:level]; end
-    def is_double; @properties[:is_double]; end
-    def test_field; @properties[:test_field]; end
-    def existing_key; @properties[:existing_key]; end
+    def level
+      @properties[:level]
+    end
 
-    def level=(value); @properties[:level] = value; end
-    def is_double=(value); @properties[:is_double] = value; end
-    def test_field=(value); @properties[:test_field] = value; end
-    def existing_key=(value); @properties[:existing_key] = value; end
+    def is_double
+      @properties[:is_double]
+    end
+
+    def test_field
+      @properties[:test_field]
+    end
+
+    def existing_key
+      @properties[:existing_key]
+    end
+
+    def level=(value)
+      @properties[:level] = value
+    end
+
+    def is_double=(value)
+      @properties[:is_double] = value
+    end
+
+    def test_field=(value)
+      @properties[:test_field] = value
+    end
+
+    def existing_key=(value)
+      @properties[:existing_key] = value
+    end
 
     # Delegate method_missing for dynamic properties
     def method_missing(method_name, *args, &block)
-      if method_name.to_s.end_with?('=') && args.length == 1
-        property_name = method_name.to_s.chomp('=').to_sym
+      if method_name.to_s.end_with?("=") && args.length == 1
+        property_name = method_name.to_s.chomp("=").to_sym
         @properties[property_name] = args[0]
       elsif args.empty? && @properties.key?(method_name)
         @properties[method_name]
@@ -504,22 +784,42 @@ module XGStruct
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      property_name = method_name.to_s.chomp('=').to_sym
+      property_name = method_name.to_s.chomp("=").to_sym
       @properties.key?(property_name) || super
     end
 
     # Backward compatibility methods for PascalCase access
-    def Level; @properties[:level]; end
-    def Level=(value); @properties[:level] = value; end
-    
-    def isDouble; @properties[:is_double]; end
-    def isDouble=(value); @properties[:is_double] = value; end
-    
-    def TestField; @properties[:test_field]; end
-    def TestField=(value); @properties[:test_field] = value; end
-    
-    def ExistingKey; @properties[:existing_key]; end
-    def ExistingKey=(value); @properties[:existing_key] = value; end
+    def Level
+      @properties[:level]
+    end
+
+    def Level=(value)
+      @properties[:level] = value
+    end
+
+    def isDouble
+      @properties[:is_double]
+    end
+
+    def isDouble=(value)
+      @properties[:is_double] = value
+    end
+
+    def TestField
+      @properties[:test_field]
+    end
+
+    def TestField=(value)
+      @properties[:test_field] = value
+    end
+
+    def ExistingKey
+      @properties[:existing_key]
+    end
+
+    def ExistingKey=(value)
+      @properties[:existing_key] = value
+    end
 
     # Hash-style access for backward compatibility
     def [](key)
@@ -545,7 +845,6 @@ module XGStruct
         snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
         @properties[snake_key] = value
       end
-      value
     end
 
     def fromstream(stream)
@@ -573,7 +872,7 @@ module XGStruct
         existing_key: nil,
         test: nil
       }
-      
+
       # Convert PascalCase keys to snake_case and merge
       kw.each do |key, value|
         case key.to_s
@@ -591,22 +890,50 @@ module XGStruct
     end
 
     # Snake_case property accessors (preferred)
-    def entry_type; @properties[:entry_type]; end
-    def name; @properties[:name]; end
-    def test_field; @properties[:test_field]; end
-    def existing_key; @properties[:existing_key]; end
-    def test; @properties[:test]; end
+    def entry_type
+      @properties[:entry_type]
+    end
 
-    def entry_type=(value); @properties[:entry_type] = value; end
-    def name=(value); @properties[:name] = value; end
-    def test_field=(value); @properties[:test_field] = value; end
-    def existing_key=(value); @properties[:existing_key] = value; end
-    def test=(value); @properties[:test] = value; end
+    def name
+      @properties[:name]
+    end
+
+    def test_field
+      @properties[:test_field]
+    end
+
+    def existing_key
+      @properties[:existing_key]
+    end
+
+    def test
+      @properties[:test]
+    end
+
+    def entry_type=(value)
+      @properties[:entry_type] = value
+    end
+
+    def name=(value)
+      @properties[:name] = value
+    end
+
+    def test_field=(value)
+      @properties[:test_field] = value
+    end
+
+    def existing_key=(value)
+      @properties[:existing_key] = value
+    end
+
+    def test=(value)
+      @properties[:test] = value
+    end
 
     # Delegate method_missing for dynamic properties
     def method_missing(method_name, *args, &block)
-      if method_name.to_s.end_with?('=') && args.length == 1
-        property_name = method_name.to_s.chomp('=').to_sym
+      if method_name.to_s.end_with?("=") && args.length == 1
+        property_name = method_name.to_s.chomp("=").to_sym
         @properties[property_name] = args[0]
       elsif args.empty? && @properties.key?(method_name)
         @properties[method_name]
@@ -616,22 +943,42 @@ module XGStruct
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      property_name = method_name.to_s.chomp('=').to_sym
+      property_name = method_name.to_s.chomp("=").to_sym
       @properties.key?(property_name) || super
     end
 
     # Backward compatibility methods for PascalCase access
-    def EntryType; @properties[:entry_type]; end
-    def EntryType=(value); @properties[:entry_type] = value; end
-    
-    def Name; @properties[:name]; end
-    def Name=(value); @properties[:name] = value; end
-    
-    def TestField; @properties[:test_field]; end
-    def TestField=(value); @properties[:test_field] = value; end
-    
-    def ExistingKey; @properties[:existing_key]; end
-    def ExistingKey=(value); @properties[:existing_key] = value; end
+    def EntryType
+      @properties[:entry_type]
+    end
+
+    def EntryType=(value)
+      @properties[:entry_type] = value
+    end
+
+    def Name
+      @properties[:name]
+    end
+
+    def Name=(value)
+      @properties[:name] = value
+    end
+
+    def TestField
+      @properties[:test_field]
+    end
+
+    def TestField=(value)
+      @properties[:test_field] = value
+    end
+
+    def ExistingKey
+      @properties[:existing_key]
+    end
+
+    def ExistingKey=(value)
+      @properties[:existing_key] = value
+    end
 
     # Hash-style access for backward compatibility
     def [](key)
@@ -659,7 +1006,6 @@ module XGStruct
         snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
         @properties[snake_key] = value
       end
-      value
     end
 
     def fromstream(stream)
@@ -677,7 +1023,7 @@ module XGStruct
         test_key: nil,
         another_key: nil
       }
-      
+
       # Convert PascalCase keys to snake_case and merge
       kw.each do |key, value|
         case key.to_s
@@ -695,8 +1041,8 @@ module XGStruct
 
     # Delegate method_missing for dynamic properties
     def method_missing(method_name, *args, &block)
-      if method_name.to_s.end_with?('=') && args.length == 1
-        property_name = method_name.to_s.chomp('=').to_sym
+      if method_name.to_s.end_with?("=") && args.length == 1
+        property_name = method_name.to_s.chomp("=").to_sym
         @properties[property_name] = args[0]
       elsif args.empty? && @properties.key?(method_name)
         @properties[method_name]
@@ -706,22 +1052,42 @@ module XGStruct
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      property_name = method_name.to_s.chomp('=').to_sym
+      property_name = method_name.to_s.chomp("=").to_sym
       @properties.key?(property_name) || super
     end
 
     # Backward compatibility methods for PascalCase access
-    def TestField; @properties[:test_field]; end
-    def TestField=(value); @properties[:test_field] = value; end
-    
-    def ExistingKey; @properties[:existing_key]; end
-    def ExistingKey=(value); @properties[:existing_key] = value; end
-    
-    def TestKey; @properties[:test_key]; end
-    def TestKey=(value); @properties[:test_key] = value; end
-    
-    def AnotherKey; @properties[:another_key]; end
-    def AnotherKey=(value); @properties[:another_key] = value; end
+    def TestField
+      @properties[:test_field]
+    end
+
+    def TestField=(value)
+      @properties[:test_field] = value
+    end
+
+    def ExistingKey
+      @properties[:existing_key]
+    end
+
+    def ExistingKey=(value)
+      @properties[:existing_key] = value
+    end
+
+    def TestKey
+      @properties[:test_key]
+    end
+
+    def TestKey=(value)
+      @properties[:test_key] = value
+    end
+
+    def AnotherKey
+      @properties[:another_key]
+    end
+
+    def AnotherKey=(value)
+      @properties[:another_key] = value
+    end
 
     # Hash-style access for backward compatibility
     def [](key)
@@ -747,7 +1113,6 @@ module XGStruct
         snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
         @properties[snake_key] = value
       end
-      value
     end
 
     def fromstream(stream)
@@ -765,7 +1130,7 @@ module XGStruct
         test_key: nil,
         another_key: nil
       }
-      
+
       # Convert PascalCase keys to snake_case and merge
       kw.each do |key, value|
         case key.to_s
@@ -783,8 +1148,8 @@ module XGStruct
 
     # Delegate method_missing for dynamic properties
     def method_missing(method_name, *args, &block)
-      if method_name.to_s.end_with?('=') && args.length == 1
-        property_name = method_name.to_s.chomp('=').to_sym
+      if method_name.to_s.end_with?("=") && args.length == 1
+        property_name = method_name.to_s.chomp("=").to_sym
         @properties[property_name] = args[0]
       elsif args.empty? && @properties.key?(method_name)
         @properties[method_name]
@@ -794,22 +1159,42 @@ module XGStruct
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      property_name = method_name.to_s.chomp('=').to_sym
+      property_name = method_name.to_s.chomp("=").to_sym
       @properties.key?(property_name) || super
     end
 
     # Backward compatibility methods for PascalCase access
-    def TestField; @properties[:test_field]; end
-    def TestField=(value); @properties[:test_field] = value; end
-    
-    def ExistingKey; @properties[:existing_key]; end
-    def ExistingKey=(value); @properties[:existing_key] = value; end
-    
-    def TestKey; @properties[:test_key]; end
-    def TestKey=(value); @properties[:test_key] = value; end
-    
-    def AnotherKey; @properties[:another_key]; end
-    def AnotherKey=(value); @properties[:another_key] = value; end
+    def TestField
+      @properties[:test_field]
+    end
+
+    def TestField=(value)
+      @properties[:test_field] = value
+    end
+
+    def ExistingKey
+      @properties[:existing_key]
+    end
+
+    def ExistingKey=(value)
+      @properties[:existing_key] = value
+    end
+
+    def TestKey
+      @properties[:test_key]
+    end
+
+    def TestKey=(value)
+      @properties[:test_key] = value
+    end
+
+    def AnotherKey
+      @properties[:another_key]
+    end
+
+    def AnotherKey=(value)
+      @properties[:another_key] = value
+    end
 
     # Hash-style access for backward compatibility
     def [](key)
@@ -835,7 +1220,6 @@ module XGStruct
         snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
         @properties[snake_key] = value
       end
-      value
     end
 
     def fromstream(stream)
@@ -872,63 +1256,158 @@ module XGStruct
     end
 
     # Define explicit getter and setter methods for all known keys
-    def Pos; self["Pos"]; end
-    def Pos=(value); self["Pos"] = value; end
-    
-    def Dice; self["Dice"]; end
-    def Dice=(value); self["Dice"] = value; end
-    
-    def Level; self["Level"]; end
-    def Level=(value); self["Level"] = value; end
-    
-    def Score; self["Score"]; end
-    def Score=(value); self["Score"] = value; end
-    
-    def Cube; self["Cube"]; end
-    def Cube=(value); self["Cube"] = value; end
-    
-    def CubePos; self["CubePos"]; end
-    def CubePos=(value); self["CubePos"] = value; end
-    
-    def Crawford; self["Crawford"]; end
-    def Crawford=(value); self["Crawford"] = value; end
-    
-    def Jacoby; self["Jacoby"]; end
-    def Jacoby=(value); self["Jacoby"] = value; end
-    
-    def NMoves; self["NMoves"]; end
-    def NMoves=(value); self["NMoves"] = value; end
-    
-    def PosPlayed; self["PosPlayed"]; end
-    def PosPlayed=(value); self["PosPlayed"] = value; end
-    
-    def Moves; self["Moves"]; end
-    def Moves=(value); self["Moves"] = value; end
-    
-    def EvalLevel; self["EvalLevel"]; end
-    def EvalLevel=(value); self["EvalLevel"] = value; end
-    
-    def Eval; self["Eval"]; end
-    def Eval=(value); self["Eval"] = value; end
-    
-    def Unused; self["Unused"]; end
-    def Unused=(value); self["Unused"] = value; end
-    
-    def met; self["met"]; end
-    def met=(value); self["met"] = value; end
-    
-    def Choice0; self["Choice0"]; end
-    def Choice0=(value); self["Choice0"] = value; end
-    
-    def Choice3; self["Choice3"]; end
-    def Choice3=(value); self["Choice3"] = value; end
+    def Pos
+      self["Pos"]
+    end
+
+    def Pos=(value)
+      self["Pos"] = value
+    end
+
+    def Dice
+      self["Dice"]
+    end
+
+    def Dice=(value)
+      self["Dice"] = value
+    end
+
+    def Level
+      self["Level"]
+    end
+
+    def Level=(value)
+      self["Level"] = value
+    end
+
+    def Score
+      self["Score"]
+    end
+
+    def Score=(value)
+      self["Score"] = value
+    end
+
+    def Cube
+      self["Cube"]
+    end
+
+    def Cube=(value)
+      self["Cube"] = value
+    end
+
+    def CubePos
+      self["CubePos"]
+    end
+
+    def CubePos=(value)
+      self["CubePos"] = value
+    end
+
+    def Crawford
+      self["Crawford"]
+    end
+
+    def Crawford=(value)
+      self["Crawford"] = value
+    end
+
+    def Jacoby
+      self["Jacoby"]
+    end
+
+    def Jacoby=(value)
+      self["Jacoby"] = value
+    end
+
+    def NMoves
+      self["NMoves"]
+    end
+
+    def NMoves=(value)
+      self["NMoves"] = value
+    end
+
+    def PosPlayed
+      self["PosPlayed"]
+    end
+
+    def PosPlayed=(value)
+      self["PosPlayed"] = value
+    end
+
+    def Moves
+      self["Moves"]
+    end
+
+    def Moves=(value)
+      self["Moves"] = value
+    end
+
+    def EvalLevel
+      self["EvalLevel"]
+    end
+
+    def EvalLevel=(value)
+      self["EvalLevel"] = value
+    end
+
+    def Eval
+      self["Eval"]
+    end
+
+    def Eval=(value)
+      self["Eval"] = value
+    end
+
+    def Unused
+      self["Unused"]
+    end
+
+    def Unused=(value)
+      self["Unused"] = value
+    end
+
+    def met
+      self["met"]
+    end
+
+    def met=(value)
+      self["met"] = value
+    end
+
+    def Choice0
+      self["Choice0"]
+    end
+
+    def Choice0=(value)
+      self["Choice0"] = value
+    end
+
+    def Choice3
+      self["Choice3"]
+    end
+
+    def Choice3=(value)
+      self["Choice3"] = value
+    end
 
     # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
-    
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def TestField
+      self["TestField"]
+    end
+
+    def TestField=(value)
+      self["TestField"] = value
+    end
+
+    def ExistingKey
+      self["ExistingKey"]
+    end
+
+    def ExistingKey=(value)
+      self["ExistingKey"] = value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
@@ -936,7 +1415,7 @@ module XGStruct
 
       # Parse according to Python implementation: '<26bxx2ll2llllll' for first 68 bytes
       initial_data = data[0, 68].unpack("c26xxl<l<l<l<l<l<l<l<l<")
-      
+
       self["Pos"] = initial_data[0..25]
       self["Dice"] = [initial_data[26], initial_data[27]]
       self["Level"] = initial_data[28]
@@ -957,7 +1436,7 @@ module XGStruct
       end
       self["PosPlayed"] = pos_played
 
-      # Parse Moves: 32 arrays of 8 signed bytes each  
+      # Parse Moves: 32 arrays of 8 signed bytes each
       moves = []
       32.times do
         move_data = data[offset, 8].unpack("c8")
@@ -1035,56 +1514,141 @@ module XGStruct
     end
 
     # Define explicit getter and setter methods for all known keys
-    def Pos; self["Pos"]; end
-    def Pos=(value); self["Pos"] = value; end
-    
-    def Level; self["Level"]; end
-    def Level=(value); self["Level"] = value; end
-    
-    def Score; self["Score"]; end
-    def Score=(value); self["Score"] = value; end
-    
-    def Cube; self["Cube"]; end
-    def Cube=(value); self["Cube"] = value; end
-    
-    def CubePos; self["CubePos"]; end
-    def CubePos=(value); self["CubePos"] = value; end
-    
-    def Jacoby; self["Jacoby"]; end
-    def Jacoby=(value); self["Jacoby"] = value; end
-    
-    def Crawford; self["Crawford"]; end
-    def Crawford=(value); self["Crawford"] = value; end
-    
-    def met; self["met"]; end
-    def met=(value); self["met"] = value; end
-    
-    def FlagDouble; self["FlagDouble"]; end
-    def FlagDouble=(value); self["FlagDouble"] = value; end
-    
-    def isBeaver; self["isBeaver"]; end
-    def isBeaver=(value); self["isBeaver"] = value; end
-    
-    def Eval; self["Eval"]; end
-    def Eval=(value); self["Eval"] = value; end
-    
-    def equB; self["equB"]; end
-    def equB=(value); self["equB"] = value; end
-    
-    def equDouble; self["equDouble"]; end
-    def equDouble=(value); self["equDouble"] = value; end
-    
-    def equDrop; self["equDrop"]; end
-    def equDrop=(value); self["equDrop"] = value; end
-    
-    def LevelRequest; self["LevelRequest"]; end
-    def LevelRequest=(value); self["LevelRequest"] = value; end
-    
-    def DoubleChoice3; self["DoubleChoice3"]; end
-    def DoubleChoice3=(value); self["DoubleChoice3"] = value; end
-    
-    def EvalDouble; self["EvalDouble"]; end
-    def EvalDouble=(value); self["EvalDouble"] = value; end
+    def Pos
+      self["Pos"]
+    end
+
+    def Pos=(value)
+      self["Pos"] = value
+    end
+
+    def Level
+      self["Level"]
+    end
+
+    def Level=(value)
+      self["Level"] = value
+    end
+
+    def Score
+      self["Score"]
+    end
+
+    def Score=(value)
+      self["Score"] = value
+    end
+
+    def Cube
+      self["Cube"]
+    end
+
+    def Cube=(value)
+      self["Cube"] = value
+    end
+
+    def CubePos
+      self["CubePos"]
+    end
+
+    def CubePos=(value)
+      self["CubePos"] = value
+    end
+
+    def Jacoby
+      self["Jacoby"]
+    end
+
+    def Jacoby=(value)
+      self["Jacoby"] = value
+    end
+
+    def Crawford
+      self["Crawford"]
+    end
+
+    def Crawford=(value)
+      self["Crawford"] = value
+    end
+
+    def met
+      self["met"]
+    end
+
+    def met=(value)
+      self["met"] = value
+    end
+
+    def FlagDouble
+      self["FlagDouble"]
+    end
+
+    def FlagDouble=(value)
+      self["FlagDouble"] = value
+    end
+
+    def isBeaver
+      self["isBeaver"]
+    end
+
+    def isBeaver=(value)
+      self["isBeaver"] = value
+    end
+
+    def Eval
+      self["Eval"]
+    end
+
+    def Eval=(value)
+      self["Eval"] = value
+    end
+
+    def equB
+      self["equB"]
+    end
+
+    def equB=(value)
+      self["equB"] = value
+    end
+
+    def equDouble
+      self["equDouble"]
+    end
+
+    def equDouble=(value)
+      self["equDouble"] = value
+    end
+
+    def equDrop
+      self["equDrop"]
+    end
+
+    def equDrop=(value)
+      self["equDrop"] = value
+    end
+
+    def LevelRequest
+      self["LevelRequest"]
+    end
+
+    def LevelRequest=(value)
+      self["LevelRequest"] = value
+    end
+
+    def DoubleChoice3
+      self["DoubleChoice3"]
+    end
+
+    def DoubleChoice3=(value)
+      self["DoubleChoice3"] = value
+    end
+
+    def EvalDouble
+      self["EvalDouble"]
+    end
+
+    def EvalDouble=(value)
+      self["EvalDouble"] = value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
@@ -1092,49 +1656,48 @@ module XGStruct
 
       # Parse according to Python format: '<26bxxl2llllhhhh7ffffhh7f'
       offset = 0
-      
+
       # Pos: 26 signed bytes
       pos = data[offset, 26].unpack("c26")
       offset += 26
-      
+
       # Skip 2 padding bytes
       offset += 2
-      
+
       # Level: 1 signed long (4 bytes)
-      level = data[offset, 4].unpack("V")[0]
+      level = data[offset, 4].unpack1("V")
       offset += 4
-      
+
       # Score: 2 signed longs (8 bytes)
       score = data[offset, 8].unpack("VV")
       offset += 8
-      
+
       # Cube, CubePos, Jacoby, Crawford: 4 signed longs (16 bytes)
       cube_data = data[offset, 16].unpack("VVVV")
       offset += 16
-      
+
       # met, FlagDouble, isBeaver: 3 signed shorts (6 bytes)
       short_data = data[offset, 6].unpack("vvv")
       offset += 6
-      
+
       # Skip 2 padding bytes
       offset += 2
-      
+
       # Eval: 7 floats (28 bytes)
       eval_data = data[offset, 28].unpack("eeeeeee")
       offset += 28
-      
+
       # equB, equDouble, equDrop: 3 floats (12 bytes)
       equity_data = data[offset, 12].unpack("eee")
       offset += 12
-      
+
       # LevelRequest, DoubleChoice3: 2 signed shorts (4 bytes)
       request_data = data[offset, 4].unpack("vv")
       offset += 4
-      
+
       # EvalDouble: 7 floats (28 bytes)
       eval_double_data = data[offset, 28].unpack("eeeeeee")
-      offset += 28
-      
+
       self["Pos"] = pos
       self["Level"] = level
       self["Score"] = score
@@ -1201,104 +1764,269 @@ module XGStruct
     end
 
     # Define explicit getter and setter methods for all known keys
-    def Name; self["Name"]; end
-    def Name=(value); self["Name"] = value; end
-    
-    def Type; self["Type"]; end
-    def Type=(value); self["Type"] = value; end
-    
-    def EntryType; self["EntryType"]; end
-    def EntryType=(value); self["EntryType"] = value; end
-    
-    def ActiveP; self["ActiveP"]; end
-    def ActiveP=(value); self["ActiveP"] = value; end
-    
-    def Double; self["Double"]; end
-    def Double=(value); self["Double"] = value; end
-    
-    def Take; self["Take"]; end
-    def Take=(value); self["Take"] = value; end
-    
-    def BeaverR; self["BeaverR"]; end
-    def BeaverR=(value); self["BeaverR"] = value; end
-    
-    def RaccoonR; self["RaccoonR"]; end
-    def RaccoonR=(value); self["RaccoonR"] = value; end
-    
-    def CubeB; self["CubeB"]; end
-    def CubeB=(value); self["CubeB"] = value; end
-    
-    def Position; self["Position"]; end
-    def Position=(value); self["Position"] = value; end
-    
-    def Doubled; self["Doubled"]; end
-    def Doubled=(value); self["Doubled"] = value; end
-    
-    def ErrCube; self["ErrCube"]; end
-    def ErrCube=(value); self["ErrCube"] = value; end
-    
-    def DiceRolled; self["DiceRolled"]; end
-    def DiceRolled=(value); self["DiceRolled"] = value; end
-    
-    def ErrTake; self["ErrTake"]; end
-    def ErrTake=(value); self["ErrTake"] = value; end
-    
-    def RolloutIndexD; self["RolloutIndexD"]; end
-    def RolloutIndexD=(value); self["RolloutIndexD"] = value; end
-    
-    def CompChoiceD; self["CompChoiceD"]; end
-    def CompChoiceD=(value); self["CompChoiceD"] = value; end
-    
-    def AnalyzeC; self["AnalyzeC"]; end
-    def AnalyzeC=(value); self["AnalyzeC"] = value; end
-    
-    def ErrBeaver; self["ErrBeaver"]; end
-    def ErrBeaver=(value); self["ErrBeaver"] = value; end
-    
-    def ErrRaccoon; self["ErrRaccoon"]; end
-    def ErrRaccoon=(value); self["ErrRaccoon"] = value; end
-    
-    def AnalyzeCR; self["AnalyzeCR"]; end
-    def AnalyzeCR=(value); self["AnalyzeCR"] = value; end
-    
-    def isValid; self["isValid"]; end
-    def isValid=(value); self["isValid"] = value; end
-    
-    def TutorCube; self["TutorCube"]; end
-    def TutorCube=(value); self["TutorCube"] = value; end
-    
-    def TutorTake; self["TutorTake"]; end
-    def TutorTake=(value); self["TutorTake"] = value; end
-    
-    def ErrTutorCube; self["ErrTutorCube"]; end
-    def ErrTutorCube=(value); self["ErrTutorCube"] = value; end
-    
-    def ErrTutorTake; self["ErrTutorTake"]; end
-    def ErrTutorTake=(value); self["ErrTutorTake"] = value; end
-    
-    def FlaggedDouble; self["FlaggedDouble"]; end
-    def FlaggedDouble=(value); self["FlaggedDouble"] = value; end
-    
-    def CommentCube; self["CommentCube"]; end
-    def CommentCube=(value); self["CommentCube"] = value; end
-    
-    def EditedCube; self["EditedCube"]; end
-    def EditedCube=(value); self["EditedCube"] = value; end
-    
-    def TimeDelayCube; self["TimeDelayCube"]; end
-    def TimeDelayCube=(value); self["TimeDelayCube"] = value; end
-    
-    def TimeDelayCubeDone; self["TimeDelayCubeDone"]; end
-    def TimeDelayCubeDone=(value); self["TimeDelayCubeDone"] = value; end
-    
-    def NumberOfAutoDoubleCube; self["NumberOfAutoDoubleCube"]; end
-    def NumberOfAutoDoubleCube=(value); self["NumberOfAutoDoubleCube"] = value; end
-    
-    def TimeBot; self["TimeBot"]; end
-    def TimeBot=(value); self["TimeBot"] = value; end
-    
-    def TimeTop; self["TimeTop"]; end
-    def TimeTop=(value); self["TimeTop"] = value; end
+    def Name
+      self["Name"]
+    end
+
+    def Name=(value)
+      self["Name"] = value
+    end
+
+    def Type
+      self["Type"]
+    end
+
+    def Type=(value)
+      self["Type"] = value
+    end
+
+    def EntryType
+      self["EntryType"]
+    end
+
+    def EntryType=(value)
+      self["EntryType"] = value
+    end
+
+    def ActiveP
+      self["ActiveP"]
+    end
+
+    def ActiveP=(value)
+      self["ActiveP"] = value
+    end
+
+    def Double
+      self["Double"]
+    end
+
+    def Double=(value)
+      self["Double"] = value
+    end
+
+    def Take
+      self["Take"]
+    end
+
+    def Take=(value)
+      self["Take"] = value
+    end
+
+    def BeaverR
+      self["BeaverR"]
+    end
+
+    def BeaverR=(value)
+      self["BeaverR"] = value
+    end
+
+    def RaccoonR
+      self["RaccoonR"]
+    end
+
+    def RaccoonR=(value)
+      self["RaccoonR"] = value
+    end
+
+    def CubeB
+      self["CubeB"]
+    end
+
+    def CubeB=(value)
+      self["CubeB"] = value
+    end
+
+    def Position
+      self["Position"]
+    end
+
+    def Position=(value)
+      self["Position"] = value
+    end
+
+    def Doubled
+      self["Doubled"]
+    end
+
+    def Doubled=(value)
+      self["Doubled"] = value
+    end
+
+    def ErrCube
+      self["ErrCube"]
+    end
+
+    def ErrCube=(value)
+      self["ErrCube"] = value
+    end
+
+    def DiceRolled
+      self["DiceRolled"]
+    end
+
+    def DiceRolled=(value)
+      self["DiceRolled"] = value
+    end
+
+    def ErrTake
+      self["ErrTake"]
+    end
+
+    def ErrTake=(value)
+      self["ErrTake"] = value
+    end
+
+    def RolloutIndexD
+      self["RolloutIndexD"]
+    end
+
+    def RolloutIndexD=(value)
+      self["RolloutIndexD"] = value
+    end
+
+    def CompChoiceD
+      self["CompChoiceD"]
+    end
+
+    def CompChoiceD=(value)
+      self["CompChoiceD"] = value
+    end
+
+    def AnalyzeC
+      self["AnalyzeC"]
+    end
+
+    def AnalyzeC=(value)
+      self["AnalyzeC"] = value
+    end
+
+    def ErrBeaver
+      self["ErrBeaver"]
+    end
+
+    def ErrBeaver=(value)
+      self["ErrBeaver"] = value
+    end
+
+    def ErrRaccoon
+      self["ErrRaccoon"]
+    end
+
+    def ErrRaccoon=(value)
+      self["ErrRaccoon"] = value
+    end
+
+    def AnalyzeCR
+      self["AnalyzeCR"]
+    end
+
+    def AnalyzeCR=(value)
+      self["AnalyzeCR"] = value
+    end
+
+    def isValid
+      self["isValid"]
+    end
+
+    def isValid=(value)
+      self["isValid"] = value
+    end
+
+    def TutorCube
+      self["TutorCube"]
+    end
+
+    def TutorCube=(value)
+      self["TutorCube"] = value
+    end
+
+    def TutorTake
+      self["TutorTake"]
+    end
+
+    def TutorTake=(value)
+      self["TutorTake"] = value
+    end
+
+    def ErrTutorCube
+      self["ErrTutorCube"]
+    end
+
+    def ErrTutorCube=(value)
+      self["ErrTutorCube"] = value
+    end
+
+    def ErrTutorTake
+      self["ErrTutorTake"]
+    end
+
+    def ErrTutorTake=(value)
+      self["ErrTutorTake"] = value
+    end
+
+    def FlaggedDouble
+      self["FlaggedDouble"]
+    end
+
+    def FlaggedDouble=(value)
+      self["FlaggedDouble"] = value
+    end
+
+    def CommentCube
+      self["CommentCube"]
+    end
+
+    def CommentCube=(value)
+      self["CommentCube"] = value
+    end
+
+    def EditedCube
+      self["EditedCube"]
+    end
+
+    def EditedCube=(value)
+      self["EditedCube"] = value
+    end
+
+    def TimeDelayCube
+      self["TimeDelayCube"]
+    end
+
+    def TimeDelayCube=(value)
+      self["TimeDelayCube"] = value
+    end
+
+    def TimeDelayCubeDone
+      self["TimeDelayCubeDone"]
+    end
+
+    def TimeDelayCubeDone=(value)
+      self["TimeDelayCubeDone"] = value
+    end
+
+    def NumberOfAutoDoubleCube
+      self["NumberOfAutoDoubleCube"]
+    end
+
+    def NumberOfAutoDoubleCube=(value)
+      self["NumberOfAutoDoubleCube"] = value
+    end
+
+    def TimeBot
+      self["TimeBot"]
+    end
+
+    def TimeBot=(value)
+      self["TimeBot"] = value
+    end
+
+    def TimeTop
+      self["TimeTop"]
+    end
+
+    def TimeTop=(value)
+      self["TimeTop"] = value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
@@ -1307,18 +2035,18 @@ module XGStruct
       # Parse first 64 bytes according to Python format: '<9xxxxllllll26bxx'
       # Skip first 9 bytes, then 3 more padding bytes = 12 bytes total
       offset = 12
-      
+
       # ActiveP, Double, Take, BeaverR, RaccoonR, CubeB: 6 signed longs (24 bytes)
       initial_data = data[offset, 24].unpack("l<l<l<l<l<l<")
       offset += 24
-      
+
       # Position: 26 signed bytes
       position = data[offset, 26].unpack("c26")
       offset += 26
-      
+
       # Skip 2 padding bytes
       offset += 2
-      
+
       self["ActiveP"] = initial_data[0]
       self["Double"] = initial_data[1]
       self["Take"] = initial_data[2]
@@ -1334,77 +2062,77 @@ module XGStruct
         offset += EngineStructDoubleAction::SIZEOFREC
       end
 
-      # Parse remaining 116 bytes according to Python format: 
+      # Parse remaining 116 bytes according to Python format:
       # '<xxxxd3BxxxxxdlllxxxxddllbbxxxxxxddBxxxlBBBxlll'
       if offset + 116 <= data.length
         remaining_offset = offset
-        
+
         # Skip 4 padding bytes
         remaining_offset += 4
-        
+
         # ErrCube: 1 double (8 bytes)
-        err_cube = data[remaining_offset, 8].unpack("E")[0]
+        err_cube = data[remaining_offset, 8].unpack1("E")
         remaining_offset += 8
-        
+
         # DiceRolled: 3 bytes (convert to string)
         dice_bytes = data[remaining_offset, 3].unpack("CCC")
         dice_rolled = XGUtils.delphishortstrtostr(dice_bytes)
         remaining_offset += 3
-        
+
         # Skip 5 padding bytes
         remaining_offset += 5
-        
+
         # ErrTake: 1 double (8 bytes)
-        err_take = data[remaining_offset, 8].unpack("E")[0]
+        err_take = data[remaining_offset, 8].unpack1("E")
         remaining_offset += 8
-        
+
         # RolloutIndexD, CompChoiceD, AnalyzeC: 3 signed longs (12 bytes)
         rollout_data = data[remaining_offset, 12].unpack("l<l<l<")
         remaining_offset += 12
-        
+
         # Skip 4 padding bytes
         remaining_offset += 4
-        
+
         # ErrBeaver, ErrRaccoon: 2 doubles (16 bytes)
         error_data = data[remaining_offset, 16].unpack("EE")
         remaining_offset += 16
-        
+
         # AnalyzeCR, isValid: 2 signed longs (8 bytes)
         analyze_data = data[remaining_offset, 8].unpack("l<l<")
         remaining_offset += 8
-        
+
         # TutorCube, TutorTake: 2 signed bytes
         tutor_data = data[remaining_offset, 2].unpack("cc")
         remaining_offset += 2
-        
+
         # Skip 6 padding bytes
         remaining_offset += 6
-        
+
         # ErrTutorCube, ErrTutorTake: 2 doubles (16 bytes)
         tutor_error_data = data[remaining_offset, 16].unpack("EE")
         remaining_offset += 16
-        
+
         # FlaggedDouble: 1 byte
-        flagged_double = data[remaining_offset, 1].unpack("C")[0] != 0
+        flagged_double = data[remaining_offset, 1].unpack1("C") != 0
         remaining_offset += 1
-        
+
         # Skip 3 padding bytes
         remaining_offset += 3
-        
+
         # CommentCube: 1 signed long (4 bytes)
-        comment_cube = data[remaining_offset, 4].unpack("l<")[0]
+        comment_cube = data[remaining_offset, 4].unpack1("l<")
         remaining_offset += 4
-        
+
         # EditedCube, TimeDelayCube, TimeDelayCubeDone: 3 bytes
         version_data = data[remaining_offset, 3].unpack("CCC")
         remaining_offset += 3
-        
+
         # Skip 1 padding byte
         remaining_offset += 1
-        
+
         # NumberOfAutoDoubleCube, TimeBot, TimeTop: 3 signed longs (12 bytes)
         final_data = data[remaining_offset, 12].unpack("l<l<l<")
-        
+
         self["ErrCube"] = err_cube
         self["DiceRolled"] = dice_rolled
         self["ErrTake"] = err_take
@@ -1475,105 +2203,270 @@ module XGStruct
     end
 
     # Define explicit getter and setter methods for all known keys
-    def Name; self["Name"]; end
-    def Name=(value); self["Name"] = value; end
-    
-    def Type; self["Type"]; end
-    def Type=(value); self["Type"] = value; end
-    
-    def EntryType; self["EntryType"]; end
-    def EntryType=(value); self["EntryType"] = value; end
-    
-    def PositionI; self["PositionI"]; end
-    def PositionI=(value); self["PositionI"] = value; end
-    
-    def PositionEnd; self["PositionEnd"]; end
-    def PositionEnd=(value); self["PositionEnd"] = value; end
-    
-    def ActiveP; self["ActiveP"]; end
-    def ActiveP=(value); self["ActiveP"] = value; end
-    
-    def Moves; self["Moves"]; end
-    def Moves=(value); self["Moves"] = value; end
-    
-    def Dice; self["Dice"]; end
-    def Dice=(value); self["Dice"] = value; end
-    
-    def CubeA; self["CubeA"]; end
-    def CubeA=(value); self["CubeA"] = value; end
-    
-    def ErrorM; self["ErrorM"]; end
-    def ErrorM=(value); self["ErrorM"] = value; end
-    
-    def NMoveEval; self["NMoveEval"]; end
-    def NMoveEval=(value); self["NMoveEval"] = value; end
-    
-    def DataMoves; self["DataMoves"]; end
-    def DataMoves=(value); self["DataMoves"] = value; end
-    
-    def Played; self["Played"]; end
-    def Played=(value); self["Played"] = value; end
-    
-    def ErrMove; self["ErrMove"]; end
-    def ErrMove=(value); self["ErrMove"] = value; end
-    
-    def ErrLuck; self["ErrLuck"]; end
-    def ErrLuck=(value); self["ErrLuck"] = value; end
-    
-    def CompChoice; self["CompChoice"]; end
-    def CompChoice=(value); self["CompChoice"] = value; end
-    
-    def InitEq; self["InitEq"]; end
-    def InitEq=(value); self["InitEq"] = value; end
-    
-    def RolloutIndexM; self["RolloutIndexM"]; end
-    def RolloutIndexM=(value); self["RolloutIndexM"] = value; end
-    
-    def AnalyzeM; self["AnalyzeM"]; end
-    def AnalyzeM=(value); self["AnalyzeM"] = value; end
-    
-    def AnalyzeL; self["AnalyzeL"]; end
-    def AnalyzeL=(value); self["AnalyzeL"] = value; end
-    
-    def InvalidM; self["InvalidM"]; end
-    def InvalidM=(value); self["InvalidM"] = value; end
-    
-    def PositionTutor; self["PositionTutor"]; end
-    def PositionTutor=(value); self["PositionTutor"] = value; end
-    
-    def Tutor; self["Tutor"]; end
-    def Tutor=(value); self["Tutor"] = value; end
-    
-    def ErrTutorMove; self["ErrTutorMove"]; end
-    def ErrTutorMove=(value); self["ErrTutorMove"] = value; end
-    
-    def Flagged; self["Flagged"]; end
-    def Flagged=(value); self["Flagged"] = value; end
-    
-    def CommentMove; self["CommentMove"]; end
-    def CommentMove=(value); self["CommentMove"] = value; end
-    
-    def EditedMove; self["EditedMove"]; end
-    def EditedMove=(value); self["EditedMove"] = value; end
-    
-    def TimeDelayMove; self["TimeDelayMove"]; end
-    def TimeDelayMove=(value); self["TimeDelayMove"] = value; end
-    
-    def TimeDelayMoveDone; self["TimeDelayMoveDone"]; end
-    def TimeDelayMoveDone=(value); self["TimeDelayMoveDone"] = value; end
-    
-    def NumberOfAutoDoubleMove; self["NumberOfAutoDoubleMove"]; end
-    def NumberOfAutoDoubleMove=(value); self["NumberOfAutoDoubleMove"] = value; end
-    
-    def Filler; self["Filler"]; end
-    def Filler=(value); self["Filler"] = value; end
+    def Name
+      self["Name"]
+    end
+
+    def Name=(value)
+      self["Name"] = value
+    end
+
+    def Type
+      self["Type"]
+    end
+
+    def Type=(value)
+      self["Type"] = value
+    end
+
+    def EntryType
+      self["EntryType"]
+    end
+
+    def EntryType=(value)
+      self["EntryType"] = value
+    end
+
+    def PositionI
+      self["PositionI"]
+    end
+
+    def PositionI=(value)
+      self["PositionI"] = value
+    end
+
+    def PositionEnd
+      self["PositionEnd"]
+    end
+
+    def PositionEnd=(value)
+      self["PositionEnd"] = value
+    end
+
+    def ActiveP
+      self["ActiveP"]
+    end
+
+    def ActiveP=(value)
+      self["ActiveP"] = value
+    end
+
+    def Moves
+      self["Moves"]
+    end
+
+    def Moves=(value)
+      self["Moves"] = value
+    end
+
+    def Dice
+      self["Dice"]
+    end
+
+    def Dice=(value)
+      self["Dice"] = value
+    end
+
+    def CubeA
+      self["CubeA"]
+    end
+
+    def CubeA=(value)
+      self["CubeA"] = value
+    end
+
+    def ErrorM
+      self["ErrorM"]
+    end
+
+    def ErrorM=(value)
+      self["ErrorM"] = value
+    end
+
+    def NMoveEval
+      self["NMoveEval"]
+    end
+
+    def NMoveEval=(value)
+      self["NMoveEval"] = value
+    end
+
+    def DataMoves
+      self["DataMoves"]
+    end
+
+    def DataMoves=(value)
+      self["DataMoves"] = value
+    end
+
+    def Played
+      self["Played"]
+    end
+
+    def Played=(value)
+      self["Played"] = value
+    end
+
+    def ErrMove
+      self["ErrMove"]
+    end
+
+    def ErrMove=(value)
+      self["ErrMove"] = value
+    end
+
+    def ErrLuck
+      self["ErrLuck"]
+    end
+
+    def ErrLuck=(value)
+      self["ErrLuck"] = value
+    end
+
+    def CompChoice
+      self["CompChoice"]
+    end
+
+    def CompChoice=(value)
+      self["CompChoice"] = value
+    end
+
+    def InitEq
+      self["InitEq"]
+    end
+
+    def InitEq=(value)
+      self["InitEq"] = value
+    end
+
+    def RolloutIndexM
+      self["RolloutIndexM"]
+    end
+
+    def RolloutIndexM=(value)
+      self["RolloutIndexM"] = value
+    end
+
+    def AnalyzeM
+      self["AnalyzeM"]
+    end
+
+    def AnalyzeM=(value)
+      self["AnalyzeM"] = value
+    end
+
+    def AnalyzeL
+      self["AnalyzeL"]
+    end
+
+    def AnalyzeL=(value)
+      self["AnalyzeL"] = value
+    end
+
+    def InvalidM
+      self["InvalidM"]
+    end
+
+    def InvalidM=(value)
+      self["InvalidM"] = value
+    end
+
+    def PositionTutor
+      self["PositionTutor"]
+    end
+
+    def PositionTutor=(value)
+      self["PositionTutor"] = value
+    end
+
+    def Tutor
+      self["Tutor"]
+    end
+
+    def Tutor=(value)
+      self["Tutor"] = value
+    end
+
+    def ErrTutorMove
+      self["ErrTutorMove"]
+    end
+
+    def ErrTutorMove=(value)
+      self["ErrTutorMove"] = value
+    end
+
+    def Flagged
+      self["Flagged"]
+    end
+
+    def Flagged=(value)
+      self["Flagged"] = value
+    end
+
+    def CommentMove
+      self["CommentMove"]
+    end
+
+    def CommentMove=(value)
+      self["CommentMove"] = value
+    end
+
+    def EditedMove
+      self["EditedMove"]
+    end
+
+    def EditedMove=(value)
+      self["EditedMove"] = value
+    end
+
+    def TimeDelayMove
+      self["TimeDelayMove"]
+    end
+
+    def TimeDelayMove=(value)
+      self["TimeDelayMove"] = value
+    end
+
+    def TimeDelayMoveDone
+      self["TimeDelayMoveDone"]
+    end
+
+    def TimeDelayMoveDone=(value)
+      self["TimeDelayMoveDone"] = value
+    end
+
+    def NumberOfAutoDoubleMove
+      self["NumberOfAutoDoubleMove"]
+    end
+
+    def NumberOfAutoDoubleMove=(value)
+      self["NumberOfAutoDoubleMove"] = value
+    end
+
+    def Filler
+      self["Filler"]
+    end
+
+    def Filler=(value)
+      self["Filler"] = value
+    end
 
     # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
-    
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def TestField
+      self["TestField"]
+    end
+
+    def TestField=(value)
+      self["TestField"] = value
+    end
+
+    def ExistingKey
+      self["ExistingKey"]
+    end
+
+    def ExistingKey=(value)
+      self["ExistingKey"] = value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
@@ -1583,42 +2476,42 @@ module XGStruct
       # According to Python: '<9x26b26bxxxl8l2lldl'
       # Skip 9 bytes, then 26 signed bytes, 26 signed bytes, 3 padding, 1 long, 8 longs, 2 longs, 1 double, 1 long
       offset = 9
-      
+
       # PositionI: 26 signed bytes
       position_i = data[offset, 26].unpack("c26")
       offset += 26
-      
-      # PositionEnd: 26 signed bytes  
+
+      # PositionEnd: 26 signed bytes
       position_end = data[offset, 26].unpack("c26")
       offset += 26
-      
+
       # ActiveP: 1 signed long (4 bytes) - at offset 61 per test expectations
-      active_p = data[offset, 4].unpack("l<")[0]
+      active_p = data[offset, 4].unpack1("l<")
       offset += 4
-      
+
       # Skip 3 padding bytes after ActiveP
       offset += 3
-      
+
       # Moves: 8 signed longs (32 bytes)
       moves = data[offset, 32].unpack("l<8")
       offset += 32
-      
+
       # Dice: 2 signed longs (8 bytes)
       dice = data[offset, 8].unpack("l<2")
       offset += 8
-      
+
       # CubeA: 1 signed long (4 bytes)
-      cube_a = data[offset, 4].unpack("l<")[0]
+      cube_a = data[offset, 4].unpack1("l<")
       offset += 4
-      
+
       # ErrorM: 1 double (8 bytes)
-      error_m = data[offset, 8].unpack("E")[0]
+      error_m = data[offset, 8].unpack1("E")
       offset += 8
-      
+
       # NMoveEval: 1 signed long (4 bytes)
-      n_move_eval = data[offset, 4].unpack("l<")[0]
+      n_move_eval = data[offset, 4].unpack1("l<")
       offset += 4
-      
+
       self["PositionI"] = position_i
       self["PositionEnd"] = position_end
       self["ActiveP"] = active_p
@@ -1639,67 +2532,67 @@ module XGStruct
       # Parse remaining fields according to Python: '<Bxxxddlxxxxd32llll26bbxdBxxxl'
       if offset + 220 <= data.length
         remaining_offset = offset
-        
+
         # Played: 1 byte
-        played = data[remaining_offset, 1].unpack("C")[0] != 0
+        played = data[remaining_offset, 1].unpack1("C") != 0
         remaining_offset += 1
-        
+
         # Skip 3 padding bytes
         remaining_offset += 3
-        
+
         # ErrMove: 1 double (8 bytes)
-        err_move = data[remaining_offset, 8].unpack("E")[0]
+        err_move = data[remaining_offset, 8].unpack1("E")
         remaining_offset += 8
-        
+
         # ErrLuck: 1 double (8 bytes)
-        err_luck = data[remaining_offset, 8].unpack("E")[0]
+        err_luck = data[remaining_offset, 8].unpack1("E")
         remaining_offset += 8
-        
+
         # CompChoice: 1 signed long (4 bytes)
-        comp_choice = data[remaining_offset, 4].unpack("l<")[0]
+        comp_choice = data[remaining_offset, 4].unpack1("l<")
         remaining_offset += 4
-        
+
         # Skip 4 padding bytes
         remaining_offset += 4
-        
+
         # InitEq: 1 double (8 bytes)
-        init_eq = data[remaining_offset, 8].unpack("E")[0]
+        init_eq = data[remaining_offset, 8].unpack1("E")
         remaining_offset += 8
-        
+
         # RolloutIndexM: 32 signed longs (128 bytes)
         rollout_index_m = data[remaining_offset, 128].unpack("l<32")
         remaining_offset += 128
-        
+
         # AnalyzeM, AnalyzeL, InvalidM: 3 signed longs (12 bytes)
         analyze_data = data[remaining_offset, 12].unpack("l<3")
         remaining_offset += 12
-        
+
         # PositionTutor: 26 signed bytes
         position_tutor = data[remaining_offset, 26].unpack("c26")
         remaining_offset += 26
-        
+
         # Tutor: 1 signed byte
-        tutor = data[remaining_offset, 1].unpack("c")[0]
+        tutor = data[remaining_offset, 1].unpack1("c")
         remaining_offset += 1
-        
+
         # Skip 1 padding byte
         remaining_offset += 1
-        
+
         # ErrTutorMove: 1 double (8 bytes)
-        err_tutor_move = data[remaining_offset, 8].unpack("E")[0]
+        err_tutor_move = data[remaining_offset, 8].unpack1("E")
         remaining_offset += 8
-        
+
         # Flagged: 1 byte
-        flagged = data[remaining_offset, 1].unpack("C")[0] != 0
+        flagged = data[remaining_offset, 1].unpack1("C") != 0
         remaining_offset += 1
-        
+
         # Skip 3 padding bytes
         remaining_offset += 3
-        
+
         # CommentMove: 1 signed long (4 bytes)
-        comment_move = data[remaining_offset, 4].unpack("l<")[0]
+        comment_move = data[remaining_offset, 4].unpack1("l<")
         remaining_offset += 4
-        
+
         self["Played"] = played
         self["ErrMove"] = err_move
         self["ErrLuck"] = err_luck
@@ -1714,7 +2607,7 @@ module XGStruct
         self["ErrTutorMove"] = err_tutor_move
         self["Flagged"] = flagged
         self["CommentMove"] = comment_move
-        
+
         offset = remaining_offset
       end
 
@@ -1729,9 +2622,9 @@ module XGStruct
       if offset + 10 < data.length
         # Skip 3 padding bytes
         offset += 3
-        time_delay_move = data[offset, 4].unpack("L<")[0]
+        time_delay_move = data[offset, 4].unpack1("L<")
         offset += 4
-        time_delay_move_done = data[offset, 4].unpack("L<")[0]
+        time_delay_move_done = data[offset, 4].unpack1("L<")
         offset += 4
         self["TimeDelayMove"] = time_delay_move
         self["TimeDelayMoveDone"] = time_delay_move_done
@@ -1739,7 +2632,7 @@ module XGStruct
 
       # NumberOfAutoDoubleMove and Filler - parse what remains
       if offset + 19 < data.length
-        number_auto_double = data[offset, 4].unpack("l<")[0]
+        number_auto_double = data[offset, 4].unpack1("l<")
         offset += 4
         filler = data[offset, 16].unpack("l<4")
         self["NumberOfAutoDoubleMove"] = number_auto_double
@@ -1758,7 +2651,7 @@ module XGStruct
       super()
       @version = -1
       @properties = {}
-      
+
       # Store all keyword arguments
       kw.each do |key, value|
         snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
@@ -1768,8 +2661,8 @@ module XGStruct
 
     # Delegate method_missing for dynamic properties
     def method_missing(method_name, *args, &block)
-      if method_name.to_s.end_with?('=') && args.length == 1
-        property_name = method_name.to_s.chomp('=').to_sym
+      if method_name.to_s.end_with?("=") && args.length == 1
+        property_name = method_name.to_s.chomp("=").to_sym
         @properties[property_name] = args[0]
       elsif args.empty? && @properties.key?(method_name)
         @properties[method_name]
@@ -1779,7 +2672,7 @@ module XGStruct
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      property_name = method_name.to_s.chomp('=').to_sym
+      property_name = method_name.to_s.chomp("=").to_sym
       @properties.key?(property_name) || super
     end
 
@@ -1793,7 +2686,6 @@ module XGStruct
     def []=(key, value)
       snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
       @properties[snake_key] = value
-      value
     end
   end
 end

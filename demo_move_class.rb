@@ -3,8 +3,8 @@
 # Demo script showing the Move class in action
 #
 
-require_relative 'xgstruct'
-require 'stringio'
+require_relative "xgstruct"
+require "stringio"
 
 puts "Demo: Move Class Parsing"
 puts "=" * 40
@@ -42,28 +42,28 @@ if result
   puts "✓ Move parsed successfully!"
   puts
   puts "Move details:"
-  puts "  Type: #{result['Type']}"
-  puts "  EntryType: #{result['EntryType']}"
-  puts "  ActiveP: #{result['ActiveP']} (#{result['ActiveP'] == 1 ? 'Player 1' : 'Player 2'})"
-  puts "  ActivePlayer: #{result['ActivePlayer']} (backwards compatibility)"
-  puts "  Dice: #{XGUtils.render_dice(result['Dice'])}"
-  puts "  CubeA: #{result['CubeA']}"
-  puts "  Played: #{result['Played']}"
-  puts "  PositionI (first 5): #{result['PositionI'][0..4]}"
-  puts "  PositionEnd (first 5): #{result['PositionEnd'][0..4]}"
-  
+  puts "  Type: #{result["Type"]}"
+  puts "  EntryType: #{result["EntryType"]}"
+  puts "  ActiveP: #{result["ActiveP"]} (#{(result["ActiveP"] == 1) ? "Player 1" : "Player 2"})"
+  puts "  ActivePlayer: #{result["ActivePlayer"]} (backwards compatibility)"
+  puts "  Dice: #{XGUtils.render_dice(result["Dice"])}"
+  puts "  CubeA: #{result["CubeA"]}"
+  puts "  Played: #{result["Played"]}"
+  puts "  PositionI (first 5): #{result["PositionI"][0..4]}"
+  puts "  PositionEnd (first 5): #{result["PositionEnd"][0..4]}"
+
   # Show that DataMoves is parsed too
-  if result['DataMoves']
-    puts "  DataMoves: #{result['DataMoves'].class} (parsed EngineStructBestMoveRecord)"
-    puts "    Level: #{result['DataMoves']['Level']}"
-    puts "    NMoves: #{result['DataMoves']['NMoves']}"
+  if result["DataMoves"]
+    puts "  DataMoves: #{result["DataMoves"].class} (parsed EngineStructBestMoveRecord)"
+    puts "    Level: #{result["DataMoves"]["Level"]}"
+    puts "    NMoves: #{result["DataMoves"]["NMoves"]}"
   end
-  
+
   puts
   puts "✓ All fields accessible via hash syntax and method syntax:"
-  puts "  result['ActiveP'] = #{result['ActiveP']}"
+  puts "  result['ActiveP'] = #{result["ActiveP"]}"
   puts "  result.ActiveP = #{result.ActiveP}"
-  puts "  result['Type'] = #{result['Type']}"  
+  puts "  result['Type'] = #{result["Type"]}"
   puts "  result.Type = #{result.Type}"
 else
   puts "✗ Failed to parse move data"
@@ -79,7 +79,7 @@ engine_data = [0] * XGStruct::EngineStructBestMoveRecord::SIZEOFREC
 # Set some basic values in the first 68 bytes
 engine_data[0..25] = (0..25).map { |i| i % 25 - 12 }  # Pos array
 engine_data[28, 4] = [3].pack("l<").bytes   # Level = 3
-engine_data[32, 4] = [5].pack("l<").bytes   # Score[0] = 5  
+engine_data[32, 4] = [5].pack("l<").bytes   # Score[0] = 5
 engine_data[36, 4] = [7].pack("l<").bytes   # Score[1] = 7
 engine_data[40, 4] = [2].pack("l<").bytes   # Cube = 2
 engine_data[48, 4] = [1].pack("l<").bytes   # Crawford = 1
@@ -93,12 +93,12 @@ if engine_result
   puts "✓ EngineStructBestMoveRecord parsed successfully!"
   puts
   puts "Engine details:"
-  puts "  Level: #{engine_result['Level']}"
-  puts "  Cube: #{engine_result['Cube']}"
-  puts "  Crawford: #{engine_result['Crawford']}"
-  puts "  NMoves: #{engine_result['NMoves']}"
-  puts "  Pos (first 5): #{engine_result['Pos'][0..4]}"
-  puts "  Score: #{engine_result['Score']}"
+  puts "  Level: #{engine_result["Level"]}"
+  puts "  Cube: #{engine_result["Cube"]}"
+  puts "  Crawford: #{engine_result["Crawford"]}"
+  puts "  NMoves: #{engine_result["NMoves"]}"
+  puts "  Pos (first 5): #{engine_result["Pos"][0..4]}"
+  puts "  Score: #{engine_result["Score"]}"
 else
   puts "✗ Failed to parse engine data"
 end
