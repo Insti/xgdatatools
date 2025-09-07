@@ -7,6 +7,7 @@
 
 require_relative "xgfile_parser"
 require "pp"
+require "debug"
 
 def demo_create_sample_xg_file
   puts "Creating a sample XG file for demonstration..."
