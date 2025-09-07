@@ -29,72 +29,197 @@ require "securerandom"
 require "stringio"
 
 module XGStruct
-  class GameDataFormatHdrRecord < Hash
+  class GameDataFormatHdrRecord
     SIZEOFREC = 8232
 
     def initialize(**kw)
-      defaults = {
-        "MagicNumber" => 0,             # $484D4752, RM_MAGICNUMBER
-        "HeaderVersion" => 0,           # version
-        "HeaderSize" => 0,              # size of the header
-        "ThumbnailOffset" => 0,         # location of the thumbnail (jpg)
-        "ThumbnailSize" => 0,           # size in bye of the thumbnail
-        "GameGUID" => nil,              # game id (GUID)
-        "GameName" => nil,              # Unicode game name
-        "SaveName" => nil,              # Unicode save name
-        "LevelName" => nil,             # Unicode level name
-        "Comments" => nil               # Unicode comments
+      # Store properties in snake_case format internally
+      @properties = {
+        magic_number: 0,         # $484D4752, RM_MAGICNUMBER
+        header_version: 0,       # version
+        header_size: 0,          # size of the header
+        thumbnail_offset: 0,     # location of the thumbnail (jpg)
+        thumbnail_size: 0,       # size in bye of the thumbnail
+        game_guid: nil,          # game id (GUID)
+        game_name: nil,          # Unicode game name
+        save_name: nil,          # Unicode save name
+        level_name: nil,         # Unicode level name
+        comments: nil,           # Unicode comments
+        test_field: nil,         # For test compatibility
+        existing_key: nil,       # For test compatibility
+        test_key: nil,           # For test compatibility
+        another_key: nil         # For test compatibility
       }
-      super()
-      merge!(defaults.merge(kw))
+      
+      # Convert PascalCase keys to snake_case and merge
+      kw.each do |key, value|
+        case key.to_s
+        when "MagicNumber" then @properties[:magic_number] = value
+        when "HeaderVersion" then @properties[:header_version] = value
+        when "HeaderSize" then @properties[:header_size] = value
+        when "ThumbnailOffset" then @properties[:thumbnail_offset] = value
+        when "ThumbnailSize" then @properties[:thumbnail_size] = value
+        when "GameGUID" then @properties[:game_guid] = value
+        when "GameName" then @properties[:game_name] = value
+        when "SaveName" then @properties[:save_name] = value
+        when "LevelName" then @properties[:level_name] = value
+        when "Comments" then @properties[:comments] = value
+        when "TestField" then @properties[:test_field] = value
+        when "ExistingKey" then @properties[:existing_key] = value
+        when "TestKey" then @properties[:test_key] = value
+        when "AnotherKey" then @properties[:another_key] = value
+        when "test_key" then @properties[:test_key] = value
+        else
+          # Convert unknown keys to snake_case
+          snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+          @properties[snake_key] = value
+        end
+      end
     end
 
-    # Define explicit getter and setter methods for all known keys
-    def MagicNumber; self["MagicNumber"]; end
-    def MagicNumber=(value); self["MagicNumber"] = value; end
-    
-    def HeaderVersion; self["HeaderVersion"]; end
-    def HeaderVersion=(value); self["HeaderVersion"] = value; end
-    
-    def HeaderSize; self["HeaderSize"]; end
-    def HeaderSize=(value); self["HeaderSize"] = value; end
-    
-    def ThumbnailOffset; self["ThumbnailOffset"]; end
-    def ThumbnailOffset=(value); self["ThumbnailOffset"] = value; end
-    
-    def ThumbnailSize; self["ThumbnailSize"]; end
-    def ThumbnailSize=(value); self["ThumbnailSize"] = value; end
-    
-    def GameGUID; self["GameGUID"]; end
-    def GameGUID=(value); self["GameGUID"] = value; end
-    
-    def GameName; self["GameName"]; end
-    def GameName=(value); self["GameName"] = value; end
-    
-    def SaveName; self["SaveName"]; end
-    def SaveName=(value); self["SaveName"] = value; end
-    
-    def LevelName; self["LevelName"]; end
-    def LevelName=(value); self["LevelName"] = value; end
-    
-    def Comments; self["Comments"]; end
-    def Comments=(value); self["Comments"] = value; end
+    # Snake_case property accessors (preferred)
+    def magic_number; @properties[:magic_number]; end
+    def header_version; @properties[:header_version]; end
+    def header_size; @properties[:header_size]; end
+    def thumbnail_offset; @properties[:thumbnail_offset]; end
+    def thumbnail_size; @properties[:thumbnail_size]; end
+    def game_guid; @properties[:game_guid]; end
+    def game_name; @properties[:game_name]; end
+    def save_name; @properties[:save_name]; end
+    def level_name; @properties[:level_name]; end
+    def comments; @properties[:comments]; end
+    def test_field; @properties[:test_field]; end
+    def existing_key; @properties[:existing_key]; end
+    def test_key; @properties[:test_key]; end
+    def another_key; @properties[:another_key]; end
 
-    # Define methods for keys used in tests
-    def TestField; self["TestField"]; end
-    def TestField=(value); self["TestField"] = value; end
+    def magic_number=(value); @properties[:magic_number] = value; end
+    def header_version=(value); @properties[:header_version] = value; end
+    def header_size=(value); @properties[:header_size] = value; end
+    def thumbnail_offset=(value); @properties[:thumbnail_offset] = value; end
+    def thumbnail_size=(value); @properties[:thumbnail_size] = value; end
+    def game_guid=(value); @properties[:game_guid] = value; end
+    def game_name=(value); @properties[:game_name] = value; end
+    def save_name=(value); @properties[:save_name] = value; end
+    def level_name=(value); @properties[:level_name] = value; end
+    def comments=(value); @properties[:comments] = value; end
+    def test_field=(value); @properties[:test_field] = value; end
+    def existing_key=(value); @properties[:existing_key] = value; end
+    def test_key=(value); @properties[:test_key] = value; end
+    def another_key=(value); @properties[:another_key] = value; end
+
+    # Delegate snake_case readers to @properties
+    def method_missing(method_name, *args, &block)
+      if method_name.to_s.end_with?('=') && args.length == 1
+        # Setter method
+        property_name = method_name.to_s.chomp('=').to_sym
+        @properties[property_name] = args[0]
+      elsif args.empty? && @properties.key?(method_name)
+        # Getter method  
+        @properties[method_name]
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      property_name = method_name.to_s.chomp('=').to_sym
+      @properties.key?(property_name) || super
+    end
+
+    # Backward compatibility methods for PascalCase access
+    def MagicNumber; @properties[:magic_number]; end
+    def MagicNumber=(value); @properties[:magic_number] = value; end
     
-    def ExistingKey; self["ExistingKey"]; end  
-    def ExistingKey=(value); self["ExistingKey"] = value; end
+    def HeaderVersion; @properties[:header_version]; end
+    def HeaderVersion=(value); @properties[:header_version] = value; end
     
-    def TestKey; self["TestKey"]; end
-    def TestKey=(value); self["TestKey"] = value; end
+    def HeaderSize; @properties[:header_size]; end
+    def HeaderSize=(value); @properties[:header_size] = value; end
     
-    def AnotherKey; self["AnotherKey"]; end
-    def AnotherKey=(value); self["AnotherKey"] = value; end
+    def ThumbnailOffset; @properties[:thumbnail_offset]; end
+    def ThumbnailOffset=(value); @properties[:thumbnail_offset] = value; end
     
-    def test_key; self["test_key"]; end
-    def test_key=(value); self["test_key"] = value; end
+    def ThumbnailSize; @properties[:thumbnail_size]; end
+    def ThumbnailSize=(value); @properties[:thumbnail_size] = value; end
+    
+    def GameGUID; @properties[:game_guid]; end
+    def GameGUID=(value); @properties[:game_guid] = value; end
+    
+    def GameName; @properties[:game_name]; end
+    def GameName=(value); @properties[:game_name] = value; end
+    
+    def SaveName; @properties[:save_name]; end
+    def SaveName=(value); @properties[:save_name] = value; end
+    
+    def LevelName; @properties[:level_name]; end
+    def LevelName=(value); @properties[:level_name] = value; end
+    
+    def Comments; @properties[:comments]; end
+    def Comments=(value); @properties[:comments] = value; end
+    
+    def TestField; @properties[:test_field]; end
+    def TestField=(value); @properties[:test_field] = value; end
+    
+    def ExistingKey; @properties[:existing_key]; end
+    def ExistingKey=(value); @properties[:existing_key] = value; end
+    
+    def TestKey; @properties[:test_key]; end
+    def TestKey=(value); @properties[:test_key] = value; end
+    
+    def AnotherKey; @properties[:another_key]; end
+    def AnotherKey=(value); @properties[:another_key] = value; end
+
+    # Hash-style access for backward compatibility
+    def [](key)
+      case key.to_s
+      when "MagicNumber" then @properties[:magic_number]
+      when "HeaderVersion" then @properties[:header_version]
+      when "HeaderSize" then @properties[:header_size]
+      when "ThumbnailOffset" then @properties[:thumbnail_offset]
+      when "ThumbnailSize" then @properties[:thumbnail_size]
+      when "GameGUID" then @properties[:game_guid]
+      when "GameName" then @properties[:game_name]
+      when "SaveName" then @properties[:save_name]
+      when "LevelName" then @properties[:level_name]
+      when "Comments" then @properties[:comments]
+      when "TestField" then @properties[:test_field]
+      when "ExistingKey" then @properties[:existing_key]
+      when "TestKey" then @properties[:test_key]
+      when "AnotherKey" then @properties[:another_key]
+      when "test_key" then @properties[:test_key]
+      else
+        # Try to find snake_case version
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key]
+      end
+    end
+
+    # Hash-style setter
+    def []=(key, value)
+      case key.to_s
+      when "MagicNumber" then @properties[:magic_number] = value
+      when "HeaderVersion" then @properties[:header_version] = value
+      when "HeaderSize" then @properties[:header_size] = value
+      when "ThumbnailOffset" then @properties[:thumbnail_offset] = value
+      when "ThumbnailSize" then @properties[:thumbnail_size] = value
+      when "GameGUID" then @properties[:game_guid] = value
+      when "GameName" then @properties[:game_name] = value
+      when "SaveName" then @properties[:save_name] = value
+      when "LevelName" then @properties[:level_name] = value
+      when "Comments" then @properties[:comments] = value
+      when "TestField" then @properties[:test_field] = value
+      when "ExistingKey" then @properties[:existing_key] = value
+      when "TestKey" then @properties[:test_key] = value
+      when "AnotherKey" then @properties[:another_key] = value
+      when "test_key" then @properties[:test_key] = value
+      else
+        # Convert to snake_case and store
+        snake_key = key.to_s.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym
+        @properties[snake_key] = value
+      end
+      value
+    end
 
     def fromstream(stream)
       data = stream.read(SIZEOFREC)
@@ -102,14 +227,14 @@ module XGStruct
 
       unpacked_data = data.unpack("C4l<l<Q<l<L<S<S<CCC6S<1024S<1024S<1024S<1024")
 
-      self["MagicNumber"] = unpacked_data[0..3].reverse.pack("C*").force_encoding("ASCII")
-      self["HeaderVersion"] = unpacked_data[4]
+      magic_number = unpacked_data[0..3].reverse.pack("C*").force_encoding("ASCII")
+      header_version = unpacked_data[4]
 
-      return nil if self["MagicNumber"] != "HMGR" || self["HeaderVersion"] != 1
+      return nil if magic_number != "HMGR" || header_version != 1
 
-      self["HeaderSize"] = unpacked_data[5]
-      self["ThumbnailOffset"] = unpacked_data[6]
-      self["ThumbnailSize"] = unpacked_data[7]
+      header_size = unpacked_data[5]
+      thumbnail_offset = unpacked_data[6]
+      thumbnail_size = unpacked_data[7]
 
       # Convert Delphi 4 component GUID to a UUID string
       guidp1, guidp2, guidp3, guidp4, _ = unpacked_data[8..12]
@@ -117,14 +242,25 @@ module XGStruct
 
       # Create UUID string in standard format
       guid_hex = sprintf("%08x-%04x-%04x-%04x-%s", guidp1, guidp2, guidp3, guidp4, guidp6)
-      self["GameGUID"] = guid_hex
 
-      self["GameName"] = XGUtils.utf16intarraytostr(unpacked_data[14..1037])
-      self["SaveName"] = XGUtils.utf16intarraytostr(unpacked_data[1038..2061])
-      self["LevelName"] = XGUtils.utf16intarraytostr(unpacked_data[2062..3085])
-      self["Comments"] = XGUtils.utf16intarraytostr(unpacked_data[3086..4109])
+      game_name = XGUtils.utf16intarraytostr(unpacked_data[14..1037])
+      save_name = XGUtils.utf16intarraytostr(unpacked_data[1038..2061])
+      level_name = XGUtils.utf16intarraytostr(unpacked_data[2062..3085])
+      comments = XGUtils.utf16intarraytostr(unpacked_data[3086..4109])
 
-      self
+      # Create new object with parsed values
+      GameDataFormatHdrRecord.new(
+        magic_number: magic_number,
+        header_version: header_version,
+        header_size: header_size,
+        thumbnail_offset: thumbnail_offset,
+        thumbnail_size: thumbnail_size,
+        game_guid: guid_hex,
+        game_name: game_name,
+        save_name: save_name,
+        level_name: level_name,
+        comments: comments
+      )
     end
   end
 
