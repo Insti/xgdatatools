@@ -629,4 +629,19 @@ class TestXGUtils < Minitest::Test
     result = XGUtils.render_dice("not an array")
     assert_equal "", result
   end
+
+  def test_player_to_symbol
+    # Test normal player conversions
+    assert_equal "X", XGUtils.player_to_symbol(1), "Player 1 should be X"
+    assert_equal "O", XGUtils.player_to_symbol(2), "Player 2 should be O"
+    
+    # Test edge cases
+    assert_equal "0", XGUtils.player_to_symbol(0), "Player 0 should fallback to string"
+    assert_equal "3", XGUtils.player_to_symbol(3), "Player 3 should fallback to string"
+    assert_equal "-1", XGUtils.player_to_symbol(-1), "Negative player should fallback to string"
+    
+    # Test with nil and other types
+    assert_equal "", XGUtils.player_to_symbol(nil), "nil should fallback to empty string"
+    assert_equal "test", XGUtils.player_to_symbol("test"), "String should fallback to itself"
+  end
 end
