@@ -1305,8 +1305,8 @@ module XGStruct
       return nil if data.nil? || data.length < SIZEOFREC
 
       # Parse first 64 bytes according to Python format: '<9xxxxllllll26bxx'
-      # Skip first 9 bytes, then 4 more padding bytes = 13 bytes total
-      offset = 13
+      # Skip first 9 bytes, then 3 more padding bytes = 12 bytes total
+      offset = 12
       
       # ActiveP, Double, Take, BeaverR, RaccoonR, CubeB: 6 signed longs (24 bytes)
       initial_data = data[offset, 24].unpack("l<l<l<l<l<l<")
@@ -1348,7 +1348,7 @@ module XGStruct
         
         # DiceRolled: 3 bytes (convert to string)
         dice_bytes = data[remaining_offset, 3].unpack("CCC")
-        dice_rolled = dice_bytes[0] > 0 ? dice_bytes[0..1].pack("CC") : ""
+        dice_rolled = XGUtils.delphishortstrtostr(dice_bytes)
         remaining_offset += 3
         
         # Skip 5 padding bytes

@@ -1072,13 +1072,13 @@ class TestXGStruct < Minitest::Test
     data = "\x00" * 2560
     
     # Set some recognizable values in the correct positions
-    # Skip first 13 bytes (9 + 4 padding), then set 6 longs for ActiveP, Double, Take, BeaverR, RaccoonR, CubeB
-    data[13, 4] = [-1].pack("l<")  # ActiveP = -1 (signed)
-    data[17, 4] = [1].pack("l<")   # Double = 1
-    data[21, 4] = [1].pack("l<")   # Take = 1
-    data[25, 4] = [0].pack("l<")   # BeaverR = 0  
-    data[29, 4] = [0].pack("l<")   # RaccoonR = 0
-    data[33, 4] = [2].pack("l<")   # CubeB = 2
+    # Skip first 12 bytes (9 + 3 padding), then set 6 longs for ActiveP, Double, Take, BeaverR, RaccoonR, CubeB
+    data[12, 4] = [-1].pack("l<")  # ActiveP = -1 (signed)
+    data[16, 4] = [1].pack("l<")   # Double = 1
+    data[20, 4] = [1].pack("l<")   # Take = 1
+    data[24, 4] = [0].pack("l<")   # BeaverR = 0  
+    data[28, 4] = [0].pack("l<")   # RaccoonR = 0
+    data[32, 4] = [2].pack("l<")   # CubeB = 2
 
     stream = StringIO.new(data)
     record = XGStruct::CubeEntry.new
@@ -1098,12 +1098,12 @@ class TestXGStruct < Minitest::Test
     data = "\x00" * 2560
     
     # Test various negative values that are meaningful in cube context
-    data[13, 4] = [-1].pack("l<")   # ActiveP = -1 (player 2)
-    data[17, 4] = [0].pack("l<")    # Double = 0 (no double)
-    data[21, 4] = [0].pack("l<")    # Take = 0 (no take)
-    data[25, 4] = [0].pack("l<")    # BeaverR = 0
-    data[29, 4] = [0].pack("l<")    # RaccoonR = 0
-    data[33, 4] = [-3].pack("l<")   # CubeB = -3 (opponent owns 8-cube)
+    data[12, 4] = [-1].pack("l<")   # ActiveP = -1 (player 2)
+    data[16, 4] = [0].pack("l<")    # Double = 0 (no double)
+    data[20, 4] = [0].pack("l<")    # Take = 0 (no take)
+    data[24, 4] = [0].pack("l<")    # BeaverR = 0
+    data[28, 4] = [0].pack("l<")    # RaccoonR = 0
+    data[32, 4] = [-3].pack("l<")   # CubeB = -3 (opponent owns 8-cube)
 
     stream = StringIO.new(data)
     record = XGStruct::CubeEntry.new

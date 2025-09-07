@@ -235,16 +235,16 @@ module XGFileParser
     # Parse Cube record
     def parse_cube_record(data)
       # Use the CubeEntry class to fully parse the cube data
-      # The CubeEntry.fromstream expects data in standard format starting at offset 13
+      # The CubeEntry.fromstream expects data in standard format starting at offset 12
       # But XG files have the data starting at offset 9
       # Create a properly formatted data buffer for CubeEntry
       adjusted_data = "\x00" * 2560
       
-      # Copy the XG file data starting at offset 9 to the expected offset 13
+      # Copy the XG file data starting at offset 9 to the expected offset 12
       if data.size >= 33  # We need at least Active(9-12) + Double(13-16) + more fields
-        # Copy bytes 9 onwards to position 13 onwards  
+        # Copy bytes 9 onwards to position 12 onwards  
         source_data = data[9..-1]  # Get from offset 9 to end
-        adjusted_data[13, source_data.size] = source_data
+        adjusted_data[12, source_data.size] = source_data
       end
       
       cube_entry = XGStruct::CubeEntry.new
