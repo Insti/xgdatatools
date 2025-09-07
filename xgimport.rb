@@ -185,7 +185,7 @@ module XGImport
           yield xg_filesegment
 
           segment_file.close
-          File.unlink(seg_filename)
+          File.unlink(seg_filename) if File.exist?(seg_filename)
         end
       end
     end
