@@ -21,7 +21,6 @@ rescue LoadError
 end
 
 require "minitest/autorun"
-require "minitest/pride"
 require "stringio"
 require "tempfile"
 require "fileutils"
