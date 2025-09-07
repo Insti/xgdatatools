@@ -6,6 +6,7 @@
 # new XGFileParser module.
 
 require_relative "xgfile_parser"
+require_relative "xgutils"
 require "pp"
 require "debug"
 
@@ -201,7 +202,7 @@ def demo_parse_xg_file(filename)
           puts "  Analysis Level: #{record['AnalyzeCR']}-ply"
         end
       when "Move"
-        puts "  Active Player: #{record['ActivePlayer']}"
+        puts "  Active Player: #{XGUtils.player_to_symbol(record['ActivePlayer'])}"
         position = record['PositionI'] # or record['XGID']
         puts XGUtils.render_board(position)
         puts XGUtils.render_dice(record['Dice'])

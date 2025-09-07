@@ -290,4 +290,19 @@ module XGUtils
       end
     end
   end
+
+  # Convert player number to the corresponding checker symbol used in board display
+  #
+  # @param player [Integer] Player number (1 or 2)
+  # @return [String] Checker symbol ('X' for Player 1, 'O' for Player 2)
+  def self.player_to_symbol(player)
+    case player
+    when 1
+      "X"
+    when 2
+      "O"
+    else
+      player.to_s  # Fallback to original number if unexpected value
+    end
+  end
 end
