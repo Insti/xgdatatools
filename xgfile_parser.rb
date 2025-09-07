@@ -173,14 +173,22 @@ module XGFileParser
       while !@decompressed_stream.eof?
         record_data = @decompressed_stream.read(record_size)
         break if record_data.nil? || record_data.size < record_size
-        
         # Parse the record header to determine type
         # First 8 bytes: Previous(4) + Next(4) pointers
         # 9th byte: EntryType (0..6 → tsHeaderMatch..tsFooterMatch)
         entry_type = record_data[8].unpack("C")[0] if record_data.size > 8
-        
+
         record = parse_record_by_type(record_data, entry_type)
-        @game_records << record if record
+
+
+        if record
+          # Determine record type name for filename (fallback to "Unknown" if not found)
+          type = record["Type"] || "Unknown"
+          # Save raw binary to file with format <index>_<type>.bin
+          File.open("#{@game_records.size}_#{type}.bin", "wb") { |f| f.write(record_data) }
+
+          @game_records << record 
+        end
       end
     end
     
