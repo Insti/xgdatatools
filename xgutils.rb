@@ -220,10 +220,17 @@ module XGUtils
     [5, 4, 3, 2, 1, 0].each { |p| header_bottom += " #{p.to_s.rjust(2)} |" }
     header_bottom += " OFF |"
     lines << header_bottom
-    
+
     lines.join("\n")
   end
-  
+
+  def self.render_moves(moves)
+    moves.each_slice(2)
+      .take_while { |from, to| from != -1 && to != -1 }
+      .map { |from, to| "#{from + 1}/#{to + 1}" }
+      .join(", ")
+  end
+
   # Helper method to get the appropriate checker character for a position
   # @param checkers [Integer] Number of checkers at position (positive=Player1, negative=Player2)
   # @param row [Integer] Row number (0-4)
