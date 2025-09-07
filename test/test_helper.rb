@@ -26,6 +26,13 @@ require "stringio"
 require "tempfile"
 require "fileutils"
 
+# Configure logging to be silent during tests
+require_relative "../xgdatatools"
+require "logger"
+null_logger = Logger.new(File::NULL)
+null_logger.level = Logger::FATAL
+Xgdatatools.logger = null_logger
+
 # Test helper module for common test utilities
 module TestHelper
   # Create a StringIO with test data

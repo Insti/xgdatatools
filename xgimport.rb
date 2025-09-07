@@ -20,7 +20,7 @@
 
 require "tempfile"
 require "fileutils"
-require "logger"
+require_relative "xgdatatools"
 require_relative "xgutils"
 require_relative "xgzarc"
 require_relative "xgstruct"
@@ -115,7 +115,7 @@ module XGImport
     def getfilesegment
       return enum_for(:getfilesegment) unless block_given?
 
-      logger = $logger || Logger.new(STDOUT)
+      logger = Xgdatatools.logger
       logger.debug "Starting file segment extraction for: #{@filename}"
 
       File.open(@filename, "rb") do |xginfile|

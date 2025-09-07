@@ -21,7 +21,7 @@
 
 require "optparse"
 require "pp"
-require "logger"
+require_relative "xgdatatools"
 require_relative "xgimport"
 require_relative "xgzarc"
 require_relative "xgstruct"
@@ -85,20 +85,8 @@ if __FILE__ == $PROGRAM_NAME
   end
 
   # Initialize logger
-  logger = Logger.new(STDOUT)
-  logger.level = case options[:log_level]
-                 when :debug then Logger::DEBUG
-                 when :info then Logger::INFO  
-                 when :warn then Logger::WARN
-                 when :error then Logger::ERROR
-                 else Logger::INFO
-                 end
-  logger.formatter = proc do |severity, datetime, progname, msg|
-    "[#{severity}] #{msg}\n"
-  end
-
-  # Make logger available globally for all modules
-  $logger = logger
+  Xgdatatools.init_logger(level: options[:log_level])
+  logger = Xgdatatools.logger
 
   ARGV.each do |xgfilename|
     logger.info "Processing file: #{xgfilename}"
