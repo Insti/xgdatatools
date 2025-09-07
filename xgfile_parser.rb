@@ -234,13 +234,38 @@ module XGFileParser
     
     # Parse Cube record
     def parse_cube_record(data)
-      {
-        "EntryType" => 2,
-        "Type" => "Cube",
-        "Active" => data[9, 4].unpack("l<")[0],
-        "Double" => data[13, 4].unpack("l<")[0],
-        "RawData" => data[0, 50].unpack("H*")[0]
-      }
+      # Use the CubeEntry class to fully parse the cube data
+      # The CubeEntry.fromstream expects data in standard format starting at offset 13
+      # But XG files have the data starting at offset 9
+      # Create a properly formatted data buffer for CubeEntry
+      adjusted_data = "\x00" * 2560
+      
+      # Copy the XG file data starting at offset 9 to the expected offset 13
+      if data.size >= 33  # We need at least Active(9-12) + Double(13-16) + more fields
+        # Copy bytes 9 onwards to position 13 onwards  
+        source_data = data[9..-1]  # Get from offset 9 to end
+        adjusted_data[13, source_data.size] = source_data
+      end
+      
+      cube_entry = XGStruct::CubeEntry.new
+      stream = StringIO.new(adjusted_data)
+      parsed_cube = cube_entry.fromstream(stream)
+      
+      if parsed_cube
+        # Add backward compatibility fields for existing tests
+        parsed_cube["Active"] = parsed_cube["ActiveP"]
+        # Return the fully parsed cube object
+        parsed_cube
+      else
+        # Fallback to basic parsing if full parsing fails
+        {
+          "EntryType" => 2,
+          "Type" => "Cube",
+          "Active" => data[9, 4].unpack("l<")[0],
+          "Double" => data[13, 4].unpack("l<")[0],
+          "RawData" => data[0, 50].unpack("H*")[0]
+        }
+      end
     end
     
     # Parse Move record
