@@ -5,6 +5,8 @@
 
 require_relative "xgutils"
 
+EMPTY_BOARD = [0] * 26
+
 puts "Demo: Backgammon Board ASCII Renderer"
 puts "=" * 50
 
