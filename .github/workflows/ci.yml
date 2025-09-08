@@ -20,7 +20,10 @@ jobs:
         ruby-version: '3.4'
         
     - name: Install dependencies
-      run: gem install simplecov
+      run: gem install simplecov standard
+      
+    - name: Check code formatting
+      run: standardrb
       
     - name: Run tests
       run: rake test
