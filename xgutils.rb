@@ -342,4 +342,44 @@ module XGUtils
       player.to_s  # Fallback to original number if unexpected value
     end
   end
+
+  # Create a position array from a hash of point mappings
+  #
+  # Takes a hash where keys are point numbers (0-25) and values are signed checker counts.
+  # Returns a 26-element position array following the XG PositionEngine format:
+  # - Index 0: Opponent's bar (negative values for opponent checkers on bar)
+  # - Indices 1-24: The 24 points on the board (standard backgammon numbering)
+  # - Index 25: Player's bar (positive values for player checkers on bar)
+  #
+  # Positive values indicate Player's checkers, negative values indicate Opponent's checkers.
+  #
+  # @param point_hash [Hash] Hash with point numbers as keys (0-25) and signed checker counts as values
+  # @return [Array<Integer>] 26-element position array
+  # @raise [ArgumentError] If input is not a hash or contains invalid point numbers
+  #
+  # @example
+  #   position = XGUtils.create_position({ 1 => -1, 20 => 4 })
+  #   # Returns: [0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0]
+  def self.create_position(point_hash)
+    # Validate input type
+    unless point_hash.is_a?(Hash)
+      raise ArgumentError, "Input must be a Hash, got #{point_hash.class}"
+    end
+
+    # Initialize position array with 26 zeros
+    position = Array.new(26, 0)
+
+    # Process each point mapping
+    point_hash.each do |point, checkers|
+      # Validate point number
+      unless point.is_a?(Integer) && point >= 0 && point <= 25
+        raise ArgumentError, "Point number must be an integer between 0 and 25, got #{point}"
+      end
+
+      # Set the checker count at the specified point
+      position[point] = checkers.to_i
+    end
+
+    position
+  end
 end
