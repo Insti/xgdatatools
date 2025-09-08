@@ -83,42 +83,6 @@ module XGUtils
     shortstring_abytes[1, length].pack("C*").force_encoding("UTF-8")
   end
 
-  # Format a point number as exactly 3 characters for board display.
-  # 1-digit numbers (1-9) are centered with spaces: " 1 "
-  # 2-digit numbers (10-24) are left-aligned with trailing space: "10 "
-  #
-  # @param point [Integer] Point number (1-24)
-  # @return [String] 3-character formatted point number
-  def self.format_point_3char(point)
-    if point < 10
-      " #{point} "  # 1-digit: center with spaces
-    else
-      "#{point} "   # 2-digit: left-align with trailing space
-    end
-  end
-
-  # Format a checker character as exactly 3 characters for board display.
-  # All characters are centered with spaces: " X "
-  #
-  # @param char [String] Checker character ('X', 'O', or ' ')
-  # @return [String] 3-character formatted checker
-  def self.format_checker_3char(char)
-    " #{char} "
-  end
-
-  # Format a stack count number as exactly 3 characters for board display.
-  # Numbers are centered with spaces: " 7 " for single digit, "12 " for double digit
-  #
-  # @param count [Integer] Stack count (6-15, since we only show counts for stacks > 5)
-  # @return [String] 3-character formatted stack count
-  def self.format_stack_count_3char(count)
-    if count < 10
-      " #{count} "  # Single digit: center with spaces
-    else
-      "#{count} "   # Double digit: left-align with trailing space
-    end
-  end
-
   # Render an ASCII representation of a backgammon board given a position array.
   #
   # The position array is a PositionEngine (array[0..25] of ShortInt) following XG format:
