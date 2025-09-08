@@ -165,9 +165,8 @@ module XGUtils
       # For 26-element arrays: no bar checkers (fallback to 0)
       player1_bar = (position.length == 28) ? position[26] : 0
       player2_bar = (position.length == 28) ? position[27] : 0
-      # Combine both players' bar checkers for display (Player 1 positive, Player 2 negative)
-      combined_bar = player1_bar + player2_bar
-      bar_char = get_checker_char_for_position(combined_bar, row, :upper)
+      # Use specialized bar display logic to handle both players properly
+      bar_char = get_bar_char(player1_bar, player2_bar, row, :upper)
       line += " #{bar_char.center(3)} |"
 
       # Points 19-24 (home board)
@@ -203,9 +202,8 @@ module XGUtils
       # For 26-element arrays: no bar checkers (fallback to 0)
       player1_bar = (position.length == 28) ? position[26] : 0
       player2_bar = (position.length == 28) ? position[27] : 0
-      # Combine both players' bar checkers for display (Player 1 positive, Player 2 negative)
-      combined_bar = player1_bar + player2_bar
-      bar_char = get_checker_char_for_position(combined_bar, row, :lower)
+      # Use specialized bar display logic to handle both players properly
+      bar_char = get_bar_char(player1_bar, player2_bar, row, :lower)
       line += " #{bar_char.center(3)} |"
 
       # Points 6-1 (home board)
@@ -250,6 +248,40 @@ module XGUtils
       .take_while { |from, to| from != -1 && to != -1 }
       .map { |from, to| "#{from + 1}/#{to + 1}" }
       .join(", ")
+  end
+
+  # Helper method to get the appropriate checker character for the bar column
+  # @param player1_checkers [Integer] Number of Player 1 checkers on bar (positive)
+  # @param player2_checkers [Integer] Number of Player 2 checkers on bar (negative)
+  # @param row [Integer] Row number (0-4)
+  # @param half [Symbol] :upper or :lower half of board
+  # @return [String] Character to display ('X', 'O', number, or space)
+  def self.get_bar_char(player1_checkers, player2_checkers, row, half)
+    abs_p1 = player1_checkers.abs
+    abs_p2 = player2_checkers.abs
+    
+    # If no checkers for either player, return space
+    return " " if abs_p1 == 0 && abs_p2 == 0
+    
+    # Handle cases where both players have checkers on bar
+    if abs_p1 > 0 && abs_p2 > 0
+      # Both players have checkers - we need to display them in the available rows
+      # For simplicity, prioritize the player with more checkers for the visual display
+      # and show counts when there are tall stacks
+      if abs_p1 >= abs_p2
+        # Player 1 has more (or equal), show as Player 1 checkers
+        return get_checker_char_for_position(player1_checkers, row, half)
+      else
+        # Player 2 has more, show as Player 2 checkers  
+        return get_checker_char_for_position(player2_checkers, row, half)
+      end
+    elsif abs_p1 > 0
+      # Only Player 1 has checkers
+      return get_checker_char_for_position(player1_checkers, row, half)
+    else
+      # Only Player 2 has checkers
+      return get_checker_char_for_position(player2_checkers, row, half)
+    end
   end
 
   # Helper method to get the appropriate checker character for a position
