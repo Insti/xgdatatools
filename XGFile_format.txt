@@ -210,6 +210,24 @@ XGFile Format Specification – Complete Reference
 
 6. Helper Records
    PositionEngine = array[0..25] of ShortInt
+   
+   The PositionEngine array represents the complete board state using the XG format:
+   - Index 0: Opponent's bar checkers (negative values)
+   - Indices 1-24: Board points using standard backgammon numbering
+     * Point 1: Player's home board (rightmost)
+     * Points 2-6: Player's home board
+     * Points 7-12: Player's outer board  
+     * Point 13: Opponent's outer board (leftmost)
+     * Points 14-18: Opponent's outer board
+     * Points 19-24: Opponent's home board
+   - Index 25: Player's bar checkers (positive values)
+   
+   Value interpretation:
+   - Positive values: Player's checkers on that position
+   - Negative values: Opponent's checkers on that position
+   - Zero: No checkers on that position
+   - Bear-off checkers are tracked separately, not in this array
+   
    TResult = array[0..6] of Single
    TEvalLevel = record  Level:SmallInt; isDouble:Boolean; Fill1:byte; end
    TTimeSetting = record
