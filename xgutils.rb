@@ -259,10 +259,10 @@ module XGUtils
   def self.get_bar_char(player_checkers, opponent_checkers, row, half)
     abs_player = player_checkers.abs
     abs_opponent = opponent_checkers.abs
-    
+
     # If no checkers for either player, return space
     return " " if abs_player == 0 && abs_opponent == 0
-    
+
     # Handle cases where both players have checkers on bar
     if abs_player > 0 && abs_opponent > 0
       # Both players have checkers - we need to display them in the available rows
@@ -270,17 +270,17 @@ module XGUtils
       # and show counts when there are tall stacks
       if abs_player >= abs_opponent
         # Player has more (or equal), show as Player checkers
-        return get_checker_char_for_position(player_checkers, row, half)
+        get_checker_char_for_position(player_checkers, row, half)
       else
-        # Opponent has more, show as Opponent checkers  
-        return get_checker_char_for_position(opponent_checkers, row, half)
+        # Opponent has more, show as Opponent checkers
+        get_checker_char_for_position(opponent_checkers, row, half)
       end
     elsif abs_player > 0
       # Only Player has checkers
-      return get_checker_char_for_position(player_checkers, row, half)
+      get_checker_char_for_position(player_checkers, row, half)
     else
       # Only Opponent has checkers
-      return get_checker_char_for_position(opponent_checkers, row, half)
+      get_checker_char_for_position(opponent_checkers, row, half)
     end
   end
 

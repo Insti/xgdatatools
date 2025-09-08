@@ -111,5 +111,4 @@ bar_position_both[0] = -8    # 8 Opponent checkers on bar (index 0)
 
 puts XGUtils.render_board(bar_position_both)
 
-
 puts "\nDemo complete!"
