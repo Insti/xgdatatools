@@ -93,7 +93,7 @@ module XGFileParser
 
       # Extract GUID (16 bytes starting at offset 20)
       guid_data = header_data[20, 16]
-      guid = guid_data ? guid_data.unpack1("H*") : nil
+      guid = guid_data&.unpack1("H*")
 
       # Extract Unicode strings (each 2048 bytes = 1024 WideChars)
       # GameName starts at offset 36
@@ -243,7 +243,7 @@ module XGFileParser
       # Copy the XG file data starting at offset 9 to the expected offset 12
       if data.size >= 33  # We need at least Active(9-12) + Double(13-16) + more fields
         # Copy bytes 9 onwards to position 12 onwards
-        source_data = data[9..-1]  # Get from offset 9 to end
+        source_data = data[9..]  # Get from offset 9 to end
         adjusted_data[12, source_data.size] = source_data
       end
 
@@ -264,10 +264,7 @@ module XGFileParser
       stream = StringIO.new(data)
       parsed_move = move_entry.fromstream(stream)
 
-      if parsed_move
-        # Return the fully parsed move object
-        parsed_move
-      else
+      parsed_move ||
         # Fallback to basic parsing if full parsing fails
         {
           "EntryType" => 3,
@@ -275,7 +272,6 @@ module XGFileParser
           "ActivePlayer" => data[9 + 52, 4].unpack1("l<"),
           "RawData" => data[0, 100].unpack1("H*")
         }
-      end
     end
 
     # Parse FooterGame record

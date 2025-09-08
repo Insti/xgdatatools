@@ -327,7 +327,7 @@ class TestXGZarc < Minitest::Test
     assert_equal false, file_record["compressed"]
 
     # Test successful cleanup
-    archive.stream.close if archive.stream
+    archive.stream&.close
   end
 
   def test_zlib_archive_getarchivefile_with_fixture

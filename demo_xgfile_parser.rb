@@ -190,8 +190,8 @@ def demo_parse_xg_file(filename)
         end
 
         # Show error analysis (human-readable) - only show if values are reasonable
-        if record["ErrCube"] && record["ErrCube"].is_a?(Numeric) && record["ErrCube"].abs < 100
-          if record["ErrCube"] == -1000.0
+        if record["ErrCube"]&.is_a?(Numeric) && record["ErrCube"].abs < 100
+          if (record["ErrCube"] + 1000.0).abs < 0.0001
             puts "  Double Analysis: Not analyzed"
           elsif record["ErrCube"] > 0.001
             puts "  Double Error: #{sprintf("%.3f", record["ErrCube"])} (should have NOT doubled)"
@@ -202,8 +202,8 @@ def demo_parse_xg_file(filename)
           end
         end
 
-        if record["ErrTake"] && record["ErrTake"].is_a?(Numeric) && record["ErrTake"].abs < 100
-          if record["ErrTake"] == -1000.0
+        if record["ErrTake"]&.is_a?(Numeric) && record["ErrTake"].abs < 100
+          if (record["ErrTake"] + 1000.0).abs < 0.0001
             puts "  Take Analysis: Not analyzed"
           elsif record["ErrTake"] > 0.001
             puts "  Take Error: #{sprintf("%.3f", record["ErrTake"])} (should have PASSED)"
@@ -220,7 +220,7 @@ def demo_parse_xg_file(filename)
         end
 
         # Show analysis level if available and reasonable
-        if record["AnalyzeCR"] && record["AnalyzeCR"].is_a?(Numeric) && record["AnalyzeCR"] > 0 && record["AnalyzeCR"] < 10
+        if record["AnalyzeCR"]&.is_a?(Numeric) && record["AnalyzeCR"] > 0 && record["AnalyzeCR"] < 10
           puts "  Analysis Level: #{record["AnalyzeCR"]}-ply"
         end
       when "Move"

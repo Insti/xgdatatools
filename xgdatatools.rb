@@ -29,7 +29,7 @@ module Xgdatatools
   end
 
   # Initialize the logger with optional configuration
-  def self.init_logger(level: :info, output: STDOUT)
+  def self.init_logger(level: :info, output: $stdout)
     @logger = create_logger(level: level, output: output)
   end
 
@@ -40,7 +40,7 @@ module Xgdatatools
 
   private
 
-  def self.create_logger(level: :info, output: STDOUT)
+  private_class_method def self.create_logger(level: :info, output: $stdout)
     logger = Logger.new(output)
     logger.level = case level
     when :debug then Logger::DEBUG
