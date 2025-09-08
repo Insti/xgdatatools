@@ -270,13 +270,11 @@ module XGUtils
       else
         " "
       end
-    else
+    elsif abs_player > 0
       # Lower half: show player's bar checkers only
-      if abs_player > 0
-        get_checker_char_for_position(player_checkers, row, half)
-      else
-        " "
-      end
+      get_checker_char_for_position(player_checkers, row, half)
+    else
+      " "
     end
   end
 

@@ -540,9 +540,133 @@ class TestXGUtils < Minitest::Test
 
     result = XGUtils.render_board(position)
 
-    # Should prioritize the player with more checkers (Player has 5 > Opponent has 3)
-    assert result.include?("X"), "Should show Player checkers when Player has more on bar"
+    # Should show both players' checkers on their respective sides
+    assert result.include?("X"), "Should show Player checkers in lower half"
+    assert result.include?("O"), "Should show Opponent checkers in upper half"
     assert result.include?(" 5"), "Should show count 5 for Player bar stack"
+    assert result.include?(" 3"), "Should show count 3 for Opponent bar stack"
+  end
+
+  def test_render_board_bar_positioning_rules
+    # Test specific rules for bar checker positioning:
+    # Player checkers on bar appear only in the lower half (player's side)
+    # Opponent checkers on bar appear only in the upper half (opponent's side)
+    position = [0] * 26
+
+    # Test with Player checkers only on bar
+    position[25] = 6    # 6 Player checkers on bar
+    position[0] = 0     # No Opponent checkers on bar
+
+    result = XGUtils.render_board(position)
+    lines = result.split("\n")
+
+    # Find the middle separator line index
+    middle_line_idx = nil
+    lines.each_with_index do |line, idx|
+      if line.include?("---") && !line.include?("Board")
+        middle_line_idx = idx
+        break
+      end
+    end
+
+    assert middle_line_idx, "Should find middle separator line"
+
+    # Check that Player checkers appear only in lower half
+    # Look specifically for lines with BAR column content (not headers/labels)
+    upper_half_has_x_in_bar = false
+    lower_half_has_x_in_bar = false
+
+    lines.each_with_index do |line, idx|
+      # Skip header lines and separator lines
+      next if line.include?("BAR |") || line.include?("Board") || line.include?("---")
+      # Look for actual checker content in BAR column
+      next unless /\|\s+\|\s+\|\s+\|\s+\|\s+\|\s+\|\s+[XO6\s]+\s+\|/.match?(line)
+
+      if line.include?("X") && idx < middle_line_idx
+        upper_half_has_x_in_bar = true
+      elsif line.include?("X") && idx > middle_line_idx
+        lower_half_has_x_in_bar = true
+      end
+    end
+
+    refute upper_half_has_x_in_bar, "Player checkers should not appear in upper half BAR"
+    assert lower_half_has_x_in_bar, "Player checkers should appear in lower half BAR"
+
+    # Test with Opponent checkers only on bar
+    position[25] = 0    # No Player checkers on bar
+    position[0] = -6    # 6 Opponent checkers on bar
+
+    result = XGUtils.render_board(position)
+    lines = result.split("\n")
+
+    # Check that Opponent checkers appear only in upper half
+    upper_half_has_o_in_bar = false
+    lower_half_has_o_in_bar = false
+
+    lines.each_with_index do |line, idx|
+      # Skip header lines and separator lines
+      next if line.include?("BAR |") || line.include?("Board") || line.include?("---")
+      # Look for actual checker content in BAR column, excluding "P=O" text
+      next unless /\|\s+\|\s+\|\s+\|\s+\|\s+\|\s+\|\s+[XO6\s]+\s+\|/.match?(line)
+      next if line.include?("P=O")  # Skip the "P=O Home Board" line
+
+      if line.include?("O") && idx < middle_line_idx
+        upper_half_has_o_in_bar = true
+      elsif line.include?("O") && idx > middle_line_idx
+        lower_half_has_o_in_bar = true
+      end
+    end
+
+    assert upper_half_has_o_in_bar, "Opponent checkers should appear in upper half BAR"
+    refute lower_half_has_o_in_bar, "Opponent checkers should not appear in lower half BAR"
+  end
+
+  def test_render_board_bar_small_stacks
+    # Test bar rendering with small stacks (1-5 checkers)
+    position = [0] * 26
+
+    # Test with 3 Player checkers and 2 Opponent checkers
+    position[25] = 3    # 3 Player checkers on bar
+    position[0] = -2    # 2 Opponent checkers on bar
+
+    result = XGUtils.render_board(position)
+
+    # Should show individual checker symbols
+    assert result.include?("X"), "Should show Player checker symbols"
+    assert result.include?("O"), "Should show Opponent checker symbols"
+
+    # For stacks > 0, the system shows counts regardless of size
+    assert result.include?(" 3"), "Should show count 3 for Player stack"
+    assert result.include?(" 2"), "Should show count 2 for Opponent stack"
+  end
+
+  def test_render_board_bar_edge_cases
+    # Test edge cases for bar rendering
+    position = [0] * 26
+
+    # Test with one checker each
+    position[25] = 1    # 1 Player checker on bar
+    position[0] = -1    # 1 Opponent checker on bar
+
+    result = XGUtils.render_board(position)
+    assert result.include?("X"), "Should show single Player checker"
+    assert result.include?("O"), "Should show single Opponent checker"
+
+    # Test with maximum typical stack (15 checkers each)
+    position[25] = 15   # 15 Player checkers on bar
+    position[0] = -15   # 15 Opponent checkers on bar
+
+    result = XGUtils.render_board(position)
+    assert result.include?("15"), "Should show count 15 for large Player stack"
+    assert result.include?("15"), "Should show count 15 for large Opponent stack"
+
+    # Test with no bar checkers
+    position[25] = 0    # No Player checkers on bar
+    position[0] = 0     # No Opponent checkers on bar
+
+    result = XGUtils.render_board(position)
+    # BAR column should exist but be empty (spaces)
+    assert result.include?("BAR"), "Should still show BAR column header"
   end
 
   def test_render_board_mixed_positions
