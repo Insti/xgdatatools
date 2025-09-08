@@ -686,15 +686,15 @@ class TestXGUtils < Minitest::Test
 
   def test_create_position_basic
     # Test basic functionality with simple hash
-    position = XGUtils.create_position({ 1 => -1, 20 => 4 })
-    
+    position = XGUtils.create_position({1 => -1, 20 => 4})
+
     # Should return 26-element array
     assert_equal 26, position.length, "Position array should have 26 elements"
-    
+
     # Check specific positions
-    assert_equal -1, position[1], "Point 1 should have -1 (opponent checker)"
+    assert_equal(-1, position[1], "Point 1 should have -1 (opponent checker)")
     assert_equal 4, position[20], "Point 20 should have 4 (player checkers)"
-    
+
     # All other positions should be 0
     (0..25).each do |i|
       next if i == 1 || i == 20
@@ -705,9 +705,9 @@ class TestXGUtils < Minitest::Test
   def test_create_position_empty_hash
     # Test with empty hash
     position = XGUtils.create_position({})
-    
+
     assert_equal 26, position.length, "Position array should have 26 elements"
-    
+
     # All positions should be 0
     (0..25).each do |i|
       assert_equal 0, position[i], "Position #{i} should be 0 for empty hash"
@@ -724,17 +724,17 @@ class TestXGUtils < Minitest::Test
       0 => -2,     # opponent checkers on bar (index 0)
       25 => 1      # player checkers on bar (index 25)
     })
-    
+
     assert_equal 26, position.length, "Position array should have 26 elements"
-    
+
     # Check all specified positions
-    assert_equal -2, position[0], "Opponent bar should have -2"
+    assert_equal(-2, position[0], "Opponent bar should have -2")
     assert_equal 2, position[1], "Point 1 should have 2"
-    assert_equal -3, position[6], "Point 6 should have -3"
+    assert_equal(-3, position[6], "Point 6 should have -3")
     assert_equal 5, position[13], "Point 13 should have 5"
-    assert_equal -1, position[24], "Point 24 should have -1"
+    assert_equal(-1, position[24], "Point 24 should have -1")
     assert_equal 1, position[25], "Player bar should have 1"
-    
+
     # Check some unspecified positions are 0
     assert_equal 0, position[2], "Point 2 should be 0"
     assert_equal 0, position[12], "Point 12 should be 0"
@@ -747,9 +747,9 @@ class TestXGUtils < Minitest::Test
       24 => -15,   # maximum checkers for opponent
       12 => 0      # explicitly setting to 0
     })
-    
+
     assert_equal 15, position[1], "Point 1 should have 15"
-    assert_equal -15, position[24], "Point 24 should have -15"
+    assert_equal(-15, position[24], "Point 24 should have -15")
     assert_equal 0, position[12], "Point 12 should be 0"
   end
 
@@ -762,9 +762,9 @@ class TestXGUtils < Minitest::Test
 
   def test_create_position_invalid_points
     # Test with invalid point numbers - should handle gracefully
-    assert_raises(ArgumentError) { XGUtils.create_position({ -1 => 2 }) }
-    assert_raises(ArgumentError) { XGUtils.create_position({ 26 => 2 }) }
-    assert_raises(ArgumentError) { XGUtils.create_position({ 100 => 2 }) }
+    assert_raises(ArgumentError) { XGUtils.create_position({-1 => 2}) }
+    assert_raises(ArgumentError) { XGUtils.create_position({26 => 2}) }
+    assert_raises(ArgumentError) { XGUtils.create_position({100 => 2}) }
   end
 
   def test_create_position_integration_with_render_board
@@ -775,10 +775,10 @@ class TestXGUtils < Minitest::Test
       13 => 5,
       24 => -1
     })
-    
+
     # Should be able to render the board without errors
     result = XGUtils.render_board(position)
-    
+
     assert result.is_a?(String), "render_board should return a string"
     assert result.include?("X"), "Should show player checkers"
     assert result.include?("O"), "Should show opponent checkers"
