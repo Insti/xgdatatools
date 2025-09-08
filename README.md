@@ -96,6 +96,7 @@ The position array follows the XG PositionEngine format:
 - **Positive values**: Player's checkers
 - **Negative values**: Opponent's checkers
 - **Bear-off checkers**: Handled separately from this positional array
+- **Bear-off calculation**: Bear-off checkers for each player are calculated as 15 minus the (absolute) number of checkers remaining on the board (or bar) for that player
 
 ### Testing
 ```bash

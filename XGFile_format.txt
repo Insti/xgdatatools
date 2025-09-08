@@ -227,6 +227,8 @@ XGFile Format Specification – Complete Reference
    - Negative values: Opponent's checkers on that position
    - Zero: No checkers on that position
    - Bear-off checkers are tracked separately, not in this array
+   - Bear-off checkers for each player are calculated as 15 minus the (absolute) 
+     number of checkers remaining on the board (or bar) for that player
    
    TResult = array[0..6] of Single
    TEvalLevel = record  Level:SmallInt; isDouble:Boolean; Fill1:byte; end
