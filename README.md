@@ -89,6 +89,25 @@ position[0] = 1    # 1 Player 1 checker in bear-off
 puts XGUtils.render_board(position)
 ```
 
+### Creating Position Arrays
+
+You can also create position arrays from a compact hash format using the `create_position` method:
+
+```ruby
+require_relative "xgutils"
+
+# Create position from hash mapping point numbers to checker counts
+position = XGUtils.create_position({
+  1 => -1,    # 1 opponent checker on point 1
+  20 => 4,    # 4 player checkers on point 20
+  0 => -2,    # 2 opponent checkers on bar
+  25 => 1     # 1 player checker on bar
+})
+
+# Render the board
+puts XGUtils.render_board(position)
+```
+
 The position array follows the XG PositionEngine format:
 - **Index 0**: Opponent's bar (negative values for opponent checkers on bar)
 - **Indices 1-24**: The 24 points on the board (standard backgammon numbering)
