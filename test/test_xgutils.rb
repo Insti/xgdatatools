@@ -409,15 +409,15 @@ class TestXGUtils < Minitest::Test
   def test_render_board_invalid_input
     # Test with nil input
     result = XGUtils.render_board(nil)
-    assert_equal "Invalid position: must be array of 26 integers", result
+    assert_equal "Invalid position: must be array of 26 or 28 integers", result
 
     # Test with wrong size array
     result = XGUtils.render_board([1, 2, 3])
-    assert_equal "Invalid position: must be array of 26 integers", result
+    assert_equal "Invalid position: must be array of 26 or 28 integers", result
 
     # Test with array of wrong size
     result = XGUtils.render_board([0] * 25)
-    assert_equal "Invalid position: must be array of 26 integers", result
+    assert_equal "Invalid position: must be array of 26 or 28 integers", result
   end
 
   def test_render_board_empty_position

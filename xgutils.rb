@@ -124,15 +124,17 @@ module XGUtils
   # The position array is a PositionEngine (array[0..25] of ShortInt) where:
   # - Index 0: Player 1's bear-off area
   # - Indices 1-24: The 24 points on the board (1-12 and 13-24)
-  # - Index 25: Player 2's bear-off area or bar
+  # - Index 25: Player 2's bear-off area
+  # - Index 26: Player 1's bar (optional, for 28-element arrays)
+  # - Index 27: Player 2's bar (optional, for 28-element arrays)
   #
   # Positive values indicate Player 1's checkers, negative values indicate Player 2's checkers.
   # The absolute value indicates the number of checkers on that point.
   #
-  # @param position [Array<Integer>] Array of 26 integers representing the board position
+  # @param position [Array<Integer>] Array of 26 or 28 integers representing the board position
   # @return [String] ASCII representation of the backgammon board
   def self.render_board(position)
-    return "Invalid position: must be array of 26 integers" unless position.is_a?(Array) && position.length == 26
+    return "Invalid position: must be array of 26 or 28 integers" unless position.is_a?(Array) && (position.length == 26 || position.length == 28)
 
     lines = []
 
@@ -158,9 +160,14 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # BAR column for top half - assume we'll handle bar separately from bear-off
-      # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
-      bar_char = get_checker_char_for_position(0, row, :upper)
+      # BAR column for top half - get bar checkers from position array
+      # For 28-element arrays: Player 1 bar at index 26, Player 2 bar at index 27
+      # For 26-element arrays: no bar checkers (fallback to 0)
+      player1_bar = (position.length == 28) ? position[26] : 0
+      player2_bar = (position.length == 28) ? position[27] : 0
+      # Combine both players' bar checkers for display (Player 1 positive, Player 2 negative)
+      combined_bar = player1_bar + player2_bar
+      bar_char = get_checker_char_for_position(combined_bar, row, :upper)
       line += " #{bar_char.center(3)} |"
 
       # Points 19-24 (home board)
@@ -169,7 +176,7 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # OFF column for Player 2 (from position[25] when negative)
+      # OFF column for Player 2 (from position[25])
       off_checkers = (position[25] < 0) ? position[25] : 0  # Only negative values (Player 2's bear-off)
       off_char = get_checker_char_for_position(off_checkers, row, :upper)
       line += " #{off_char.center(3)} |"
@@ -191,9 +198,14 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # BAR column for bottom half - assume we'll handle bar separately from bear-off
-      # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
-      bar_char = get_checker_char_for_position(0, row, :lower)
+      # BAR column for bottom half - get bar checkers from position array
+      # For 28-element arrays: Player 1 bar at index 26, Player 2 bar at index 27
+      # For 26-element arrays: no bar checkers (fallback to 0)
+      player1_bar = (position.length == 28) ? position[26] : 0
+      player2_bar = (position.length == 28) ? position[27] : 0
+      # Combine both players' bar checkers for display (Player 1 positive, Player 2 negative)
+      combined_bar = player1_bar + player2_bar
+      bar_char = get_checker_char_for_position(combined_bar, row, :lower)
       line += " #{bar_char.center(3)} |"
 
       # Points 6-1 (home board)
