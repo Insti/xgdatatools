@@ -265,15 +265,14 @@ module XGUtils
 
     # Handle cases where both players have checkers on bar
     if abs_player > 0 && abs_opponent > 0
-      # Both players have checkers - we need to display them in the available rows
-      # For simplicity, prioritize the player with more checkers for the visual display
-      # and show counts when there are tall stacks
-      if abs_player >= abs_opponent
-        # Player has more (or equal), show as Player checkers
-        get_checker_char_for_position(player_checkers, row, half)
-      else
-        # Opponent has more, show as Opponent checkers
+      # Both players have checkers - display based on which half of the board
+      # Upper half shows opponent's checkers, lower half shows player's checkers
+      if half == :upper
+        # Upper half: show opponent's bar checkers
         get_checker_char_for_position(opponent_checkers, row, half)
+      else
+        # Lower half: show player's bar checkers
+        get_checker_char_for_position(player_checkers, row, half)
       end
     elsif abs_player > 0
       # Only Player has checkers
