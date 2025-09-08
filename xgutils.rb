@@ -121,20 +121,19 @@ module XGUtils
 
   # Render an ASCII representation of a backgammon board given a position array.
   #
-  # The position array is a PositionEngine (array[0..25] of ShortInt) where:
-  # - Index 0: Player 1's bear-off area
+  # The position array is a PositionEngine (array[0..25] of ShortInt) following XG format:
+  # - Index 0: Opponent's bar (negative values for opponent checkers on bar)
   # - Indices 1-24: The 24 points on the board (1-12 and 13-24)
-  # - Index 25: Player 2's bear-off area
-  # - Index 26: Player 1's bar (optional, for 28-element arrays)
-  # - Index 27: Player 2's bar (optional, for 28-element arrays)
+  # - Index 25: Player's bar (positive values for player checkers on bar)
   #
-  # Positive values indicate Player 1's checkers, negative values indicate Player 2's checkers.
-  # The absolute value indicates the number of checkers on that point.
+  # Positive values indicate Player's checkers, negative values indicate Opponent's checkers.
+  # The absolute value indicates the number of checkers on that point/bar.
+  # Bear-off checkers are handled separately from this positional array.
   #
-  # @param position [Array<Integer>] Array of 26 or 28 integers representing the board position
+  # @param position [Array<Integer>] Array of 26 integers representing the board position
   # @return [String] ASCII representation of the backgammon board
   def self.render_board(position)
-    return "Invalid position: must be array of 26 or 28 integers" unless position.is_a?(Array) && (position.length == 26 || position.length == 28)
+    return "Invalid position: must be array of 26 integers" unless position.is_a?(Array) && position.length == 26
 
     lines = []
 
@@ -160,13 +159,13 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # BAR column for top half - get bar checkers from position array
-      # For 28-element arrays: Player 1 bar at index 26, Player 2 bar at index 27
-      # For 26-element arrays: no bar checkers (fallback to 0)
-      player1_bar = (position.length == 28) ? position[26] : 0
-      player2_bar = (position.length == 28) ? position[27] : 0
+      # BAR column for top half - get bar checkers from XG format indices
+      # Index 25: Player's bar (positive values)
+      # Index 0: Opponent's bar (negative values)
+      player_bar = position[25]   # Player's bar checkers
+      opponent_bar = position[0]  # Opponent's bar checkers
       # Use specialized bar display logic to handle both players properly
-      bar_char = get_bar_char(player1_bar, player2_bar, row, :upper)
+      bar_char = get_bar_char(player_bar, opponent_bar, row, :upper)
       line += " #{bar_char.center(3)} |"
 
       # Points 19-24 (home board)
@@ -175,9 +174,9 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # OFF column for Player 2 (from position[25])
-      off_checkers = (position[25] < 0) ? position[25] : 0  # Only negative values (Player 2's bear-off)
-      off_char = get_checker_char_for_position(off_checkers, row, :upper)
+      # OFF column - bear-off checkers are handled separately in XG format
+      # For demo purposes, show as empty since bear-off is not in PositionEngine array
+      off_char = get_checker_char_for_position(0, row, :upper)
       line += " #{off_char.center(3)} |"
 
       lines << line
@@ -197,13 +196,13 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # BAR column for bottom half - get bar checkers from position array
-      # For 28-element arrays: Player 1 bar at index 26, Player 2 bar at index 27
-      # For 26-element arrays: no bar checkers (fallback to 0)
-      player1_bar = (position.length == 28) ? position[26] : 0
-      player2_bar = (position.length == 28) ? position[27] : 0
+      # BAR column for bottom half - get bar checkers from XG format indices
+      # Index 25: Player's bar (positive values)
+      # Index 0: Opponent's bar (negative values)
+      player_bar = position[25]   # Player's bar checkers
+      opponent_bar = position[0]  # Opponent's bar checkers
       # Use specialized bar display logic to handle both players properly
-      bar_char = get_bar_char(player1_bar, player2_bar, row, :lower)
+      bar_char = get_bar_char(player_bar, opponent_bar, row, :lower)
       line += " #{bar_char.center(3)} |"
 
       # Points 6-1 (home board)
@@ -212,8 +211,9 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # OFF column for Player 1 (from position[0])
-      off_char = get_checker_char_for_position(position[0], row, :lower)
+      # OFF column - bear-off checkers are handled separately in XG format
+      # For demo purposes, show as empty since bear-off is not in PositionEngine array
+      off_char = get_checker_char_for_position(0, row, :lower)
       line += " #{off_char.center(3)} |"
 
       lines << line
@@ -251,36 +251,36 @@ module XGUtils
   end
 
   # Helper method to get the appropriate checker character for the bar column
-  # @param player1_checkers [Integer] Number of Player 1 checkers on bar (positive)
-  # @param player2_checkers [Integer] Number of Player 2 checkers on bar (negative)
+  # @param player_checkers [Integer] Number of Player checkers on bar (positive)
+  # @param opponent_checkers [Integer] Number of Opponent checkers on bar (negative)
   # @param row [Integer] Row number (0-4)
   # @param half [Symbol] :upper or :lower half of board
   # @return [String] Character to display ('X', 'O', number, or space)
-  def self.get_bar_char(player1_checkers, player2_checkers, row, half)
-    abs_p1 = player1_checkers.abs
-    abs_p2 = player2_checkers.abs
+  def self.get_bar_char(player_checkers, opponent_checkers, row, half)
+    abs_player = player_checkers.abs
+    abs_opponent = opponent_checkers.abs
     
     # If no checkers for either player, return space
-    return " " if abs_p1 == 0 && abs_p2 == 0
+    return " " if abs_player == 0 && abs_opponent == 0
     
     # Handle cases where both players have checkers on bar
-    if abs_p1 > 0 && abs_p2 > 0
+    if abs_player > 0 && abs_opponent > 0
       # Both players have checkers - we need to display them in the available rows
       # For simplicity, prioritize the player with more checkers for the visual display
       # and show counts when there are tall stacks
-      if abs_p1 >= abs_p2
-        # Player 1 has more (or equal), show as Player 1 checkers
-        return get_checker_char_for_position(player1_checkers, row, half)
+      if abs_player >= abs_opponent
+        # Player has more (or equal), show as Player checkers
+        return get_checker_char_for_position(player_checkers, row, half)
       else
-        # Player 2 has more, show as Player 2 checkers  
-        return get_checker_char_for_position(player2_checkers, row, half)
+        # Opponent has more, show as Opponent checkers  
+        return get_checker_char_for_position(opponent_checkers, row, half)
       end
-    elsif abs_p1 > 0
-      # Only Player 1 has checkers
-      return get_checker_char_for_position(player1_checkers, row, half)
+    elsif abs_player > 0
+      # Only Player has checkers
+      return get_checker_char_for_position(player_checkers, row, half)
     else
-      # Only Player 2 has checkers
-      return get_checker_char_for_position(player2_checkers, row, half)
+      # Only Opponent has checkers
+      return get_checker_char_for_position(opponent_checkers, row, half)
     end
   end
 

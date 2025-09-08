@@ -409,15 +409,15 @@ class TestXGUtils < Minitest::Test
   def test_render_board_invalid_input
     # Test with nil input
     result = XGUtils.render_board(nil)
-    assert_equal "Invalid position: must be array of 26 or 28 integers", result
+    assert_equal "Invalid position: must be array of 26 integers", result
 
     # Test with wrong size array
     result = XGUtils.render_board([1, 2, 3])
-    assert_equal "Invalid position: must be array of 26 or 28 integers", result
+    assert_equal "Invalid position: must be array of 26 integers", result
 
     # Test with array of wrong size
     result = XGUtils.render_board([0] * 25)
-    assert_equal "Invalid position: must be array of 26 or 28 integers", result
+    assert_equal "Invalid position: must be array of 26 integers", result
   end
 
   def test_render_board_empty_position
@@ -504,6 +504,45 @@ class TestXGUtils < Minitest::Test
     assert result.include?(" 8"), "Should show count 8 for point 24 stack"
     assert result.include?(" 7"), "Should show count 7 for point 13 stack"
     assert result.include?(" 6"), "Should show count 6 for point 6 stack"
+  end
+
+  def test_render_board_with_bar_checkers_xg_format
+    # Test XG format bar checkers using indices 0 and 25
+    position = [0] * 26
+    
+    # Add some regular checkers for context
+    position[13] = 2    # Player checkers on point 13
+    position[18] = -3   # Opponent checkers on point 18
+    
+    # Test Player bar checkers (index 25, positive values)
+    position[25] = 8    # 8 Player checkers on bar
+    position[0] = 0     # No Opponent checkers on bar
+    
+    result = XGUtils.render_board(position)
+    
+    # Should show Player (X) checkers in BAR column for tall stacks
+    assert result.include?("X"), "Should show Player checkers in BAR"
+    assert result.include?(" 8"), "Should show count 8 for Player bar stack"
+    
+    # Test Opponent bar checkers (index 0, negative values) 
+    position[25] = 0    # No Player checkers on bar
+    position[0] = -7    # 7 Opponent checkers on bar
+    
+    result = XGUtils.render_board(position)
+    
+    # Should show Opponent (O) checkers in BAR column for tall stacks
+    assert result.include?("O"), "Should show Opponent checkers in BAR"
+    assert result.include?(" 7"), "Should show count 7 for Opponent bar stack"
+    
+    # Test both players with bar checkers simultaneously
+    position[25] = 5    # 5 Player checkers on bar
+    position[0] = -3    # 3 Opponent checkers on bar
+    
+    result = XGUtils.render_board(position)
+    
+    # Should prioritize the player with more checkers (Player has 5 > Opponent has 3)
+    assert result.include?("X"), "Should show Player checkers when Player has more on bar"
+    assert result.include?(" 5"), "Should show count 5 for Player bar stack"
   end
 
   def test_render_board_mixed_positions

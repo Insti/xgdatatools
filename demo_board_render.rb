@@ -66,46 +66,38 @@ puts XGUtils.render_board(demo_position)
 
 puts "\n" + "=" * 50
 
-# Example 5: Player 1 with many checkers on the bar
-puts "5a. Player 1 with Many Checkers on the Bar:"
-bar_position_p1 = [0] * 28  # Use 28-element array to support bar checkers
+# Example 5: Player with many checkers on the bar using XG format
+puts "5a. Player with Many Checkers on the Bar (XG format):"
+bar_position_player = [0] * 26  # Use 26-element array for XG format
 
 # Some checkers on regular points
-bar_position_p1[13] = 2    # Player 1 checkers on point 13
-bar_position_p1[18] = -3   # Player 2 checkers on point 18
-bar_position_p1[6] = 4     # Player 1 checkers on point 6
-bar_position_p1[20] = -2   # Player 2 checkers on point 20
+bar_position_player[13] = 2    # Player checkers on point 13
+bar_position_player[18] = -3   # Opponent checkers on point 18
+bar_position_player[6] = 4     # Player checkers on point 6
+bar_position_player[20] = -2   # Opponent checkers on point 20
 
-# Bear-off areas
-bar_position_p1[0] = 2     # Player 1 bear-off
-bar_position_p1[25] = -3   # Player 2 bear-off
+# Bar checkers using XG format indices
+bar_position_player[25] = 8    # 8 Player checkers on bar (index 25)
+bar_position_player[0] = 0     # No Opponent checkers on bar (index 0)
 
-# Player 1 with many checkers on the bar
-bar_position_p1[26] = 8    # 8 Player 1 checkers on bar
-bar_position_p1[27] = 0    # No Player 2 checkers on bar
-
-puts XGUtils.render_board(bar_position_p1)
+puts XGUtils.render_board(bar_position_player)
 
 puts "\n" + "=" * 50
 
-# Example 6: Player 2 with many checkers on the bar
-puts "5b. Player 2 with Many Checkers on the Bar:"
-bar_position_p2 = [0] * 28  # Use 28-element array to support bar checkers
+# Example 6: Opponent with many checkers on the bar using XG format
+puts "5b. Opponent with Many Checkers on the Bar (XG format):"
+bar_position_opponent = [0] * 26  # Use 26-element array for XG format
 
 # Some checkers on regular points
-bar_position_p2[14] = 3    # Player 1 checkers on point 14
-bar_position_p2[19] = -2   # Player 2 checkers on point 19
-bar_position_p2[7] = 2     # Player 1 checkers on point 7
-bar_position_p2[21] = -4   # Player 2 checkers on point 21
+bar_position_opponent[14] = 3    # Player checkers on point 14
+bar_position_opponent[19] = -2   # Opponent checkers on point 19
+bar_position_opponent[7] = 2     # Player checkers on point 7
+bar_position_opponent[21] = -4   # Opponent checkers on point 21
 
-# Bear-off areas
-bar_position_p2[0] = 1     # Player 1 bear-off
-bar_position_p2[25] = -5   # Player 2 bear-off
+# Bar checkers using XG format indices
+bar_position_opponent[25] = 0    # No Player checkers on bar (index 25)
+bar_position_opponent[0] = -7    # 7 Opponent checkers on bar (index 0)
 
-# Player 2 with many checkers on the bar
-bar_position_p2[26] = 0    # No Player 1 checkers on bar
-bar_position_p2[27] = -7   # 7 Player 2 checkers on bar
-
-puts XGUtils.render_board(bar_position_p2)
+puts XGUtils.render_board(bar_position_opponent)
 
 puts "\nDemo complete!"
