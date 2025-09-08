@@ -121,13 +121,14 @@ module XGUtils
 
   # Render an ASCII representation of a backgammon board given a position array.
   #
-  # The position array is a PositionEngine (array[0..25] of ShortInt) where:
-  # - Index 0: Player 1's bear-off area
+  # The position array is a PositionEngine (array[0..25] of ShortInt) following XG format:
+  # - Index 0: Opponent's bar (negative values for opponent checkers on bar)
   # - Indices 1-24: The 24 points on the board (1-12 and 13-24)
-  # - Index 25: Player 2's bear-off area or bar
+  # - Index 25: Player's bar (positive values for player checkers on bar)
   #
-  # Positive values indicate Player 1's checkers, negative values indicate Player 2's checkers.
-  # The absolute value indicates the number of checkers on that point.
+  # Positive values indicate Player's checkers, negative values indicate Opponent's checkers.
+  # The absolute value indicates the number of checkers on that point/bar.
+  # Bear-off checkers are handled separately from this positional array.
   #
   # @param position [Array<Integer>] Array of 26 integers representing the board position
   # @return [String] ASCII representation of the backgammon board
@@ -158,9 +159,13 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # BAR column for top half - assume we'll handle bar separately from bear-off
-      # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
-      bar_char = get_checker_char_for_position(0, row, :upper)
+      # BAR column for top half - get bar checkers from XG format indices
+      # Index 25: Player's bar (positive values)
+      # Index 0: Opponent's bar (negative values)
+      player_bar = position[25]   # Player's bar checkers
+      opponent_bar = position[0]  # Opponent's bar checkers
+      # Use specialized bar display logic to handle both players properly
+      bar_char = get_bar_char(player_bar, opponent_bar, row, :upper)
       line += " #{bar_char.center(3)} |"
 
       # Points 19-24 (home board)
@@ -169,9 +174,9 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # OFF column for Player 2 (from position[25] when negative)
-      off_checkers = (position[25] < 0) ? position[25] : 0  # Only negative values (Player 2's bear-off)
-      off_char = get_checker_char_for_position(off_checkers, row, :upper)
+      # OFF column - bear-off checkers are handled separately in XG format
+      # For demo purposes, show as empty since bear-off is not in PositionEngine array
+      off_char = get_checker_char_for_position(0, row, :upper)
       line += " #{off_char.center(3)} |"
 
       lines << line
@@ -191,9 +196,13 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # BAR column for bottom half - assume we'll handle bar separately from bear-off
-      # For now, let's assume no bar checkers (this may need adjustment based on actual game logic)
-      bar_char = get_checker_char_for_position(0, row, :lower)
+      # BAR column for bottom half - get bar checkers from XG format indices
+      # Index 25: Player's bar (positive values)
+      # Index 0: Opponent's bar (negative values)
+      player_bar = position[25]   # Player's bar checkers
+      opponent_bar = position[0]  # Opponent's bar checkers
+      # Use specialized bar display logic to handle both players properly
+      bar_char = get_bar_char(player_bar, opponent_bar, row, :lower)
       line += " #{bar_char.center(3)} |"
 
       # Points 6-1 (home board)
@@ -202,8 +211,9 @@ module XGUtils
         line += " #{char.center(2)} |"
       end
 
-      # OFF column for Player 1 (from position[0])
-      off_char = get_checker_char_for_position(position[0], row, :lower)
+      # OFF column - bear-off checkers are handled separately in XG format
+      # For demo purposes, show as empty since bear-off is not in PositionEngine array
+      off_char = get_checker_char_for_position(0, row, :lower)
       line += " #{off_char.center(3)} |"
 
       lines << line
@@ -238,6 +248,39 @@ module XGUtils
       .take_while { |from, to| from != -1 && to != -1 }
       .map { |from, to| "#{from + 1}/#{to + 1}" }
       .join(", ")
+  end
+
+  # Helper method to get the appropriate checker character for the bar column
+  # @param player_checkers [Integer] Number of Player checkers on bar (positive)
+  # @param opponent_checkers [Integer] Number of Opponent checkers on bar (negative)
+  # @param row [Integer] Row number (0-4)
+  # @param half [Symbol] :upper or :lower half of board
+  # @return [String] Character to display ('X', 'O', number, or space)
+  def self.get_bar_char(player_checkers, opponent_checkers, row, half)
+    abs_player = player_checkers.abs
+    abs_opponent = opponent_checkers.abs
+
+    # If no checkers for either player, return space
+    return " " if abs_player == 0 && abs_opponent == 0
+
+    # Handle cases where both players have checkers on bar
+    if abs_player > 0 && abs_opponent > 0
+      # Both players have checkers - display based on which half of the board
+      # Upper half shows opponent's checkers, lower half shows player's checkers
+      if half == :upper
+        # Upper half: show opponent's bar checkers
+        get_checker_char_for_position(opponent_checkers, row, half)
+      else
+        # Lower half: show player's bar checkers
+        get_checker_char_for_position(player_checkers, row, half)
+      end
+    elsif abs_player > 0
+      # Only Player has checkers
+      get_checker_char_for_position(player_checkers, row, half)
+    else
+      # Only Opponent has checkers
+      get_checker_char_for_position(opponent_checkers, row, half)
+    end
   end
 
   # Helper method to get the appropriate checker character for a position

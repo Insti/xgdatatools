@@ -89,12 +89,14 @@ position[0] = 1    # 1 Player 1 checker in bear-off
 puts XGUtils.render_board(position)
 ```
 
-The position array follows the PositionEngine format:
-- Index 0: Player 1's bear-off area
-- Indices 1-24: The 24 points on the board
-- Index 25: Player 2's bear-off area
-- Positive values = Player 1's checkers
-- Negative values = Player 2's checkers
+The position array follows the XG PositionEngine format:
+- **Index 0**: Opponent's bar (negative values for opponent checkers on bar)
+- **Indices 1-24**: The 24 points on the board (standard backgammon numbering)
+- **Index 25**: Player's bar (positive values for player checkers on bar)
+- **Positive values**: Player's checkers
+- **Negative values**: Opponent's checkers
+- **Bear-off checkers**: Handled separately from this positional array
+- **Bear-off calculation**: Bear-off checkers for each player are calculated as 15 minus the (absolute) number of checkers remaining on the board (or bar) for that player
 
 ### Testing
 ```bash
