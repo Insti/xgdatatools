@@ -260,26 +260,21 @@ module XGUtils
     abs_player = player_checkers.abs
     abs_opponent = opponent_checkers.abs
 
-    # If no checkers for either player, return space
-    return " " if abs_player == 0 && abs_opponent == 0
-
-    # Handle cases where both players have checkers on bar
-    if abs_player > 0 && abs_opponent > 0
-      # Both players have checkers - display based on which half of the board
-      # Upper half shows opponent's checkers, lower half shows player's checkers
-      if half == :upper
-        # Upper half: show opponent's bar checkers
+    # Bar display rules:
+    # - Player checkers on bar appear only in the lower half (player's side)
+    # - Opponent checkers on bar appear only in the upper half (opponent's side)
+    if half == :upper
+      # Upper half: show opponent's bar checkers only
+      if abs_opponent > 0
         get_checker_char_for_position(opponent_checkers, row, half)
       else
-        # Lower half: show player's bar checkers
-        get_checker_char_for_position(player_checkers, row, half)
+        " "
       end
     elsif abs_player > 0
-      # Only Player has checkers
+      # Lower half: show player's bar checkers only
       get_checker_char_for_position(player_checkers, row, half)
     else
-      # Only Opponent has checkers
-      get_checker_char_for_position(opponent_checkers, row, half)
+      " "
     end
   end
 
