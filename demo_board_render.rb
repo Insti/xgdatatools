@@ -102,4 +102,14 @@ bar_position_opponent[0] = -7    # 7 Opponent checkers on bar (index 0)
 
 puts XGUtils.render_board(bar_position_opponent)
 
+# Example 7: Opponent with many checkers on the bar using XG format
+puts "7. Both players have only checkers on the bar"
+
+bar_position_both = EMPTY_BOARD
+bar_position_both[25] = 7    # 7 Player checkers on bar (index 25)
+bar_position_both[0] = -8    # 8 Opponent checkers on bar (index 0)
+
+puts XGUtils.render_board(bar_position_both)
+
+
 puts "\nDemo complete!"
