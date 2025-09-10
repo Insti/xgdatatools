@@ -19,6 +19,7 @@ class TestXGUtilsBoardAlignment < Minitest::Test
     # All lines should start and end with | for table structure
     lines.each_with_index do |line, i|
       next if line.empty?
+
       assert line.start_with?("|"), "Line #{i + 1} should start with |: '#{line}'"
       assert line.end_with?("|"), "Line #{i + 1} should end with |: '#{line}'"
     end

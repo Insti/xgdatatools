@@ -41,6 +41,7 @@ def directoryisvalid(dir)
   unless File.directory?(dir)
     raise ArgumentError, "directory path '#{dir}' doesn't exist"
   end
+
   dir
 end
 
