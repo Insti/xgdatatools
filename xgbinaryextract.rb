@@ -30,6 +30,7 @@ def directoryisvalid(dir)
   unless File.directory?(dir)
     raise ArgumentError, "directory path '#{dir}' doesn't exist"
   end
+
   dir
 end
 
@@ -165,9 +166,9 @@ if __FILE__ == $PROGRAM_NAME
     # Extract components from this file
     if extract_xg_components(xgfilename, output_dir, logger)
       success_count += 1
-      puts "Successfully processed: #{xgfilename}" if options[:log_level] != :debug
+      logger.info "Successfully processed: #{xgfilename}"
     else
-      puts "Failed to process: #{xgfilename}"
+      logger.error "Failed to process: #{xgfilename}"
     end
   end
 
