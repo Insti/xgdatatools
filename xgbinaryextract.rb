@@ -30,6 +30,7 @@ def directoryisvalid(dir)
   unless File.directory?(dir)
     raise ArgumentError, "directory path '#{dir}' doesn't exist"
   end
+
   dir
 end
 
@@ -69,7 +70,6 @@ def extract_xg_components(xgfilename, output_dir, logger)
 
   begin
     xgobj = XGImport::Import.new(xgfilename)
-    puts "Processing file: #{xgfilename}"
 
     # Counter for numbering segments of the same type
     segment_counters = Hash.new(0)
@@ -94,14 +94,11 @@ def extract_xg_components(xgfilename, output_dir, logger)
 
       # Copy the binary data to the output file
       segment.copyto(output_filename)
-      logger.debug "Segment extracted successfully: #{File.size(output_filename)} bytes"
-
-      puts "Extracted: #{File.basename(output_filename)} (#{File.size(output_filename)} bytes)"
+      logger.info "Extracted: #{File.basename(output_filename)} (#{File.size(output_filename)} bytes)"
     end
   rescue XGImport::Error, XGZarc::Error, Errno::ENOENT, Errno::EINVAL => e
     error_message = e.respond_to?(:value) ? e.value : e.message
     logger.error "Error processing #{xgfilename}: #{error_message}"
-    puts "Error: #{error_message}"
     return false
   end
 
@@ -169,6 +166,9 @@ if __FILE__ == $PROGRAM_NAME
     # Extract components from this file
     if extract_xg_components(xgfilename, output_dir, logger)
       success_count += 1
+      logger.info "Successfully processed: #{xgfilename}"
+    else
+      logger.error "Failed to process: #{xgfilename}"
     end
   end
 

@@ -822,6 +822,7 @@ class TestXGUtils < Minitest::Test
     # All other positions should be 0
     (0..25).each do |i|
       next if i == 1 || i == 20
+
       assert_equal 0, position[i], "Position #{i} should be 0"
     end
   end

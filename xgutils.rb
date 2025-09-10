@@ -35,6 +35,7 @@ module XGUtils
       loop do
         block = stream.read(blksize)
         break if block.nil? || block.empty?
+
         crc32 = Zlib.crc32(block, crc32)
       end
     else
@@ -57,6 +58,7 @@ module XGUtils
     newstr = []
     intarray.each do |intval|
       break if intval == 0
+
       newstr << intval.chr(Encoding::UTF_8)
     end
     newstr.join.encode("UTF-8")
@@ -204,6 +206,7 @@ module XGUtils
   # @return [String] Space-separated dice values (e.g., "4 6")
   def self.render_dice(dice)
     return "" unless dice.is_a?(Array) && dice.length == 2
+
     dice.join(" ")
   end
 
